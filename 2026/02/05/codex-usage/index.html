@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html 
+	lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		
+<link rel="stylesheet" href="../../../../css/layout.css">
+
+		
+		<title> Codex 使用指南：从想法到高效落地 -  chao&#39;s blog</title>
+		<!-- <link rel="stylesheet" href="https://unpkg.com/mdui@1.0.2/dist/css/mdui.min.css" /> -->
+		<!-- <script src="https://unpkg.com/mdui@1.0.2/dist/js/mdui.min.js"></script> -->
+		
+<link rel="stylesheet" href="../../../../lib/mdui/mdui.min.css">
+
+		
+<script src="../../../../lib/mdui/mdui.min.js"></script>
+
+		<!-- lazyload -->
+		
+<script src="../../../../lib/lazysizes.js"></script>
+
+		<!-- smooth-scrolling -->
+		
+<script src="../../../../lib/smooth-scrolling.js"></script>
+
+		<!-- highlight -->
+		
+<link rel="stylesheet" href="../../../../lib/highlight/atom-one-dark.min.css">
+
+		
+<script src="../../../../lib/highlight/highlight.min.js"></script>
+
+		<!-- 预置 kiraicon -->
+		
+<link rel="stylesheet" href="../../../../lib/iconfont/iconfont.css">
+
+		
+		<link
+			rel="shortcut icon"
+			href="https://kira.host/assets/Pictures/Others/116359b4ccf19917.jpg"
+			type="image/png"
+		/>
+		
+<link rel="stylesheet" href="../../../../deps/css/APlayer.min.css">
+
+		
+		
+<script src="../../../../deps/js/APlayer.min.js"></script>
+<script src="../../../../deps/js/Meting.min.js"></script>
+
+	<meta name="generator" content="Hexo 7.3.0"></head>
+
+	<body>
+		<div
+			class="kira-background"
+			style="background-image: url('https://cdn.pixabay.com/photo/2023/11/10/16/05/anime-8379662_960_720.jpg')"
+		></div>
+		<div class="kira-header">
+    <a
+        class="kira-drawer-button mdui-ripple"
+        title="导航栏"
+        onclick="document.querySelector('.kira-sidebar-modal').classList.add('show');document.querySelector('.kira-sidebar#sidebar').classList.add('show');"
+    >
+        <i class="kirafont icon-menu"></i>
+    </a>
+    <a href="../../../../index.html" title="chao&#39;s blog">
+        <img
+			src="https://kira.host/assets/Pictures/Others/20220922230447.jpg"
+			alt="mason.chao"
+		/>
+    </a>
+</div>
+		<div class="kira-body">
+			<div class="kira-sidebar" id="sidebar">
+	<div class="kira-avatar mdui-ripple">
+		<a target="_blank" rel="noopener" href="https://kira.host/assets/Pictures/Others/20220922230447.jpg" title="mason.chao">
+			<img
+				src="https://kira.host/assets/Pictures/Others/20220922230447.jpg"
+				alt="mason.chao"
+			/>
+		</a>
+	</div>
+	<div class="kira-count">
+		<div><span>文章</span>4</div>
+		<div><span>标签</span>3</div>
+		<div><span>分类</span>1</div>
+	</div>
+	<div class="kira-list">
+		
+		<a
+			class="kira-list-item mdui-ripple false"
+			href="../../../../index.html"
+			title="回到首页"
+		>
+			<i
+				class="kirafont
+					
+						icon-home
+					"
+			></i>
+			<div class="kira-list-item-content">
+				回到首页
+			</div>
+		</a>
+		
+		<a
+			class="kira-list-item mdui-ripple false"
+			href="../../../../archive.html"
+			title="文章归档"
+		>
+			<i
+				class="kirafont
+					
+						icon-container
+					"
+			></i>
+			<div class="kira-list-item-content">
+				文章归档
+			</div>
+		</a>
+		
+		<a
+			class="kira-list-item mdui-ripple false"
+			href="../../../../about.html"
+			title="关于本人"
+		>
+			<i
+				class="kirafont
+					
+						icon-user
+					"
+			></i>
+			<div class="kira-list-item-content">
+				关于本人
+			</div>
+		</a>
+		
+		<a
+			class="kira-list-item mdui-ripple false"
+			href="../../../../friends.html"
+			title="我的朋友"
+		>
+			<i
+				class="kirafont
+					
+						icon-team
+					"
+			></i>
+			<div class="kira-list-item-content">
+				我的朋友
+			</div>
+		</a>
+		
+	</div>
+	<aside id="kira-sidebar">
+		
+			<div class="kira-widget-wrap">
+	<div class="kira-widget kira-social">
+		
+			<a
+				class="mdui-ripple"
+				href="../../../../tencent:/AddContact/?fromId=45&fromSubId=1&subcmd=all&uin=%3C%E5%8E%BB%E6%8E%89%E5%B0%96%E6%8B%AC%E5%8F%B7%E5%90%8E%E5%A1%AB%E4%B8%8A%E4%BD%A0%E7%9A%84QQ%E5%8F%B7%3E&website=www.oicqzone.com"
+				target="_blank"
+				mdui-tooltip="{content: 'QQ'}"
+				style="color: rgb(49, 174, 255); background-color: rgba(49, 174, 255, .1);"
+			>
+				<i
+					class="kirafont
+					
+						icon-QQ
+					"
+				></i>
+			</a>
+		
+			<a
+				class="mdui-ripple"
+				href="https://space.bilibili.com/<改成你的B站uid>"
+				target="_blank"
+				mdui-tooltip="{content: '哔哩哔哩'}"
+				style="color: rgb(231, 106, 141); background-color: rgba(231, 106, 141, .15);"
+			>
+				<i
+					class="kirafont
+					
+						icon-bilibili
+					"
+				></i>
+			</a>
+		
+			<a
+				class="mdui-ripple"
+				href="https://github.com/<你的github id>/"
+				target="_blank"
+				mdui-tooltip="{content: 'GitHub'}"
+				style="color: rgb(25, 23, 23); background-color: rgba(25, 23, 23, .15);"
+			>
+				<i
+					class="kirafont
+					
+						icon-github
+					"
+				></i>
+			</a>
+		
+			<a
+				class="mdui-ripple"
+				href="https://gitee.com/<你的gitee id>"
+				target="_blank"
+				mdui-tooltip="{content: 'Gitee'}"
+				style="color: rgb(165, 15, 15); background-color: rgba(165, 15, 15, .15);"
+			>
+				<i
+					class="kirafont
+					
+						icon-gitee
+					"
+				></i>
+			</a>
+		
+	</div>
+</div>
+
+		
+			
+  <div class="kira-widget-wrap">
+    <h3 class="kira-widget-title">分类</h3>
+    <div class="kira-widget">
+      <ul class="category-list">
+        
+        
+
+        
+          <li class="category-list-item">
+            <a class="category-list-link" href="/categories/工程实践/">
+              工程实践
+            </a>
+            <span class="category-list-count">1</span>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+		
+			
+	<div class="kira-widget-wrap">
+		<div id="randomtagcloud" class="kira-widget tagcloud kira-rainbow">
+			<a href="../../../../tags/Codex/" style="font-size: 10px;">Codex</a> <a href="../../../../tags/%E5%B7%A5%E5%85%B7%E9%93%BE/" style="font-size: 10px;">工具链</a> <a href="../../../../tags/%E6%95%88%E7%8E%87/" style="font-size: 10px;">效率</a>
+		</div>
+		
+	</div>
+
+
+		
+			
+	<div class="kira-widget-wrap">
+		<h3 class="kira-widget-title">
+			Archive
+		</h3>
+		<div class="kira-widget">
+			<ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="../../../../archives/2026/">2026</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="../../../../archives/2025/">2025</a><span class="archive-list-count">1</span></li></ul>
+		</div>
+	</div>
+
+
+		
+	</aside>
+	<div class="kira-copyright">
+		&copy; 2026
+		<a href="../../../../index.html">mason.chao</a>
+		Powered by <a href="http://hexo.io/" target="_blank">Hexo</a> &
+		<a href="https://github.com/ch1ny/kira-hexo/" target="_blank">Kira-Hexo</a>
+		<br />
+		
+		
+	</div>
+</div>
+<div
+	class="kira-sidebar-modal"
+	id="sidebar-modal"
+	onclick="(function(self) {
+		self.classList.remove('show');
+		document.querySelector('.kira-sidebar.show#sidebar').classList.remove('show');
+	})(this)"
+></div>
+			<div class="kira-content">
+				<div id="kira-top-header"></div>
+				<div class="kira-main-content">
+					
+<link rel="stylesheet" href="../../../../css/kira-image.css">
+
+
+<script src="../../../../js/kira-image.js"></script>
+
+<div class="kira-image">
+    <div class="kira-image-modal">
+        <div class="kira-image-header">
+            <div class="kira-image-counter"></div>
+            <div class="kira-image-title"></div>
+            <div class="kira-image-operation">
+                <div class="kira-image-operation-button" id="kira-image-operation-button-zoom">
+                    <i class="kirafont icon-zoom-in"></i>
+                </div>
+                <div class="kira-image-operation-button" id="kira-image-operation-button-close">
+                    <i class="kirafont icon-close"></i>
+                </div>
+            </div>
+        </div>
+        <div class="kira-image-container">
+            <div class="kira-image-prev-button-panel">
+                <div class="kira-image-exchange-button">
+                    <i class="kirafont icon-left"></i>
+                </div>
+            </div>
+            <div class="kira-image-list">
+                <div class="kira-image-prev">
+                    <img />
+                </div>
+                <div class="kira-image-now">
+                    <img />
+                </div>
+                <div class="kira-image-next">
+                    <img />
+                </div>
+            </div>
+            <div class="kira-image-next-button-panel">
+                <div class="kira-image-exchange-button">
+                    <i class="kirafont icon-right"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+	
+<link rel="stylesheet" href="../../../../css/kira-code-copy.css">
+
+	
+<script src="../../../../js/kira-code-copy.js"></script>
+
+
+<div class="kira-post">
+	<article>
+		
+		<div
+			class="kira-post-cover"
+			style="padding-bottom: '56.25%'"
+		>
+			<img
+				data-src="https://cdn.pixabay.com/photo/2023/11/10/16/05/anime-8379662_960_720.jpg"
+				data-sizes="auto"
+				alt="Codex 使用指南：从想法到高效落地"
+				class="lazyload kira-post-cover-image disabled-kira-image"
+			/>
+			<h1>Codex 使用指南：从想法到高效落地</h1>
+		</div>
+		
+		<div class="kira-post-meta kira-rainbow" style="margin:10px 0!important;">
+			<a><i class="kirafont icon-calendar-fill"></i>2026年02月05日</a>
+			<a><i class="kirafont icon-edit-fill"></i>1.4k 字</a>
+			<a><i class="kirafont icon-time-circle-fill"></i>大概 5 分钟</a>
+		</div>
+		<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>这是一篇写给新手的 Codex 使用入门文章。我会把“怎么问、怎么做、怎么验证”的完整流程讲清楚，并用实际场景举例，帮助你把 Codex 当成一个可靠的协作同伴，而不是“点一下就全自动”的魔法按钮。</p>
+<p>如果你是第一次接触 Codex，请先读完“最小可用工作流”，再回头看后面的提示词与示例。</p>
+<h2 id="Codex-到底是什么"><a href="#Codex-到底是什么" class="headerlink" title="Codex 到底是什么"></a>Codex 到底是什么</h2><p>简单理解：Codex 是一个“能理解代码与文本，并能执行任务的助手”。它既能写内容，也能改代码、整理文件、执行命令，还能解释每一步为什么这么做。</p>
+<p>它的优势在于：</p>
+<ul>
+<li><strong>理解上下文</strong>：可以在已有项目里工作，不是从零开始。</li>
+<li><strong>执行能力强</strong>：能把需求拆成步骤并实际操作。</li>
+<li><strong>反馈清晰</strong>：会告诉你改了哪些文件、用了哪些命令。</li>
+</ul>
+<p>它的限制也很重要：</p>
+<ul>
+<li><strong>它不会替你做决定</strong>：需要你给出目标和约束。</li>
+<li><strong>它可能会误解需求</strong>：所以要用可验证的步骤纠偏。</li>
+<li><strong>它不等于线上部署</strong>：部署与发布仍要你确认。</li>
+</ul>
+<h2 id="适合新手的使用场景"><a href="#适合新手的使用场景" class="headerlink" title="适合新手的使用场景"></a>适合新手的使用场景</h2><p>以下是新手最容易上手、收益最大的场景：</p>
+<ul>
+<li><strong>写内容</strong>：博客、说明文档、README 初稿。</li>
+<li><strong>小改动</strong>：调整配置、修正文案、补全 Front Matter。</li>
+<li><strong>整理工作</strong>：批量改名、统一格式、查找重复项。</li>
+<li><strong>学习理解</strong>：让它解释项目结构、依赖、运行方式。</li>
+</ul>
+<p>不建议一开始就让它做“高风险改动”，比如架构重构或大范围的依赖升级。</p>
+<h2 id="最小可用工作流（新手必看）"><a href="#最小可用工作流（新手必看）" class="headerlink" title="最小可用工作流（新手必看）"></a>最小可用工作流（新手必看）</h2><p>下面这 5 步是我最推荐的新手工作流。任何任务都可以按这个节奏执行：</p>
+<ol>
+<li><strong>一句话说清目标</strong><br>例如：“帮我写一篇介绍 Codex 使用的长文博客，面向新手。”</li>
+<li><strong>列出约束</strong><br>比如：“只改 <code>source/_posts/codex-usage.md</code>；不要改主题配置。”</li>
+<li><strong>让它先给出计划</strong><br>先让 Codex 列计划，确认方向，再让它执行。</li>
+<li><strong>执行并展示改动</strong><br>要求它展示改动点、文件路径、命令日志。</li>
+<li><strong>你来确认与验证</strong><br>本地预览或构建，确认无误再提交或发布。</li>
+</ol>
+<p>这个流程的核心是：<strong>你掌控方向，它负责执行</strong>。</p>
+<h2 id="一个好提示词长什么样"><a href="#一个好提示词长什么样" class="headerlink" title="一个好提示词长什么样"></a>一个好提示词长什么样</h2><p>新手最容易犯的错是“说得太少”。下面是一个通用模板：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs plaintext">目标：<br>- 想完成的结果<br><br>背景：<br>- 项目是什么<br>- 目标读者是谁<br><br>约束：<br>- 只能改哪些文件<br>- 不要做哪些事<br><br>输出：<br>- 需要哪些文件改动<br>- 需要哪些验证步骤<br></code></pre></td></tr></table></figure>
+
+<p>当任务更复杂时，可以追加一句：<br><strong>“先给计划，确认后再执行。”</strong></p>
+<h2 id="示例：写一篇-Codex-使用博客"><a href="#示例：写一篇-Codex-使用博客" class="headerlink" title="示例：写一篇 Codex 使用博客"></a>示例：写一篇 Codex 使用博客</h2><p>下面是一个完整示例，你可以直接复制修改：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs plaintext">目标：<br>- 写一篇面向新手的 Codex 使用长文博客<br><br>背景：<br>- 博客用 Hexo<br>- 文章要发布到 GitHub<br><br>约束：<br>- 只修改 source/_posts/codex-usage.md<br>- 保留原有标题与日期<br><br>输出：<br>- 更新后的文章内容<br>- 简短说明改动点<br></code></pre></td></tr></table></figure>
+
+<h2 id="在-Hexo-项目里怎么配合使用"><a href="#在-Hexo-项目里怎么配合使用" class="headerlink" title="在 Hexo 项目里怎么配合使用"></a>在 Hexo 项目里怎么配合使用</h2><p>如果你的博客是 Hexo 项目，Codex 可以帮你完成这些事：</p>
+<ul>
+<li>生成新文章的 Markdown 初稿</li>
+<li>自动补齐 Front Matter（title&#x2F;date&#x2F;tags&#x2F;categories）</li>
+<li>统一格式、标题层级与语气风格</li>
+<li>生成变更说明，方便你写发布日志</li>
+</ul>
+<p>一个安全的流程是：</p>
+<ol>
+<li>让它生成或修改文章  </li>
+<li>你本地跑一次 <code>hexo server</code> 或 <code>hexo generate</code>  </li>
+<li>你再决定是否提交与推送</li>
+</ol>
+<h2 id="常见误区（新手最容易踩）"><a href="#常见误区（新手最容易踩）" class="headerlink" title="常见误区（新手最容易踩）"></a>常见误区（新手最容易踩）</h2><ol>
+<li><strong>只说“帮我写篇文章”</strong><br>这种指令太泛，它很难判断风格与结构。</li>
+<li><strong>让它“随便改改”</strong><br>容易导致范围过大或改错文件。</li>
+<li><strong>不做验证就提交</strong><br>这是最危险的一步，尤其是部署相关任务。</li>
+<li><strong>想让它猜你的意图</strong><br>Codex 不是读心术，需要明确上下文。</li>
+</ol>
+<h2 id="实用小技巧"><a href="#实用小技巧" class="headerlink" title="实用小技巧"></a>实用小技巧</h2><ul>
+<li><strong>让它先复述你的目标</strong>，确认理解一致。</li>
+<li><strong>分阶段推进</strong>，先写结构，再扩展内容。</li>
+<li><strong>让它标注修改点</strong>，你会更快判断是否接受。</li>
+<li><strong>保存好提示词模板</strong>，日后复用。</li>
+</ul>
+<h2 id="FAQ：新手常见问题"><a href="#FAQ：新手常见问题" class="headerlink" title="FAQ：新手常见问题"></a>FAQ：新手常见问题</h2><p><strong>Q：我需要会很多命令才能用 Codex 吗？</strong><br>不需要。你只要能说清目标，它就能给出命令；你再决定是否执行。</p>
+<p><strong>Q：它会不会把项目弄乱？</strong><br>只要你限制改动范围，并在提交前检查，就能把风险降到很低。</p>
+<p><strong>Q：我不懂代码也能用吗？</strong><br>可以。你可以先从写文章、改文案这种任务开始。</p>
+<p><strong>Q：它写得不满意怎么办？</strong><br>给出具体反馈，比如“更短”、“更技术向”、“多举一个例子”，再让它改。</p>
+<h2 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h2><p>Codex 的价值不是“替你思考”，而是“帮你把想法更快落地”。新手最重要的不是掌握所有技巧，而是建立一套稳妥的协作流程。<br>当你能把目标讲清楚、把改动范围限制好、把验证做扎实，你就已经超过了大多数“只会用它生成内容”的人。</p>
+<p>希望这篇文章能成为你开始使用 Codex 的第一步。如果你有实践心得，欢迎留言分享。</p>
+
+	</article>
+
+	 
+    <div class="kira-post-copyright">
+        <strong>Author：</strong>mason.chao<br>
+        <strong>Link：</strong><a href="https://dochaoing.github.io/2026/02/05/codex-usage/" title="https:&#x2F;&#x2F;dochaoing.github.io&#x2F;2026&#x2F;02&#x2F;05&#x2F;codex-usage&#x2F;" target="_blank" rel="noopener">https:&#x2F;&#x2F;dochaoing.github.io&#x2F;2026&#x2F;02&#x2F;05&#x2F;codex-usage&#x2F;</a><br>
+        
+            <strong>版权声明：</strong>本文采用 <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/cn/deed.zh" target="_blank">CC BY-NC-SA 3.0 CN</a> 协议进行许可
+        
+    </div>
+
+  
+	<div class="kira-post-nav">
+		<nav class="post-nav">
+			  
+			<!-- 先找到与当前文字相同的目录 -->
+			   
+			<!-- 在找到当前文章所在的 index -->
+			          
+		</nav>
+	</div>
+	
+	<div class="kira-post-meta kira-rainbow">
+		
+			<a class="kirafont icon-container-fill -link" href="../../../../categories/%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/">工程实践</a>
+		
+		
+			<a class="kirafont icon-tag-fill -none-link" href="../../../../tags/Codex/" rel="tag">Codex</a> <a class="kirafont icon-tag-fill -none-link" href="../../../../tags/%E5%B7%A5%E5%85%B7%E9%93%BE/" rel="tag">工具链</a> <a class="kirafont icon-tag-fill -none-link" href="../../../../tags/%E6%95%88%E7%8E%87/" rel="tag">效率</a>
+		
+	</div>
+	
+	<div class="kira-post-footer">
+		
+
+		
+	<div class="giscus"></div>
+  
+    <script src="https://giscus.app/client.js"
+      data-repo="DoChaoing/dochaoing.github.io"
+      data-repo-id="R_kgDOQkK0BA"
+      data-category="Announcements"
+      data-category-id="DIC_kwDOQkK0BM4Czj3r"
+      data-mapping="pathname"
+      data-strict="0"
+      data-reactions-enabled="1"
+      data-emit-metadata="0"
+      data-input-position="top"
+      data-theme="light"
+      data-lang="en"
+      data-loading="lazy"
+      crossorigin="anonymous"
+      async  
+    ></script>
+  
+
+	</div>
+	
+</div>
+
+				</div>
+			</div>
+			<div class="kira-right-column">
+	<a onclick="document.querySelector('#kira-top-header').scrollIntoView({behavior: 'smooth'});" class="kira-backtotop" aria-label="回到顶部" title="回到顶部">
+		<button class="mdui-fab mdui-ripple">
+			<i class="kirafont icon-caret-up"></i>
+		</button>
+	</a>
+</div>
+
+		</div>
+	<!-- hexo injector body_end start --><script data-pjax src="https://unpkg.com/oh-my-live2d"></script><script>const oml2d = OML2D.loadOml2d({dockedPosition:"left",mobileDisplay:true,models:[{"path":"https://unpkg.com/live2d-widget-model-shizuku@1.0.5/assets/shizuku.model.json","mobilePosition":[-10,23],"mobileScale":0.1,"mobileStageStyle":{"width":180,"height":166},"motionPreloadStrategy":"IDLE","position":[-10,35],"scale":0.15,"stageStyle":{"width":250,"height":250}},{"path":"https://unpkg.com/live2d-widget-model-koharu@1.0.5/assets/koharu.model.json","scale":0.12,"position":[0,0],"stageStyle":{"width":250},"mobileScale":0.08,"mobilePosition":[0,0],"mobileStageStyle":{"width":180}},{"path":"https://unpkg.com/live2d-widget-model-haruto@1.0.5/assets/haruto.model.json","scale":0.12,"position":[0,0],"mobileScale":0.08,"mobilePosition":[0,0],"mobileStageStyle":{"width":180},"stageStyle":{"width":250}}],parentElement:document.body,primaryColor:"var(--btn-bg)",sayHello:false,tips:{style: {"width":230,"height":120,"left":"calc(50% - 20px)","top":"-100px"},mobileStyle: {"width":180,"height":80,"left":"calc(50% - 30px)","top":"-100px"},idleTips:{interval:15000,message:function(){
+  return axios.get('https://v1.hitokoto.cn?c=i')
+    .then(function (response) {
+      return response.data.hitokoto ;
+    })
+    .catch(function (error) {
+      console.error(error);
+    });
+}
+}}});</script><!-- hexo injector body_end end --></body>
+</html>
