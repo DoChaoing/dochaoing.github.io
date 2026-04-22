@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html 
+	lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		
+<link rel="stylesheet" href="../../../../css/layout.css">
+
+		
+		<title> RAG 检索增强生成完全指南：让大模型拥有私有知识 -  chao&#39;s blog</title>
+		<!-- <link rel="stylesheet" href="https://unpkg.com/mdui@1.0.2/dist/css/mdui.min.css" /> -->
+		<!-- <script src="https://unpkg.com/mdui@1.0.2/dist/js/mdui.min.js"></script> -->
+		
+<link rel="stylesheet" href="../../../../lib/mdui/mdui.min.css">
+
+		
+<script src="../../../../lib/mdui/mdui.min.js"></script>
+
+		<!-- lazyload -->
+		
+<script src="../../../../lib/lazysizes.js"></script>
+
+		<!-- smooth-scrolling -->
+		
+<script src="../../../../lib/smooth-scrolling.js"></script>
+
+		<!-- highlight -->
+		
+<link rel="stylesheet" href="../../../../lib/highlight/atom-one-dark.min.css">
+
+		
+<script src="../../../../lib/highlight/highlight.min.js"></script>
+
+		<!-- 预置 kiraicon -->
+		
+<link rel="stylesheet" href="../../../../lib/iconfont/iconfont.css">
+
+		
+		<link
+			rel="shortcut icon"
+			href="https://kira.host/assets/Pictures/Others/116359b4ccf19917.jpg"
+			type="image/png"
+		/>
+		
+<link rel="stylesheet" href="../../../../deps/css/APlayer.min.css">
+
+		
+		
+<script src="../../../../deps/js/APlayer.min.js"></script>
+<script src="../../../../deps/js/Meting.min.js"></script>
+
+	<meta name="generator" content="Hexo 7.3.0"></head>
+
+	<body>
+		<div
+			class="kira-background"
+			style="background-image: url('https://cdn.pixabay.com/photo/2023/11/10/16/05/anime-8379662_960_720.jpg')"
+		></div>
+		<div class="kira-header">
+    <a
+        class="kira-drawer-button mdui-ripple"
+        title="导航栏"
+        onclick="document.querySelector('.kira-sidebar-modal').classList.add('show');document.querySelector('.kira-sidebar#sidebar').classList.add('show');"
+    >
+        <i class="kirafont icon-menu"></i>
+    </a>
+    <a href="../../../../index.html" title="chao&#39;s blog">
+        <img
+			src="https://kira.host/assets/Pictures/Others/20220922230447.jpg"
+			alt="mason.chao"
+		/>
+    </a>
+</div>
+		<div class="kira-body">
+			<div class="kira-sidebar" id="sidebar">
+	<div class="kira-avatar mdui-ripple">
+		<a target="_blank" rel="noopener" href="https://kira.host/assets/Pictures/Others/20220922230447.jpg" title="mason.chao">
+			<img
+				src="https://kira.host/assets/Pictures/Others/20220922230447.jpg"
+				alt="mason.chao"
+			/>
+		</a>
+	</div>
+	<div class="kira-count">
+		<div><span>文章</span>6</div>
+		<div><span>标签</span>24</div>
+		<div><span>分类</span>5</div>
+	</div>
+	<div class="kira-list">
+		
+		<a
+			class="kira-list-item mdui-ripple false"
+			href="../../../../index.html"
+			title="回到首页"
+		>
+			<i
+				class="kirafont
+					
+						icon-home
+					"
+			></i>
+			<div class="kira-list-item-content">
+				回到首页
+			</div>
+		</a>
+		
+		<a
+			class="kira-list-item mdui-ripple false"
+			href="../../../../archive.html"
+			title="文章归档"
+		>
+			<i
+				class="kirafont
+					
+						icon-container
+					"
+			></i>
+			<div class="kira-list-item-content">
+				文章归档
+			</div>
+		</a>
+		
+		<a
+			class="kira-list-item mdui-ripple false"
+			href="../../../../about.html"
+			title="关于本人"
+		>
+			<i
+				class="kirafont
+					
+						icon-user
+					"
+			></i>
+			<div class="kira-list-item-content">
+				关于本人
+			</div>
+		</a>
+		
+		<a
+			class="kira-list-item mdui-ripple false"
+			href="../../../../friends.html"
+			title="我的朋友"
+		>
+			<i
+				class="kirafont
+					
+						icon-team
+					"
+			></i>
+			<div class="kira-list-item-content">
+				我的朋友
+			</div>
+		</a>
+		
+	</div>
+	<aside id="kira-sidebar">
+		
+			<div class="kira-widget-wrap">
+	<div class="kira-widget kira-social">
+		
+			<a
+				class="mdui-ripple"
+				href="../../../../tencent:/AddContact/?fromId=45&fromSubId=1&subcmd=all&uin=%3C%E5%8E%BB%E6%8E%89%E5%B0%96%E6%8B%AC%E5%8F%B7%E5%90%8E%E5%A1%AB%E4%B8%8A%E4%BD%A0%E7%9A%84QQ%E5%8F%B7%3E&website=www.oicqzone.com"
+				target="_blank"
+				mdui-tooltip="{content: 'QQ'}"
+				style="color: rgb(49, 174, 255); background-color: rgba(49, 174, 255, .1);"
+			>
+				<i
+					class="kirafont
+					
+						icon-QQ
+					"
+				></i>
+			</a>
+		
+			<a
+				class="mdui-ripple"
+				href="https://space.bilibili.com/<改成你的B站uid>"
+				target="_blank"
+				mdui-tooltip="{content: '哔哩哔哩'}"
+				style="color: rgb(231, 106, 141); background-color: rgba(231, 106, 141, .15);"
+			>
+				<i
+					class="kirafont
+					
+						icon-bilibili
+					"
+				></i>
+			</a>
+		
+			<a
+				class="mdui-ripple"
+				href="https://github.com/<你的github id>/"
+				target="_blank"
+				mdui-tooltip="{content: 'GitHub'}"
+				style="color: rgb(25, 23, 23); background-color: rgba(25, 23, 23, .15);"
+			>
+				<i
+					class="kirafont
+					
+						icon-github
+					"
+				></i>
+			</a>
+		
+			<a
+				class="mdui-ripple"
+				href="https://gitee.com/<你的gitee id>"
+				target="_blank"
+				mdui-tooltip="{content: 'Gitee'}"
+				style="color: rgb(165, 15, 15); background-color: rgba(165, 15, 15, .15);"
+			>
+				<i
+					class="kirafont
+					
+						icon-gitee
+					"
+				></i>
+			</a>
+		
+	</div>
+</div>
+
+		
+			
+  <div class="kira-widget-wrap">
+    <h3 class="kira-widget-title">分类</h3>
+    <div class="kira-widget">
+      <ul class="category-list">
+        
+        
+
+        
+          <li class="category-list-item">
+            <a class="category-list-link" href="/categories/AI实践/">
+              AI实践
+            </a>
+            <span class="category-list-count">1</span>
+          </li>
+        
+          <li class="category-list-item">
+            <a class="category-list-link" href="/categories/AI工具/">
+              AI工具
+            </a>
+            <span class="category-list-count">2</span>
+          </li>
+        
+          <li class="category-list-item">
+            <a class="category-list-link" href="/categories/AI技术/">
+              AI技术
+            </a>
+            <span class="category-list-count">1</span>
+          </li>
+        
+          <li class="category-list-item">
+            <a class="category-list-link" href="/categories/AI模型/">
+              AI模型
+            </a>
+            <span class="category-list-count">1</span>
+          </li>
+        
+          <li class="category-list-item">
+            <a class="category-list-link" href="/categories/AI趋势/">
+              AI趋势
+            </a>
+            <span class="category-list-count">1</span>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+		
+			
+	<div class="kira-widget-wrap">
+		<div id="randomtagcloud" class="kira-widget tagcloud kira-rainbow">
+			<a href="../../../../tags/AI-Agent/" style="font-size: 10px;">AI Agent</a> <a href="../../../../tags/AI%E5%B7%A5%E5%85%B7/" style="font-size: 20px;">AI工具</a> <a href="../../../../tags/AI%E6%8A%80%E6%9C%AF/" style="font-size: 10px;">AI技术</a> <a href="../../../../tags/AI%E6%A8%A1%E5%9E%8B/" style="font-size: 10px;">AI模型</a> <a href="../../../../tags/AI%E7%BB%98%E7%94%BB/" style="font-size: 10px;">AI绘画</a> <a href="../../../../tags/AI%E8%B6%8B%E5%8A%BF/" style="font-size: 10px;">AI趋势</a> <a href="../../../../tags/Claude/" style="font-size: 10px;">Claude</a> <a href="../../../../tags/Claude-Code/" style="font-size: 10px;">Claude Code</a> <a href="../../../../tags/Copilot/" style="font-size: 10px;">Copilot</a> <a href="../../../../tags/Cursor/" style="font-size: 10px;">Cursor</a> <a href="../../../../tags/DALL-E/" style="font-size: 10px;">DALL-E</a> <a href="../../../../tags/GPT/" style="font-size: 10px;">GPT</a> <a href="../../../../tags/Gemini/" style="font-size: 10px;">Gemini</a> <a href="../../../../tags/Llama/" style="font-size: 10px;">Llama</a> <a href="../../../../tags/Midjourney/" style="font-size: 10px;">Midjourney</a> <a href="../../../../tags/RAG/" style="font-size: 10px;">RAG</a> <a href="../../../../tags/Stable-Diffusion/" style="font-size: 10px;">Stable Diffusion</a> <a href="../../../../tags/%E5%90%91%E9%87%8F%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 10px;">向量数据库</a> <a href="../../../../tags/%E5%A4%A7%E8%AF%AD%E8%A8%80%E6%A8%A1%E5%9E%8B/" style="font-size: 10px;">大语言模型</a> <a href="../../../../tags/%E5%B7%A5%E4%BD%9C%E6%B5%81/" style="font-size: 10px;">工作流</a> <a href="../../../../tags/%E6%95%88%E7%8E%87%E6%8F%90%E5%8D%87/" style="font-size: 10px;">效率提升</a> <a href="../../../../tags/%E7%9F%A5%E8%AF%86%E5%BA%93/" style="font-size: 10px;">知识库</a> <a href="../../../../tags/%E7%BC%96%E7%A8%8B/" style="font-size: 10px;">编程</a> <a href="../../../../tags/%E8%87%AA%E5%8A%A8%E5%8C%96/" style="font-size: 10px;">自动化</a>
+		</div>
+		
+	</div>
+
+
+		
+			
+	<div class="kira-widget-wrap">
+		<h3 class="kira-widget-title">
+			Archive
+		</h3>
+		<div class="kira-widget">
+			<ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="../../../../archives/2025/">2025</a><span class="archive-list-count">6</span></li></ul>
+		</div>
+	</div>
+
+
+		
+	</aside>
+	<div class="kira-copyright">
+		&copy; 2026
+		<a href="../../../../index.html">mason.chao</a>
+		Powered by <a href="http://hexo.io/" target="_blank">Hexo</a> &
+		<a href="https://github.com/ch1ny/kira-hexo/" target="_blank">Kira-Hexo</a>
+		<br />
+		
+		
+	</div>
+</div>
+<div
+	class="kira-sidebar-modal"
+	id="sidebar-modal"
+	onclick="(function(self) {
+		self.classList.remove('show');
+		document.querySelector('.kira-sidebar.show#sidebar').classList.remove('show');
+	})(this)"
+></div>
+			<div class="kira-content">
+				<div id="kira-top-header"></div>
+				<div class="kira-main-content">
+					
+<link rel="stylesheet" href="../../../../css/kira-image.css">
+
+
+<script src="../../../../js/kira-image.js"></script>
+
+<div class="kira-image">
+    <div class="kira-image-modal">
+        <div class="kira-image-header">
+            <div class="kira-image-counter"></div>
+            <div class="kira-image-title"></div>
+            <div class="kira-image-operation">
+                <div class="kira-image-operation-button" id="kira-image-operation-button-zoom">
+                    <i class="kirafont icon-zoom-in"></i>
+                </div>
+                <div class="kira-image-operation-button" id="kira-image-operation-button-close">
+                    <i class="kirafont icon-close"></i>
+                </div>
+            </div>
+        </div>
+        <div class="kira-image-container">
+            <div class="kira-image-prev-button-panel">
+                <div class="kira-image-exchange-button">
+                    <i class="kirafont icon-left"></i>
+                </div>
+            </div>
+            <div class="kira-image-list">
+                <div class="kira-image-prev">
+                    <img />
+                </div>
+                <div class="kira-image-now">
+                    <img />
+                </div>
+                <div class="kira-image-next">
+                    <img />
+                </div>
+            </div>
+            <div class="kira-image-next-button-panel">
+                <div class="kira-image-exchange-button">
+                    <i class="kirafont icon-right"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+	
+<link rel="stylesheet" href="../../../../css/kira-code-copy.css">
+
+	
+<script src="../../../../js/kira-code-copy.js"></script>
+
+
+<div class="kira-post">
+	<article>
+		
+		<div class="kira-post-cover">
+			<img
+				data-src="https://images.unsplash.com/photo-1456512788356-7c629e8e7b6e?w=1200"
+				data-sizes="auto"
+				alt="RAG 检索增强生成完全指南：让大模型拥有私有知识"
+				class="lazyload kira-post-cover-image disabled-kira-image"
+			/>
+			<h1>RAG 检索增强生成完全指南：让大模型拥有私有知识</h1>
+		</div>
+		
+		<div class="kira-post-meta kira-rainbow" style="margin:10px 0!important;">
+			<a><i class="kirafont icon-calendar-fill"></i>2025年04月22日</a>
+			<a><i class="kirafont icon-edit-fill"></i>1.5k 字</a>
+			<a><i class="kirafont icon-time-circle-fill"></i>大概 6 分钟</a>
+		</div>
+		<html><head></head><body><blockquote>
+<p><strong>🎯 阅读提示</strong>：本文从原理到实践，带你全面掌握 RAG 技术。包含代码示例、框架推荐和最佳实践。预计阅读时间：15 分钟。</p>
+</blockquote>
+<p>大语言模型很强大，但有一个致命弱点：<strong>它不知道你的私有数据</strong>。RAG（Retrieval-Augmented Generation，检索增强生成）是解决这个问题的关键技术。掌握 RAG，你就能让 AI 真正理解你的业务。</p>
+<hr>
+<h2><span id="%F0%9F%A7%A0-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81-rag">🧠 为什么需要 RAG？</span></h2><h3><span id="llm-%E7%9A%84%E4%B8%89%E5%A4%A7%E5%B1%80%E9%99%90">LLM 的三大局限</span></h3><table>
+<thead>
+<tr>
+<th align="center">局限</th>
+<th align="left">说明</th>
+<th align="left">影响</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">📅 <strong>知识截止</strong></td>
+<td align="left">训练数据有截止日期</td>
+<td align="left">不知道最新信息</td>
+</tr>
+<tr>
+<td align="center">🔒 <strong>私有盲区</strong></td>
+<td align="left">不知道企业内部文档</td>
+<td align="left">无法回答业务问题</td>
+</tr>
+<tr>
+<td align="center">🎭 <strong>幻觉风险</strong></td>
+<td align="left">可能编造不存在的信息</td>
+<td align="left">可信度受限</td>
+</tr>
+</tbody></table>
+<h3><span id="%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88%E5%AF%B9%E6%AF%94">解决方案对比</span></h3><table>
+<thead>
+<tr>
+<th align="center">方案</th>
+<th align="left">原理</th>
+<th align="left">优点</th>
+<th align="left">缺点</th>
+<th align="center">推荐度</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center"><strong>微调</strong></td>
+<td align="left">在领域数据上继续训练</td>
+<td align="left">领域适应性强</td>
+<td align="left">成本高，更新慢</td>
+<td align="center">⭐⭐⭐</td>
+</tr>
+<tr>
+<td align="center"><strong>RAG</strong></td>
+<td align="left">检索相关文档喂给模型</td>
+<td align="left">实时更新，可解释</td>
+<td align="left">需维护检索系统</td>
+<td align="center">⭐⭐⭐⭐⭐</td>
+</tr>
+<tr>
+<td align="center"><strong>Long Context</strong></td>
+<td align="left">直接塞进上下文</td>
+<td align="left">简单直接</td>
+<td align="left">成本高，有上限</td>
+<td align="center">⭐⭐⭐⭐</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>💡 RAG 是当前最主流的方案</strong>，平衡了效果、成本和可维护性。</p>
+</blockquote>
+<hr>
+<h2><span id="%E4%B8%80rag-%E5%8E%9F%E7%90%86%E8%AF%A6%E8%A7%A3">一、RAG 原理详解</span></h2><h3><span id="%F0%9F%94%84-%E5%9F%BA%E6%9C%AC%E6%B5%81%E7%A8%8B">🔄 基本流程</span></h3><figure class="highlight plaintext"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><code class="hljs plaintext">用户提问<br>    │<br>    ▼<br>┌─────────────┐<br>│ 查询理解改写 │<br>└─────────────┘<br>    │<br>    ▼<br>┌─────────────┐     ┌─────────────┐<br>│  向量检索   │ ◄── │  向量数据库  │<br>└─────────────┘     └─────────────┘<br>    │<br>    ▼<br>┌─────────────┐<br>│ 文档排序筛选 │<br>└─────────────┘<br>    │<br>    ▼<br>┌─────────────┐<br>│  上下文构建  │<br>└─────────────┘<br>    │<br>    ▼<br>┌─────────────┐<br>│ LLM 生成回答 │<br>└─────────────┘<br>    │<br>    ▼<br>返回结果（带引用）<br></code></pre></td></tr></tbody></table></figure>
+
+<h3><span id="%F0%9F%94%91-%E6%A0%B8%E5%BF%83%E6%A6%82%E5%BF%B5">🔑 核心概念</span></h3><h4><span id="1-embedding%E5%B5%8C%E5%85%A5">1. Embedding（嵌入）</span></h4><p>将文本转换为向量表示，语义相似的文本向量距离近。</p>
+<figure class="highlight python"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">from</span> openai <span class="hljs-keyword">import</span> OpenAI<br>client = OpenAI()<br><br>response = client.embeddings.create(<br>    model=<span class="hljs-string">"text-embedding-3-small"</span>,<br>    <span class="hljs-built_in">input</span>=<span class="hljs-string">"这是一段需要向量化的文本"</span><br>)<br>vector = response.data[<span class="hljs-number">0</span>].embedding  <span class="hljs-comment"># 1536 维向量</span><br></code></pre></td></tr></tbody></table></figure>
+
+<h4><span id="2-%E5%90%91%E9%87%8F%E6%95%B0%E6%8D%AE%E5%BA%93">2. 向量数据库</span></h4><p>存储和高效检索向量。</p>
+<table>
+<thead>
+<tr>
+<th align="center">数据库</th>
+<th align="center">类型</th>
+<th align="left">特点</th>
+<th align="left">推荐场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center"><strong>Pinecone</strong></td>
+<td align="center">托管</td>
+<td align="left">零运维</td>
+<td align="left">生产环境</td>
+</tr>
+<tr>
+<td align="center"><strong>Milvus</strong></td>
+<td align="center">开源</td>
+<td align="left">高性能</td>
+<td align="left">大规模部署</td>
+</tr>
+<tr>
+<td align="center"><strong>Chroma</strong></td>
+<td align="center">开源</td>
+<td align="left">轻量易用</td>
+<td align="left">快速原型</td>
+</tr>
+<tr>
+<td align="center"><strong>Qdrant</strong></td>
+<td align="center">开源</td>
+<td align="left">功能丰富</td>
+<td align="left">灵活定制</td>
+</tr>
+<tr>
+<td align="center"><strong>pgvector</strong></td>
+<td align="center">扩展</td>
+<td align="left">PG 原生</td>
+<td align="left">已有 PG 环境</td>
+</tr>
+</tbody></table>
+<hr>
+<h2><span id="%E4%BA%8Crag-%E7%B3%BB%E7%BB%9F%E6%90%AD%E5%BB%BA">二、RAG 系统搭建</span></h2><h3><span id="step-1%E6%96%87%E6%A1%A3%E5%A4%84%E7%90%86">Step 1：文档处理</span></h3><figure class="highlight python"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">from</span> langchain.text_splitter <span class="hljs-keyword">import</span> RecursiveCharacterTextSplitter<br><br><span class="hljs-comment"># 文档分块</span><br>splitter = RecursiveCharacterTextSplitter(<br>    chunk_size=<span class="hljs-number">500</span>,      <span class="hljs-comment"># 块大小</span><br>    chunk_overlap=<span class="hljs-number">50</span>,    <span class="hljs-comment"># 重叠部分</span><br>    separators=[<span class="hljs-string">"\n\n"</span>, <span class="hljs-string">"\n"</span>, <span class="hljs-string">"。"</span>, <span class="hljs-string">" "</span>]<br>)<br><br>chunks = splitter.split_text(document_text)<br></code></pre></td></tr></tbody></table></figure>
+
+<blockquote>
+<p><strong>💡 分块策略很关键</strong></p>
+<ul>
+<li>太大：检索不精确</li>
+<li>太小：上下文不完整</li>
+<li>建议：500-1000 字符，有适当重叠</li>
+</ul>
+</blockquote>
+<hr>
+<h3><span id="step-2%E5%90%91%E9%87%8F%E5%8C%96%E5%AD%98%E5%82%A8">Step 2：向量化存储</span></h3><figure class="highlight python"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">from</span> langchain_community.vectorstores <span class="hljs-keyword">import</span> Chroma<br><span class="hljs-keyword">from</span> langchain_openai <span class="hljs-keyword">import</span> OpenAIEmbeddings<br><br>embeddings = OpenAIEmbeddings(model=<span class="hljs-string">"text-embedding-3-small"</span>)<br><br>vectorstore = Chroma.from_texts(<br>    texts=chunks,<br>    embedding=embeddings,<br>    persist_directory=<span class="hljs-string">"./chroma_db"</span><br>)<br></code></pre></td></tr></tbody></table></figure>
+
+<hr>
+<h3><span id="step-3%E6%A3%80%E7%B4%A2%E4%B8%8E%E7%94%9F%E6%88%90">Step 3：检索与生成</span></h3><figure class="highlight python"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">from</span> langchain_openai <span class="hljs-keyword">import</span> ChatOpenAI<br><span class="hljs-keyword">from</span> langchain.chains <span class="hljs-keyword">import</span> RetrievalQA<br><br>llm = ChatOpenAI(model=<span class="hljs-string">"gpt-4o"</span>)<br><br>qa_chain = RetrievalQA.from_chain_type(<br>    llm=llm,<br>    chain_type=<span class="hljs-string">"stuff"</span>,<br>    retriever=vectorstore.as_retriever(<br>        search_type=<span class="hljs-string">"mmr"</span>,  <span class="hljs-comment"># 最大边际相关性</span><br>        search_kwargs={<span class="hljs-string">"k"</span>: <span class="hljs-number">5</span>}<br>    )<br>)<br><br>result = qa_chain.invoke(<span class="hljs-string">"什么是 RAG？"</span>)<br></code></pre></td></tr></tbody></table></figure>
+
+<hr>
+<h2><span id="%E4%B8%89%E8%BF%9B%E9%98%B6%E4%BC%98%E5%8C%96%E6%8A%80%E5%B7%A7">三、进阶优化技巧</span></h2><h3><span id="%F0%9F%9A%80-%E6%8A%80%E5%B7%A7-1%E6%9F%A5%E8%AF%A2%E6%94%B9%E5%86%99">🚀 技巧 1：查询改写</span></h3><p>用户查询可能表达不清，需要改写：</p>
+<figure class="highlight python"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-comment"># 原始查询</span><br>query = <span class="hljs-string">"怎么用那个东西"</span><br><br><span class="hljs-comment"># AI 改写</span><br>rewritten = <span class="hljs-string">"如何使用 RAG 系统进行文档问答"</span><br></code></pre></td></tr></tbody></table></figure>
+
+<hr>
+<h3><span id="%F0%9F%9A%80-%E6%8A%80%E5%B7%A7-2%E6%B7%B7%E5%90%88%E6%A3%80%E7%B4%A2">🚀 技巧 2：混合检索</span></h3><p>结合向量检索和关键词检索：</p>
+<figure class="highlight python"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-comment"># 向量检索</span><br>vector_results = vectorstore.similarity_search(query, k=<span class="hljs-number">10</span>)<br><br><span class="hljs-comment"># 关键词检索 (BM25)</span><br>keyword_results = bm25_search(query, k=<span class="hljs-number">10</span>)<br><br><span class="hljs-comment"># 融合排序 (RRF)</span><br>final_results = reciprocal_rank_fusion(<br>    vector_results, <br>    keyword_results<br>)<br></code></pre></td></tr></tbody></table></figure>
+
+<table>
+<thead>
+<tr>
+<th align="center">检索方式</th>
+<th align="left">优点</th>
+<th align="left">缺点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">向量检索</td>
+<td align="left">语义理解强</td>
+<td align="left">精确匹配弱</td>
+</tr>
+<tr>
+<td align="center">关键词检索</td>
+<td align="left">精确匹配强</td>
+<td align="left">语义理解弱</td>
+</tr>
+<tr>
+<td align="center"><strong>混合检索</strong></td>
+<td align="left">两者兼得</td>
+<td align="left">复杂度增加</td>
+</tr>
+</tbody></table>
+<hr>
+<h3><span id="%F0%9F%9A%80-%E6%8A%80%E5%B7%A7-3%E9%87%8D%E6%8E%92%E5%BA%8Frerank">🚀 技巧 3：重排序（Rerank）</span></h3><p>使用 Cross-Encoder 精确排序：</p>
+<figure class="highlight python"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">from</span> sentence_transformers <span class="hljs-keyword">import</span> CrossEncoder<br><br>reranker = CrossEncoder(<span class="hljs-string">'BAAI/bge-reranker-large'</span>)<br>scores = reranker.predict([(query, doc) <span class="hljs-keyword">for</span> doc <span class="hljs-keyword">in</span> candidates])<br>ranked_docs = <span class="hljs-built_in">sorted</span>(<span class="hljs-built_in">zip</span>(candidates, scores), key=<span class="hljs-keyword">lambda</span> x: x[<span class="hljs-number">1</span>], reverse=<span class="hljs-literal">True</span>)<br></code></pre></td></tr></tbody></table></figure>
+
+<hr>
+<h3><span id="%F0%9F%9A%80-%E6%8A%80%E5%B7%A7-4%E5%85%83%E6%95%B0%E6%8D%AE%E8%BF%87%E6%BB%A4">🚀 技巧 4：元数据过滤</span></h3><p>利用文档元数据精准检索：</p>
+<figure class="highlight python"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs python">results = vectorstore.similarity_search(<br>    query,<br>    <span class="hljs-built_in">filter</span>={<br>        <span class="hljs-string">"category"</span>: <span class="hljs-string">"技术文档"</span>,<br>        <span class="hljs-string">"year"</span>: <span class="hljs-number">2025</span>,<br>        <span class="hljs-string">"department"</span>: <span class="hljs-string">"研发部"</span><br>    }<br>)<br></code></pre></td></tr></tbody></table></figure>
+
+<hr>
+<h2><span id="%E5%9B%9Brag-%E6%A1%86%E6%9E%B6%E6%8E%A8%E8%8D%90">四、RAG 框架推荐</span></h2><h3><span id="%F0%9F%93%8A-%E6%A1%86%E6%9E%B6%E5%AF%B9%E6%AF%94">📊 框架对比</span></h3><table>
+<thead>
+<tr>
+<th align="center">框架</th>
+<th align="left">定位</th>
+<th align="left">特点</th>
+<th align="left">推荐场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center"><strong>LangChain</strong></td>
+<td align="left">通用框架</td>
+<td align="left">生态完善</td>
+<td align="left">快速原型</td>
+</tr>
+<tr>
+<td align="center"><strong>LlamaIndex</strong></td>
+<td align="left">RAG 专用</td>
+<td align="left">更专业</td>
+<td align="left">知识库应用</td>
+</tr>
+<tr>
+<td align="center"><strong>Haystack</strong></td>
+<td align="left">生产级</td>
+<td align="left">企业就绪</td>
+<td align="left">生产部署</td>
+</tr>
+</tbody></table>
+<hr>
+<h3><span id="%F0%9F%94%B7-langchain-%E7%A4%BA%E4%BE%8B">🔷 LangChain 示例</span></h3><figure class="highlight python"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">from</span> langchain.indexes <span class="hljs-keyword">import</span> VectorstoreIndexCreator<br><span class="hljs-keyword">from</span> langchain.document_loaders <span class="hljs-keyword">import</span> TextLoader<br><br>loader = TextLoader(<span class="hljs-string">"./data/document.txt"</span>)<br>index = VectorstoreIndexCreator().from_loaders([loader])<br>result = index.query(<span class="hljs-string">"你的问题"</span>)<br></code></pre></td></tr></tbody></table></figure>
+
+<hr>
+<h3><span id="%F0%9F%94%B6-llamaindex-%E7%A4%BA%E4%BE%8B">🔶 LlamaIndex 示例</span></h3><figure class="highlight python"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">from</span> llama_index.core <span class="hljs-keyword">import</span> VectorStoreIndex, SimpleDirectoryReader<br><br>documents = SimpleDirectoryReader(<span class="hljs-string">"./data"</span>).load_data()<br>index = VectorStoreIndex.from_documents(documents)<br>query_engine = index.as_query_engine()<br>response = query_engine.query(<span class="hljs-string">"你的问题"</span>)<br></code></pre></td></tr></tbody></table></figure>
+
+<hr>
+<h2><span id="%E4%BA%94%E5%AE%9E%E9%99%85%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF">五、实际应用场景</span></h2><h3><span id="%F0%9F%8F%A2-%E5%9C%BA%E6%99%AF-1%E4%BC%81%E4%B8%9A%E7%9F%A5%E8%AF%86%E5%BA%93">🏢 场景 1：企业知识库</span></h3><figure class="highlight plaintext"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs plaintext">┌─────────────────────────────────────────────┐<br>│  输入：企业内部文档（PDF、Wiki、Confluence）  │<br>│  处理：分块 → 向量化 → 存储                   │<br>│  输出：员工问答系统                           │<br>│                                             │<br>│  示例问题：                                   │<br>│  "公司的差旅报销流程是什么？"                  │<br>│  "如何申请年假？"                            │<br>└─────────────────────────────────────────────┘<br></code></pre></td></tr></tbody></table></figure>
+
+<hr>
+<h3><span id="%F0%9F%92%BB-%E5%9C%BA%E6%99%AF-2%E4%BB%A3%E7%A0%81%E5%8A%A9%E6%89%8B">💻 场景 2：代码助手</span></h3><figure class="highlight plaintext"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs plaintext">┌─────────────────────────────────────────────┐<br>│  输入：代码库源码                             │<br>│  处理：代码分块 → 向量化 → 存储               │<br>│  输出：代码问答系统                           │<br>│                                             │<br>│  示例问题：                                   │<br>│  "这个函数是做什么的？"                       │<br>│  "如何调用用户认证 API？"                     │<br>└─────────────────────────────────────────────┘<br></code></pre></td></tr></tbody></table></figure>
+
+<hr>
+<h3><span id="%F0%9F%8E%A7-%E5%9C%BA%E6%99%AF-3%E6%99%BA%E8%83%BD%E5%AE%A2%E6%9C%8D">🎧 场景 3：智能客服</span></h3><figure class="highlight plaintext"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs plaintext">┌─────────────────────────────────────────────┐<br>│  输入：产品手册、FAQ、历史工单                │<br>│  处理：分块 → 向量化 → 存储                   │<br>│  输出：智能客服系统                           │<br>│                                             │<br>│  示例问题：                                   │<br>│  "产品无法启动怎么办？"                       │<br>│  "如何申请退款？"                            │<br>└─────────────────────────────────────────────┘<br></code></pre></td></tr></tbody></table></figure>
+
+<hr>
+<h2><span id="%E5%85%AD%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98%E4%B8%8E%E8%A7%A3%E5%86%B3">六、常见问题与解决</span></h2><h3><span id="%E2%9D%93-q-%E6%A3%80%E7%B4%A2%E7%BB%93%E6%9E%9C%E4%B8%8D%E7%9B%B8%E5%85%B3">❓ Q: 检索结果不相关？</span></h3><table>
+<thead>
+<tr>
+<th align="center">原因</th>
+<th align="left">解决方案</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">分块不合理</td>
+<td align="left">调整 chunk_size</td>
+</tr>
+<tr>
+<td align="center">Embedding 模型不够好</td>
+<td align="left">换更好的模型</td>
+</tr>
+<tr>
+<td align="center">纯向量检索局限</td>
+<td align="left">加入混合检索</td>
+</tr>
+<tr>
+<td align="center">排序不够精准</td>
+<td align="left">加入 Rerank</td>
+</tr>
+</tbody></table>
+<hr>
+<h3><span id="%E2%9D%93-q-%E5%9B%9E%E7%AD%94%E6%9C%89%E5%B9%BB%E8%A7%89">❓ Q: 回答有幻觉？</span></h3><p><strong>解决方案：</strong></p>
+<figure class="highlight python"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-comment"># 在 prompt 中明确要求</span><br>prompt = <span class="hljs-string">"""</span><br><span class="hljs-string">请只基于以下检索到的内容回答问题。</span><br><span class="hljs-string">如果检索内容中没有相关信息，请直接说"不知道"。</span><br><span class="hljs-string"></span><br><span class="hljs-string">检索内容：</span><br><span class="hljs-string">{context}</span><br><span class="hljs-string"></span><br><span class="hljs-string">问题：{question}</span><br><span class="hljs-string">"""</span><br></code></pre></td></tr></tbody></table></figure>
+
+<hr>
+<h3><span id="%E2%9D%93-q-%E5%93%8D%E5%BA%94%E5%A4%AA%E6%85%A2">❓ Q: 响应太慢？</span></h3><table>
+<thead>
+<tr>
+<th align="center">瓶颈</th>
+<th align="left">优化方案</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">检索慢</td>
+<td align="left">减少检索数量，用更快的向量库</td>
+</tr>
+<tr>
+<td align="center">Embedding 慢</td>
+<td align="left">用更快的模型，或缓存 embedding</td>
+</tr>
+<tr>
+<td align="center">生成慢</td>
+<td align="left">用更快的 LLM，或量化模型</td>
+</tr>
+<tr>
+<td align="center">整体慢</td>
+<td align="left">缓存常见查询结果</td>
+</tr>
+</tbody></table>
+<hr>
+<h2><span id="%E4%B8%83%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5%E6%80%BB%E7%BB%93">七、最佳实践总结</span></h2><table>
+<thead>
+<tr>
+<th align="center">原则</th>
+<th align="left">说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center"><strong>文档质量 &gt; 算法优化</strong></td>
+<td align="left">垃圾进，垃圾出</td>
+</tr>
+<tr>
+<td align="center"><strong>分块要合理</strong></td>
+<td align="left">根据文档类型调整策略</td>
+</tr>
+<tr>
+<td align="center"><strong>检索要精准</strong></td>
+<td align="left">宁缺毋滥</td>
+</tr>
+<tr>
+<td align="center"><strong>引用要透明</strong></td>
+<td align="left">让用户知道答案来源</td>
+</tr>
+<tr>
+<td align="center"><strong>持续迭代</strong></td>
+<td align="left">收集反馈，优化系统</td>
+</tr>
+</tbody></table>
+<hr>
+<p>RAG 是让 AI 真正理解你私有数据的关键技术。掌握它，你就能构建出真正有用的 AI 应用。</p>
+<hr>
+<blockquote>
+<p><strong>📌 总结</strong>：RAG = 检索 + 生成。核心是让模型”查资料再回答”，既解决知识盲区，又减少幻觉。建议从 LangChain 入手，逐步深入。</p>
+</blockquote>
+<hr>
+<p><strong>相关阅读：</strong></p>
+<ul>
+<li><a href="/2025/04/22/2025-AI-Agent%E5%B4%9B%E8%B5%B7/">AI Agent 崛起</a></li>
+<li><a href="/2025/04/22/2025-%E6%90%AD%E5%BB%BA%E4%B8%AA%E4%BA%BAAI%E5%B7%A5%E4%BD%9C%E6%B5%81/">搭建个人 AI 工作流</a></li>
+</ul>
+<!-- hexo injector body_end start --><script data-pjax src="https://unpkg.com/oh-my-live2d"></script><script>const oml2d = OML2D.loadOml2d({dockedPosition:"left",mobileDisplay:true,models:[{"path":"https://unpkg.com/live2d-widget-model-shizuku@1.0.5/assets/shizuku.model.json","mobilePosition":[-10,23],"mobileScale":0.1,"mobileStageStyle":{"width":180,"height":166},"motionPreloadStrategy":"IDLE","position":[-10,35],"scale":0.15,"stageStyle":{"width":250,"height":250}},{"path":"https://unpkg.com/live2d-widget-model-koharu@1.0.5/assets/koharu.model.json","scale":0.12,"position":[0,0],"stageStyle":{"width":250},"mobileScale":0.08,"mobilePosition":[0,0],"mobileStageStyle":{"width":180}},{"path":"https://unpkg.com/live2d-widget-model-haruto@1.0.5/assets/haruto.model.json","scale":0.12,"position":[0,0],"mobileScale":0.08,"mobilePosition":[0,0],"mobileStageStyle":{"width":180},"stageStyle":{"width":250}}],parentElement:document.body,primaryColor:"var(--btn-bg)",sayHello:false,tips:{style: {"width":230,"height":120,"left":"calc(50% - 20px)","top":"-100px"},mobileStyle: {"width":180,"height":80,"left":"calc(50% - 30px)","top":"-100px"},idleTips:{interval:15000,message:function(){
+  return axios.get('https://v1.hitokoto.cn?c=i')
+    .then(function (response) {
+      return response.data.hitokoto ;
+    })
+    .catch(function (error) {
+      console.error(error);
+    });
+}
+}}});</script><!-- hexo injector body_end end --></body></html>
+	</article>
+
+	 
+    <div class="kira-post-copyright">
+        <strong>Author：</strong>mason.chao<br>
+        <strong>Link：</strong><a href="https://dochaoing.github.io/2025/04/22/2025-RAG%E6%A3%80%E7%B4%A2%E5%A2%9E%E5%BC%BA%E7%94%9F%E6%88%90%E6%8C%87%E5%8D%97/" title="https:&#x2F;&#x2F;dochaoing.github.io&#x2F;2025&#x2F;04&#x2F;22&#x2F;2025-RAG检索增强生成指南&#x2F;" target="_blank" rel="noopener">https:&#x2F;&#x2F;dochaoing.github.io&#x2F;2025&#x2F;04&#x2F;22&#x2F;2025-RAG检索增强生成指南&#x2F;</a><br>
+        
+            <strong>版权声明：</strong>本文采用 <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/cn/deed.zh" target="_blank">CC BY-NC-SA 3.0 CN</a> 协议进行许可
+        
+    </div>
+
+  
+	<div class="kira-post-nav">
+		<nav class="post-nav">
+			          
+			<!-- 先找到与当前文字相同的目录 -->
+			   
+			<!-- 在找到当前文章所在的 index -->
+			                  
+		</nav>
+	</div>
+	
+	<div class="kira-post-meta kira-rainbow">
+		
+			<a class="kirafont icon-container-fill -link" href="../../../../categories/AI%E6%8A%80%E6%9C%AF/">AI技术</a>
+		
+		
+			<a class="kirafont icon-tag-fill -none-link" href="../../../../tags/AI%E6%8A%80%E6%9C%AF/" rel="tag">AI技术</a> <a class="kirafont icon-tag-fill -none-link" href="../../../../tags/RAG/" rel="tag">RAG</a> <a class="kirafont icon-tag-fill -none-link" href="../../../../tags/%E5%90%91%E9%87%8F%E6%95%B0%E6%8D%AE%E5%BA%93/" rel="tag">向量数据库</a> <a class="kirafont icon-tag-fill -none-link" href="../../../../tags/%E7%9F%A5%E8%AF%86%E5%BA%93/" rel="tag">知识库</a>
+		
+	</div>
+	
+	<div class="kira-post-footer">
+		
+
+		
+	<div class="giscus"></div>
+  
+    <script src="https://giscus.app/client.js"
+      data-repo="DoChaoing/dochaoing.github.io"
+      data-repo-id="R_kgDOQkK0BA"
+      data-category="Announcements"
+      data-category-id="DIC_kwDOQkK0BM4Czj3r"
+      data-mapping="pathname"
+      data-strict="0"
+      data-reactions-enabled="1"
+      data-emit-metadata="0"
+      data-input-position="top"
+      data-theme="light"
+      data-lang="en"
+      data-loading="lazy"
+      crossorigin="anonymous"
+      async  
+    ></script>
+  
+
+	</div>
+	
+</div>
+
+				</div>
+			</div>
+			<div class="kira-right-column">
+	<a onclick="document.querySelector('#kira-top-header').scrollIntoView({behavior: 'smooth'});" class="kira-backtotop" aria-label="回到顶部" title="回到顶部">
+		<button class="mdui-fab mdui-ripple">
+			<i class="kirafont icon-caret-up"></i>
+		</button>
+	</a>
+</div>
+
+		</div>
+	</body>
+</html>

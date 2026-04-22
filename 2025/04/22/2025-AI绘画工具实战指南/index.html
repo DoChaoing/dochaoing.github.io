@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html 
+	lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		
+<link rel="stylesheet" href="../../../../css/layout.css">
+
+		
+		<title> AI 绘画工具实战指南：Midjourney、DALL-E 3 与 Stable Diffusion -  chao&#39;s blog</title>
+		<!-- <link rel="stylesheet" href="https://unpkg.com/mdui@1.0.2/dist/css/mdui.min.css" /> -->
+		<!-- <script src="https://unpkg.com/mdui@1.0.2/dist/js/mdui.min.js"></script> -->
+		
+<link rel="stylesheet" href="../../../../lib/mdui/mdui.min.css">
+
+		
+<script src="../../../../lib/mdui/mdui.min.js"></script>
+
+		<!-- lazyload -->
+		
+<script src="../../../../lib/lazysizes.js"></script>
+
+		<!-- smooth-scrolling -->
+		
+<script src="../../../../lib/smooth-scrolling.js"></script>
+
+		<!-- highlight -->
+		
+<link rel="stylesheet" href="../../../../lib/highlight/atom-one-dark.min.css">
+
+		
+<script src="../../../../lib/highlight/highlight.min.js"></script>
+
+		<!-- 预置 kiraicon -->
+		
+<link rel="stylesheet" href="../../../../lib/iconfont/iconfont.css">
+
+		
+		<link
+			rel="shortcut icon"
+			href="https://kira.host/assets/Pictures/Others/116359b4ccf19917.jpg"
+			type="image/png"
+		/>
+		
+<link rel="stylesheet" href="../../../../deps/css/APlayer.min.css">
+
+		
+		
+<script src="../../../../deps/js/APlayer.min.js"></script>
+<script src="../../../../deps/js/Meting.min.js"></script>
+
+	<meta name="generator" content="Hexo 7.3.0"></head>
+
+	<body>
+		<div
+			class="kira-background"
+			style="background-image: url('https://cdn.pixabay.com/photo/2023/11/10/16/05/anime-8379662_960_720.jpg')"
+		></div>
+		<div class="kira-header">
+    <a
+        class="kira-drawer-button mdui-ripple"
+        title="导航栏"
+        onclick="document.querySelector('.kira-sidebar-modal').classList.add('show');document.querySelector('.kira-sidebar#sidebar').classList.add('show');"
+    >
+        <i class="kirafont icon-menu"></i>
+    </a>
+    <a href="../../../../index.html" title="chao&#39;s blog">
+        <img
+			src="https://kira.host/assets/Pictures/Others/20220922230447.jpg"
+			alt="mason.chao"
+		/>
+    </a>
+</div>
+		<div class="kira-body">
+			<div class="kira-sidebar" id="sidebar">
+	<div class="kira-avatar mdui-ripple">
+		<a target="_blank" rel="noopener" href="https://kira.host/assets/Pictures/Others/20220922230447.jpg" title="mason.chao">
+			<img
+				src="https://kira.host/assets/Pictures/Others/20220922230447.jpg"
+				alt="mason.chao"
+			/>
+		</a>
+	</div>
+	<div class="kira-count">
+		<div><span>文章</span>6</div>
+		<div><span>标签</span>24</div>
+		<div><span>分类</span>5</div>
+	</div>
+	<div class="kira-list">
+		
+		<a
+			class="kira-list-item mdui-ripple false"
+			href="../../../../index.html"
+			title="回到首页"
+		>
+			<i
+				class="kirafont
+					
+						icon-home
+					"
+			></i>
+			<div class="kira-list-item-content">
+				回到首页
+			</div>
+		</a>
+		
+		<a
+			class="kira-list-item mdui-ripple false"
+			href="../../../../archive.html"
+			title="文章归档"
+		>
+			<i
+				class="kirafont
+					
+						icon-container
+					"
+			></i>
+			<div class="kira-list-item-content">
+				文章归档
+			</div>
+		</a>
+		
+		<a
+			class="kira-list-item mdui-ripple false"
+			href="../../../../about.html"
+			title="关于本人"
+		>
+			<i
+				class="kirafont
+					
+						icon-user
+					"
+			></i>
+			<div class="kira-list-item-content">
+				关于本人
+			</div>
+		</a>
+		
+		<a
+			class="kira-list-item mdui-ripple false"
+			href="../../../../friends.html"
+			title="我的朋友"
+		>
+			<i
+				class="kirafont
+					
+						icon-team
+					"
+			></i>
+			<div class="kira-list-item-content">
+				我的朋友
+			</div>
+		</a>
+		
+	</div>
+	<aside id="kira-sidebar">
+		
+			<div class="kira-widget-wrap">
+	<div class="kira-widget kira-social">
+		
+			<a
+				class="mdui-ripple"
+				href="../../../../tencent:/AddContact/?fromId=45&fromSubId=1&subcmd=all&uin=%3C%E5%8E%BB%E6%8E%89%E5%B0%96%E6%8B%AC%E5%8F%B7%E5%90%8E%E5%A1%AB%E4%B8%8A%E4%BD%A0%E7%9A%84QQ%E5%8F%B7%3E&website=www.oicqzone.com"
+				target="_blank"
+				mdui-tooltip="{content: 'QQ'}"
+				style="color: rgb(49, 174, 255); background-color: rgba(49, 174, 255, .1);"
+			>
+				<i
+					class="kirafont
+					
+						icon-QQ
+					"
+				></i>
+			</a>
+		
+			<a
+				class="mdui-ripple"
+				href="https://space.bilibili.com/<改成你的B站uid>"
+				target="_blank"
+				mdui-tooltip="{content: '哔哩哔哩'}"
+				style="color: rgb(231, 106, 141); background-color: rgba(231, 106, 141, .15);"
+			>
+				<i
+					class="kirafont
+					
+						icon-bilibili
+					"
+				></i>
+			</a>
+		
+			<a
+				class="mdui-ripple"
+				href="https://github.com/<你的github id>/"
+				target="_blank"
+				mdui-tooltip="{content: 'GitHub'}"
+				style="color: rgb(25, 23, 23); background-color: rgba(25, 23, 23, .15);"
+			>
+				<i
+					class="kirafont
+					
+						icon-github
+					"
+				></i>
+			</a>
+		
+			<a
+				class="mdui-ripple"
+				href="https://gitee.com/<你的gitee id>"
+				target="_blank"
+				mdui-tooltip="{content: 'Gitee'}"
+				style="color: rgb(165, 15, 15); background-color: rgba(165, 15, 15, .15);"
+			>
+				<i
+					class="kirafont
+					
+						icon-gitee
+					"
+				></i>
+			</a>
+		
+	</div>
+</div>
+
+		
+			
+  <div class="kira-widget-wrap">
+    <h3 class="kira-widget-title">分类</h3>
+    <div class="kira-widget">
+      <ul class="category-list">
+        
+        
+
+        
+          <li class="category-list-item">
+            <a class="category-list-link" href="/categories/AI实践/">
+              AI实践
+            </a>
+            <span class="category-list-count">1</span>
+          </li>
+        
+          <li class="category-list-item">
+            <a class="category-list-link" href="/categories/AI工具/">
+              AI工具
+            </a>
+            <span class="category-list-count">2</span>
+          </li>
+        
+          <li class="category-list-item">
+            <a class="category-list-link" href="/categories/AI技术/">
+              AI技术
+            </a>
+            <span class="category-list-count">1</span>
+          </li>
+        
+          <li class="category-list-item">
+            <a class="category-list-link" href="/categories/AI模型/">
+              AI模型
+            </a>
+            <span class="category-list-count">1</span>
+          </li>
+        
+          <li class="category-list-item">
+            <a class="category-list-link" href="/categories/AI趋势/">
+              AI趋势
+            </a>
+            <span class="category-list-count">1</span>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+		
+			
+	<div class="kira-widget-wrap">
+		<div id="randomtagcloud" class="kira-widget tagcloud kira-rainbow">
+			<a href="../../../../tags/AI-Agent/" style="font-size: 10px;">AI Agent</a> <a href="../../../../tags/AI%E5%B7%A5%E5%85%B7/" style="font-size: 20px;">AI工具</a> <a href="../../../../tags/AI%E6%8A%80%E6%9C%AF/" style="font-size: 10px;">AI技术</a> <a href="../../../../tags/AI%E6%A8%A1%E5%9E%8B/" style="font-size: 10px;">AI模型</a> <a href="../../../../tags/AI%E7%BB%98%E7%94%BB/" style="font-size: 10px;">AI绘画</a> <a href="../../../../tags/AI%E8%B6%8B%E5%8A%BF/" style="font-size: 10px;">AI趋势</a> <a href="../../../../tags/Claude/" style="font-size: 10px;">Claude</a> <a href="../../../../tags/Claude-Code/" style="font-size: 10px;">Claude Code</a> <a href="../../../../tags/Copilot/" style="font-size: 10px;">Copilot</a> <a href="../../../../tags/Cursor/" style="font-size: 10px;">Cursor</a> <a href="../../../../tags/DALL-E/" style="font-size: 10px;">DALL-E</a> <a href="../../../../tags/GPT/" style="font-size: 10px;">GPT</a> <a href="../../../../tags/Gemini/" style="font-size: 10px;">Gemini</a> <a href="../../../../tags/Llama/" style="font-size: 10px;">Llama</a> <a href="../../../../tags/Midjourney/" style="font-size: 10px;">Midjourney</a> <a href="../../../../tags/RAG/" style="font-size: 10px;">RAG</a> <a href="../../../../tags/Stable-Diffusion/" style="font-size: 10px;">Stable Diffusion</a> <a href="../../../../tags/%E5%90%91%E9%87%8F%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 10px;">向量数据库</a> <a href="../../../../tags/%E5%A4%A7%E8%AF%AD%E8%A8%80%E6%A8%A1%E5%9E%8B/" style="font-size: 10px;">大语言模型</a> <a href="../../../../tags/%E5%B7%A5%E4%BD%9C%E6%B5%81/" style="font-size: 10px;">工作流</a> <a href="../../../../tags/%E6%95%88%E7%8E%87%E6%8F%90%E5%8D%87/" style="font-size: 10px;">效率提升</a> <a href="../../../../tags/%E7%9F%A5%E8%AF%86%E5%BA%93/" style="font-size: 10px;">知识库</a> <a href="../../../../tags/%E7%BC%96%E7%A8%8B/" style="font-size: 10px;">编程</a> <a href="../../../../tags/%E8%87%AA%E5%8A%A8%E5%8C%96/" style="font-size: 10px;">自动化</a>
+		</div>
+		
+	</div>
+
+
+		
+			
+	<div class="kira-widget-wrap">
+		<h3 class="kira-widget-title">
+			Archive
+		</h3>
+		<div class="kira-widget">
+			<ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="../../../../archives/2025/">2025</a><span class="archive-list-count">6</span></li></ul>
+		</div>
+	</div>
+
+
+		
+	</aside>
+	<div class="kira-copyright">
+		&copy; 2026
+		<a href="../../../../index.html">mason.chao</a>
+		Powered by <a href="http://hexo.io/" target="_blank">Hexo</a> &
+		<a href="https://github.com/ch1ny/kira-hexo/" target="_blank">Kira-Hexo</a>
+		<br />
+		
+		
+	</div>
+</div>
+<div
+	class="kira-sidebar-modal"
+	id="sidebar-modal"
+	onclick="(function(self) {
+		self.classList.remove('show');
+		document.querySelector('.kira-sidebar.show#sidebar').classList.remove('show');
+	})(this)"
+></div>
+			<div class="kira-content">
+				<div id="kira-top-header"></div>
+				<div class="kira-main-content">
+					
+<link rel="stylesheet" href="../../../../css/kira-image.css">
+
+
+<script src="../../../../js/kira-image.js"></script>
+
+<div class="kira-image">
+    <div class="kira-image-modal">
+        <div class="kira-image-header">
+            <div class="kira-image-counter"></div>
+            <div class="kira-image-title"></div>
+            <div class="kira-image-operation">
+                <div class="kira-image-operation-button" id="kira-image-operation-button-zoom">
+                    <i class="kirafont icon-zoom-in"></i>
+                </div>
+                <div class="kira-image-operation-button" id="kira-image-operation-button-close">
+                    <i class="kirafont icon-close"></i>
+                </div>
+            </div>
+        </div>
+        <div class="kira-image-container">
+            <div class="kira-image-prev-button-panel">
+                <div class="kira-image-exchange-button">
+                    <i class="kirafont icon-left"></i>
+                </div>
+            </div>
+            <div class="kira-image-list">
+                <div class="kira-image-prev">
+                    <img />
+                </div>
+                <div class="kira-image-now">
+                    <img />
+                </div>
+                <div class="kira-image-next">
+                    <img />
+                </div>
+            </div>
+            <div class="kira-image-next-button-panel">
+                <div class="kira-image-exchange-button">
+                    <i class="kirafont icon-right"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+	
+<link rel="stylesheet" href="../../../../css/kira-code-copy.css">
+
+	
+<script src="../../../../js/kira-code-copy.js"></script>
+
+
+<div class="kira-post">
+	<article>
+		
+		<div class="kira-post-cover">
+			<img
+				data-src="https://images.unsplash.com/photo-1547891654-e66edf7d1045?w=1200"
+				data-sizes="auto"
+				alt="AI 绘画工具实战指南：Midjourney、DALL-E 3 与 Stable Diffusion"
+				class="lazyload kira-post-cover-image disabled-kira-image"
+			/>
+			<h1>AI 绘画工具实战指南：Midjourney、DALL-E 3 与 Stable Diffusion</h1>
+		</div>
+		
+		<div class="kira-post-meta kira-rainbow" style="margin:10px 0!important;">
+			<a><i class="kirafont icon-calendar-fill"></i>2025年04月22日</a>
+			<a><i class="kirafont icon-edit-fill"></i>1.5k 字</a>
+			<a><i class="kirafont icon-time-circle-fill"></i>大概 6 分钟</a>
+		</div>
+		<html><head></head><body><blockquote>
+<p><strong>🎯 阅读提示</strong>：本文从入门到进阶，带你掌握三款主流 AI 绘画工具。包含实战 Prompt、参数详解和场景推荐。预计阅读时间：12 分钟。</p>
+</blockquote>
+<p>AI 绘画已经从”新奇玩具”进化为”创作利器”。无论你是设计师、内容创作者还是普通用户，都能用 AI 快速生成惊艳的视觉作品。本文将深入掌握三款主流工具，让你的创作效率飞升。</p>
+<hr>
+<h2><span id="%F0%9F%93%8A-%E4%B8%89%E7%A7%92%E9%80%89%E5%B7%A5%E5%85%B7">📊 三秒选工具</span></h2><table>
+<thead>
+<tr>
+<th align="center">你的需求</th>
+<th align="center">选择工具</th>
+<th align="left">一句话理由</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">追求最高画质</td>
+<td align="center"><strong>Midjourney</strong></td>
+<td align="left">艺术质感无人能敌</td>
+</tr>
+<tr>
+<td align="center">需要精确文字</td>
+<td align="center"><strong>DALL-E 3</strong></td>
+<td align="left">唯一能靠谱写文字的</td>
+</tr>
+<tr>
+<td align="center">完全自由控制</td>
+<td align="center"><strong>Stable Diffusion</strong></td>
+<td align="left">开源可控，无限定制</td>
+</tr>
+<tr>
+<td align="center">预算有限</td>
+<td align="center"><strong>Stable Diffusion</strong></td>
+<td align="left">免费开源，只需 GPU</td>
+</tr>
+<tr>
+<td align="center">最快上手</td>
+<td align="center"><strong>DALL-E 3</strong></td>
+<td align="left">ChatGPT 里直接用</td>
+</tr>
+</tbody></table>
+<hr>
+<h2><span id="%E4%B8%80midjourney--%E8%89%BA%E6%9C%AF%E7%94%BB%E8%B4%A8%E4%B9%8B%E7%8E%8B">一、Midjourney — 艺术画质之王</span></h2><blockquote>
+<p><strong>定位</strong>：AI 绘画的画质天花板，艺术风格生成首选</p>
+</blockquote>
+<h3><span id="%F0%9F%8E%A8-%E5%9F%BA%E7%A1%80%E5%85%A5%E9%97%A8">🎨 基础入门</span></h3><p><strong>基本语法：</strong></p>
+<figure class="highlight plaintext"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs plaintext">/imagine prompt: [你的描述]<br></code></pre></td></tr></tbody></table></figure>
+
+<p><strong>一个优秀的 Prompt 公式：</strong></p>
+<figure class="highlight plaintext"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs plaintext">[主体] + [场景/环境] + [光线/氛围] + [风格/参考] + [参数]<br></code></pre></td></tr></tbody></table></figure>
+
+<p><strong>示例：</strong></p>
+<figure class="highlight plaintext"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs plaintext">/imagine prompt: A cyberpunk city at night, neon lights reflecting <br>on wet streets, cinematic lighting, 8k --ar 16:9 --v 6.1 --s 250<br></code></pre></td></tr></tbody></table></figure>
+
+<h3><span id="%E2%9A%99%EF%B8%8F-%E5%85%B3%E9%94%AE%E5%8F%82%E6%95%B0%E9%80%9F%E6%9F%A5">⚙️ 关键参数速查</span></h3><table>
+<thead>
+<tr>
+<th align="center">参数</th>
+<th align="left">说明</th>
+<th align="center">示例</th>
+<th align="left">效果</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center"><code>--ar</code></td>
+<td align="left">宽高比</td>
+<td align="center"><code>--ar 16:9</code></td>
+<td align="left">16:9 横屏</td>
+</tr>
+<tr>
+<td align="center"><code>--v</code></td>
+<td align="left">模型版本</td>
+<td align="center"><code>--v 6.1</code></td>
+<td align="left">使用 V6.1</td>
+</tr>
+<tr>
+<td align="center"><code>--s</code></td>
+<td align="left">风格化程度</td>
+<td align="center"><code>--s 250</code></td>
+<td align="left">0-1000，越高越艺术</td>
+</tr>
+<tr>
+<td align="center"><code>--q</code></td>
+<td align="left">图片质量</td>
+<td align="center"><code>--q 2</code></td>
+<td align="left">1 或 2</td>
+</tr>
+<tr>
+<td align="center"><code>--c</code></td>
+<td align="left">变化程度</td>
+<td align="center"><code>--c 50</code></td>
+<td align="left">0-100，越高越随机</td>
+</tr>
+<tr>
+<td align="center"><code>--no</code></td>
+<td align="left">负面提示</td>
+<td align="center"><code>--no text</code></td>
+<td align="left">排除文字</td>
+</tr>
+</tbody></table>
+<h3><span id="%F0%9F%9A%80-%E8%BF%9B%E9%98%B6%E6%8A%80%E5%B7%A7">🚀 进阶技巧</span></h3><p><strong>1. 角色一致性（Character Reference）</strong></p>
+<figure class="highlight plaintext"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs plaintext">/imagine prompt: a warrior princess in a forest <br>--cref https://url-to-character.png --cw 100<br></code></pre></td></tr></tbody></table></figure>
+
+<blockquote>
+<p><strong>💡 cw 参数</strong>：0 = 只用脸，100 = 用脸+衣服+发型</p>
+</blockquote>
+<p><strong>2. 风格参考（Style Reference）</strong></p>
+<figure class="highlight plaintext"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs plaintext">/imagine prompt: a mountain landscape <br>--sref https://url-to-style.png --sw 500<br></code></pre></td></tr></tbody></table></figure>
+
+<p><strong>3. 平铺图案</strong></p>
+<figure class="highlight plaintext"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs plaintext">/imagine prompt: floral pattern, seamless --tile<br></code></pre></td></tr></tbody></table></figure>
+
+<hr>
+<h2><span id="%E4%BA%8Cdall-e-3--%E6%9C%80%E6%98%93%E4%B8%8A%E6%89%8B%E7%9A%84%E5%AF%B9%E8%AF%9D%E5%BC%8F%E5%88%9B%E4%BD%9C">二、DALL-E 3 — 最易上手的对话式创作</span></h2><blockquote>
+<p><strong>定位</strong>：文字渲染最强、对话式创作最直观</p>
+</blockquote>
+<h3><span id="%F0%9F%97%A3%EF%B8%8F-%E5%AF%B9%E8%AF%9D%E5%BC%8F%E5%88%9B%E4%BD%9C%E6%9C%80%E7%AE%80%E5%8D%95">🗣️ 对话式创作（最简单！）</span></h3><p>直接在 ChatGPT 中描述：</p>
+<figure class="highlight plaintext"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs plaintext">请帮我生成一张图片：一只穿着宇航服的猫站在火星表面，<br>背景是地球，风格要像 Pixar 动画电影的海报<br></code></pre></td></tr></tbody></table></figure>
+
+<blockquote>
+<p><strong>💡 DALL-E 3 的独特优势</strong>：可以在图片中生成可读文字！这是其他工具做不到的。</p>
+</blockquote>
+<h3><span id="%F0%9F%92%BB-api-%E8%B0%83%E7%94%A8">💻 API 调用</span></h3><figure class="highlight python"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">from</span> openai <span class="hljs-keyword">import</span> OpenAI<br><br>client = OpenAI()<br><br>response = client.images.generate(<br>    model=<span class="hljs-string">"dall-e-3"</span>,<br>    prompt=<span class="hljs-string">"A cozy coffee shop interior with warm lighting, watercolor style"</span>,<br>    size=<span class="hljs-string">"1024x1024"</span>,      <span class="hljs-comment"># 可选: 1024x1024, 1792x1024, 1024x1792</span><br>    quality=<span class="hljs-string">"hd"</span>,           <span class="hljs-comment"># standard 或 hd</span><br>    n=<span class="hljs-number">1</span><br>)<br><br><span class="hljs-built_in">print</span>(response.data[<span class="hljs-number">0</span>].url)<br></code></pre></td></tr></tbody></table></figure>
+
+<h3><span id="%F0%9F%93%9D-dall-e-3-%E7%8B%AC%E5%AE%B6%E8%83%BD%E5%8A%9B">📝 DALL-E 3 独家能力</span></h3><table>
+<thead>
+<tr>
+<th align="center">能力</th>
+<th align="left">描述</th>
+<th align="left">示例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center"><strong>文字渲染</strong></td>
+<td align="left">图片中可显示正确文字</td>
+<td align="left">Logo、海报、封面</td>
+</tr>
+<tr>
+<td align="center"><strong>指令遵循</strong></td>
+<td align="left">精确理解复杂描述</td>
+<td align="left">多元素构图</td>
+</tr>
+<tr>
+<td align="center"><strong>迭代修改</strong></td>
+<td align="left">对话式逐步调整</td>
+<td align="left">“把猫换成狗”</td>
+</tr>
+</tbody></table>
+<hr>
+<h2><span id="%E4%B8%89stable-diffusion--flux--%E5%BC%80%E6%BA%90%E8%87%AA%E7%94%B1%E4%B9%8B%E7%8E%8B">三、Stable Diffusion / FLUX — 开源自由之王</span></h2><blockquote>
+<p><strong>定位</strong>：完全可控、无限定制、免费开源</p>
+</blockquote>
+<h3><span id="%F0%9F%9B%A0%EF%B8%8F-%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA">🛠️ 环境搭建</span></h3><figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-comment"># 使用 ComfyUI（推荐，节点式工作流）</span><br>git <span class="hljs-built_in">clone</span> https://github.com/comfyanonymous/ComfyUI.git<br><span class="hljs-built_in">cd</span> ComfyUI<br>pip install -r requirements.txt<br><br><span class="hljs-comment"># 下载 FLUX.1 模型</span><br><span class="hljs-comment"># 从 HuggingFace 下载到 models/checkpoints/</span><br></code></pre></td></tr></tbody></table></figure>
+
+<h3><span id="%E2%9C%8D%EF%B8%8F-prompt-%E6%8A%80%E5%B7%A7">✍️ Prompt 技巧</span></h3><figure class="highlight plaintext"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs plaintext"># FLUX 模型 - 摄影级人像<br>a portrait of a young woman, natural lighting, shallow depth of field,<br>photorealistic, 85mm lens, f/1.4, shot on Sony A7R IV<br><br># 加上 LoRA 风格<br>a portrait of a young woman, anime style, &lt;lora:anime_style:0.7&gt;<br></code></pre></td></tr></tbody></table></figure>
+
+<h3><span id="%F0%9F%8E%9B%EF%B8%8F-controlnet-%E7%B2%BE%E7%A1%AE%E6%8E%A7%E5%88%B6">🎛️ ControlNet 精确控制</span></h3><table>
+<thead>
+<tr>
+<th align="center">控制类型</th>
+<th align="left">用途</th>
+<th align="left">输入</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center"><strong>Lineart</strong></td>
+<td align="left">控制构图</td>
+<td align="left">线稿图</td>
+</tr>
+<tr>
+<td align="center"><strong>OpenPose</strong></td>
+<td align="left">控制人物姿态</td>
+<td align="left">姿态图</td>
+</tr>
+<tr>
+<td align="center"><strong>Depth</strong></td>
+<td align="left">控制空间深度</td>
+<td align="left">深度图</td>
+</tr>
+<tr>
+<td align="center"><strong>Canny</strong></td>
+<td align="left">控制边缘轮廓</td>
+<td align="left">边缘图</td>
+</tr>
+<tr>
+<td align="center"><strong>IP-Adapter</strong></td>
+<td align="left">保持角色一致</td>
+<td align="left">参考图</td>
+</tr>
+</tbody></table>
+<figure class="highlight plaintext"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs plaintext"># 示例：通过姿态控制人物<br>prompt: a dancer in motion, elegant pose<br>controlnet: openpose (输入姿态参考图)<br></code></pre></td></tr></tbody></table></figure>
+
+<hr>
+<h2><span id="%E5%9B%9B%E5%AE%9E%E6%88%98%E5%9C%BA%E6%99%AF">四、实战场景</span></h2><h3><span id="%F0%9F%96%BC%EF%B8%8F-%E5%9C%BA%E6%99%AF-1%E5%8D%9A%E5%AE%A2%E5%B0%81%E9%9D%A2%E5%9B%BE">🖼️ 场景 1：博客封面图</span></h3><p><strong>推荐：Midjourney</strong></p>
+<figure class="highlight plaintext"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs plaintext">minimalist tech blog cover, abstract AI neural network visualization,<br>blue and purple gradient, clean design --ar 16:9 --v 6.1 --s 100<br></code></pre></td></tr></tbody></table></figure>
+
+<p><strong>备选：DALL-E 3</strong></p>
+<figure class="highlight plaintext"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs plaintext">生成一张科技博客封面图，蓝紫色调，抽象的神经网络图案，<br>极简设计风格，16:9 比例<br></code></pre></td></tr></tbody></table></figure>
+
+<hr>
+<h3><span id="%F0%9F%93%A6-%E5%9C%BA%E6%99%AF-2%E4%BA%A7%E5%93%81%E6%A6%82%E5%BF%B5%E5%9B%BE">📦 场景 2：产品概念图</span></h3><p><strong>推荐：Midjourney</strong></p>
+<figure class="highlight plaintext"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs plaintext">product photography of a sleek wireless earbuds case,<br>floating on water surface, studio lighting, white background,<br>product design portfolio quality --ar 4:3 --v 6.1<br></code></pre></td></tr></tbody></table></figure>
+
+<hr>
+<h3><span id="%F0%9F%A7%91%E2%80%8D%F0%9F%8E%A8-%E5%9C%BA%E6%99%AF-3%E4%B8%80%E8%87%B4%E8%A7%92%E8%89%B2%E7%94%9F%E6%88%90">🧑‍🎨 场景 3：一致角色生成</span></h3><p><strong>推荐：Midjourney (cref) 或 SD + ControlNet</strong></p>
+<figure class="highlight plaintext"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs plaintext">Midjourney:<br>a young wizard reading a book in a library <br>--cref https://character.png --cw 80<br><br>SD + IP-Adapter:<br>使用 IP-Adapter 保持角色一致性<br>配合 ControlNet 控制姿态<br></code></pre></td></tr></tbody></table></figure>
+
+<hr>
+<h3><span id="%F0%9F%8F%B7%EF%B8%8F-%E5%9C%BA%E6%99%AF-4logo-%E8%AE%BE%E8%AE%A1">🏷️ 场景 4：Logo 设计</span></h3><p><strong>推荐：DALL-E 3（带文字）</strong></p>
+<figure class="highlight plaintext"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs plaintext">设计一个 AI 科技公司的 Logo，公司名叫 "NeuralFlow"，<br>使用蓝色和绿色渐变，简约现代风格，矢量感<br></code></pre></td></tr></tbody></table></figure>
+
+<hr>
+<h2><span id="%E4%BA%94prompt-%E5%B7%A5%E7%A8%8B%E5%AE%9D%E5%85%B8">五、Prompt 工程宝典</span></h2><h3><span id="%F0%9F%8F%97%EF%B8%8F-%E4%B8%87%E8%83%BD%E5%85%AC%E5%BC%8F">🏗️ 万能公式</span></h3><figure class="highlight plaintext"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs plaintext">[主体描述] + [场景环境] + [光线氛围] + [艺术风格] + [技术参数]<br></code></pre></td></tr></tbody></table></figure>
+
+<h3><span id="%F0%9F%93%9D-%E5%AE%9E%E6%88%98%E7%A4%BA%E4%BE%8B">📝 实战示例</span></h3><figure class="highlight plaintext"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs plaintext">主体：a Japanese girl with long black hair<br>场景：standing in a cherry blossom garden<br>光线：soft morning sunlight, golden hour<br>风格：Studio Ghibli anime style, watercolor texture<br>参数：--ar 3:2 --v 6.1<br></code></pre></td></tr></tbody></table></figure>
+
+<h3><span id="%F0%9F%8E%AF-%E8%B4%A8%E9%87%8F%E6%8F%90%E5%8D%87%E5%85%B3%E9%94%AE%E8%AF%8D">🎯 质量提升关键词</span></h3><table>
+<thead>
+<tr>
+<th align="center">类别</th>
+<th align="left">关键词</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center"><strong>画质</strong></td>
+<td align="left">masterpiece, best quality, ultra-detailed, 8k</td>
+</tr>
+<tr>
+<td align="center"><strong>光影</strong></td>
+<td align="left">volumetric lighting, ray tracing, rim light</td>
+</tr>
+<tr>
+<td align="center"><strong>摄影</strong></td>
+<td align="left">shot on Canon EOS R5, 85mm f/1.4, bokeh</td>
+</tr>
+<tr>
+<td align="center"><strong>风格</strong></td>
+<td align="left">oil painting, watercolor, concept art, cyberpunk</td>
+</tr>
+</tbody></table>
+<hr>
+<h2><span id="%E5%85%AD%E7%89%88%E6%9D%83%E9%A1%BB%E7%9F%A5">六、版权须知</span></h2><blockquote>
+<p><strong>⚠️ 重要提醒</strong>：使用 AI 生成图片前，务必了解版权规则</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th align="center">工具</th>
+<th align="center">商用权限</th>
+<th align="left">注意事项</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">Midjourney</td>
+<td align="center">✅ 付费可商用</td>
+<td align="left">归属条款需细读</td>
+</tr>
+<tr>
+<td align="center">DALL-E 3</td>
+<td align="center">✅ 完整商用权</td>
+<td align="left">最清晰的商用授权</td>
+</tr>
+<tr>
+<td align="center">SD/FLUX</td>
+<td align="center">✅ 可商用</td>
+<td align="left">注意训练数据版权</td>
+</tr>
+</tbody></table>
+<p><strong>通用原则：</strong></p>
+<ul>
+<li>🚫 避免生成真实人物面部</li>
+<li>✅ 尊重艺术家权益</li>
+<li>📝 标注 AI 生成内容</li>
+</ul>
+<hr>
+<p>AI 绘画正在让每个人都能成为创作者。选择适合自己的工具，善用 Prompt 工程，你会发现创作的边界远比想象中更宽广。</p>
+<hr>
+<blockquote>
+<p><strong>📌 总结</strong>：Midjourney 拼画质、DALL-E 3 拼易用和文字、SD/FLUX 拼自由度。三者各有擅长，建议都试试，找到最适合自己的创作方式。</p>
+</blockquote>
+<hr>
+<p><strong>相关阅读：</strong></p>
+<ul>
+<li><a href="/2025/04/22/2025-AI-Agent%E5%B4%9B%E8%B5%B7/">AI Agent 崛起</a></li>
+<li><a href="/2025/04/22/2025-%E6%90%AD%E5%BB%BA%E4%B8%AA%E4%BA%BAAI%E5%B7%A5%E4%BD%9C%E6%B5%81/">搭建个人 AI 工作流</a></li>
+</ul>
+<!-- hexo injector body_end start --><script data-pjax src="https://unpkg.com/oh-my-live2d"></script><script>const oml2d = OML2D.loadOml2d({dockedPosition:"left",mobileDisplay:true,models:[{"path":"https://unpkg.com/live2d-widget-model-shizuku@1.0.5/assets/shizuku.model.json","mobilePosition":[-10,23],"mobileScale":0.1,"mobileStageStyle":{"width":180,"height":166},"motionPreloadStrategy":"IDLE","position":[-10,35],"scale":0.15,"stageStyle":{"width":250,"height":250}},{"path":"https://unpkg.com/live2d-widget-model-koharu@1.0.5/assets/koharu.model.json","scale":0.12,"position":[0,0],"stageStyle":{"width":250},"mobileScale":0.08,"mobilePosition":[0,0],"mobileStageStyle":{"width":180}},{"path":"https://unpkg.com/live2d-widget-model-haruto@1.0.5/assets/haruto.model.json","scale":0.12,"position":[0,0],"mobileScale":0.08,"mobilePosition":[0,0],"mobileStageStyle":{"width":180},"stageStyle":{"width":250}}],parentElement:document.body,primaryColor:"var(--btn-bg)",sayHello:false,tips:{style: {"width":230,"height":120,"left":"calc(50% - 20px)","top":"-100px"},mobileStyle: {"width":180,"height":80,"left":"calc(50% - 30px)","top":"-100px"},idleTips:{interval:15000,message:function(){
+  return axios.get('https://v1.hitokoto.cn?c=i')
+    .then(function (response) {
+      return response.data.hitokoto ;
+    })
+    .catch(function (error) {
+      console.error(error);
+    });
+}
+}}});</script><!-- hexo injector body_end end --></body></html>
+	</article>
+
+	 
+    <div class="kira-post-copyright">
+        <strong>Author：</strong>mason.chao<br>
+        <strong>Link：</strong><a href="https://dochaoing.github.io/2025/04/22/2025-AI%E7%BB%98%E7%94%BB%E5%B7%A5%E5%85%B7%E5%AE%9E%E6%88%98%E6%8C%87%E5%8D%97/" title="https:&#x2F;&#x2F;dochaoing.github.io&#x2F;2025&#x2F;04&#x2F;22&#x2F;2025-AI绘画工具实战指南&#x2F;" target="_blank" rel="noopener">https:&#x2F;&#x2F;dochaoing.github.io&#x2F;2025&#x2F;04&#x2F;22&#x2F;2025-AI绘画工具实战指南&#x2F;</a><br>
+        
+            <strong>版权声明：</strong>本文采用 <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/cn/deed.zh" target="_blank">CC BY-NC-SA 3.0 CN</a> 协议进行许可
+        
+    </div>
+
+  
+	<div class="kira-post-nav">
+		<nav class="post-nav">
+			      
+			<!-- 先找到与当前文字相同的目录 -->
+			   
+			<!-- 在找到当前文章所在的 index -->
+			       
+			<!-- 下一篇文章 -->
+			<div class="new">
+				<span>下一章</span>
+				<a href="../2025-AI%E7%BC%96%E7%A8%8B%E5%B7%A5%E5%85%B7%E6%A8%AA%E8%AF%84/"> 2025 AI 编程工具横评：Claude Code vs Cursor vs GitHub Copilot</a>
+			</div>
+			                      
+		</nav>
+	</div>
+	
+	<div class="kira-post-meta kira-rainbow">
+		
+			<a class="kirafont icon-container-fill -link" href="../../../../categories/AI%E5%B7%A5%E5%85%B7/">AI工具</a>
+		
+		
+			<a class="kirafont icon-tag-fill -none-link" href="../../../../tags/AI%E5%B7%A5%E5%85%B7/" rel="tag">AI工具</a> <a class="kirafont icon-tag-fill -none-link" href="../../../../tags/AI%E7%BB%98%E7%94%BB/" rel="tag">AI绘画</a> <a class="kirafont icon-tag-fill -none-link" href="../../../../tags/DALL-E/" rel="tag">DALL-E</a> <a class="kirafont icon-tag-fill -none-link" href="../../../../tags/Midjourney/" rel="tag">Midjourney</a> <a class="kirafont icon-tag-fill -none-link" href="../../../../tags/Stable-Diffusion/" rel="tag">Stable Diffusion</a>
+		
+	</div>
+	
+	<div class="kira-post-footer">
+		
+
+		
+	<div class="giscus"></div>
+  
+    <script src="https://giscus.app/client.js"
+      data-repo="DoChaoing/dochaoing.github.io"
+      data-repo-id="R_kgDOQkK0BA"
+      data-category="Announcements"
+      data-category-id="DIC_kwDOQkK0BM4Czj3r"
+      data-mapping="pathname"
+      data-strict="0"
+      data-reactions-enabled="1"
+      data-emit-metadata="0"
+      data-input-position="top"
+      data-theme="light"
+      data-lang="en"
+      data-loading="lazy"
+      crossorigin="anonymous"
+      async  
+    ></script>
+  
+
+	</div>
+	
+</div>
+
+				</div>
+			</div>
+			<div class="kira-right-column">
+	<a onclick="document.querySelector('#kira-top-header').scrollIntoView({behavior: 'smooth'});" class="kira-backtotop" aria-label="回到顶部" title="回到顶部">
+		<button class="mdui-fab mdui-ripple">
+			<i class="kirafont icon-caret-up"></i>
+		</button>
+	</a>
+</div>
+
+		</div>
+	</body>
+</html>

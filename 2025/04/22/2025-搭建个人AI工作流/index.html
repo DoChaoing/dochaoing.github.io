@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html 
+	lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		
+<link rel="stylesheet" href="../../../../css/layout.css">
+
+		
+		<title> 搭建个人 AI 工作流：让效率翻倍的实用方案 -  chao&#39;s blog</title>
+		<!-- <link rel="stylesheet" href="https://unpkg.com/mdui@1.0.2/dist/css/mdui.min.css" /> -->
+		<!-- <script src="https://unpkg.com/mdui@1.0.2/dist/js/mdui.min.js"></script> -->
+		
+<link rel="stylesheet" href="../../../../lib/mdui/mdui.min.css">
+
+		
+<script src="../../../../lib/mdui/mdui.min.js"></script>
+
+		<!-- lazyload -->
+		
+<script src="../../../../lib/lazysizes.js"></script>
+
+		<!-- smooth-scrolling -->
+		
+<script src="../../../../lib/smooth-scrolling.js"></script>
+
+		<!-- highlight -->
+		
+<link rel="stylesheet" href="../../../../lib/highlight/atom-one-dark.min.css">
+
+		
+<script src="../../../../lib/highlight/highlight.min.js"></script>
+
+		<!-- 预置 kiraicon -->
+		
+<link rel="stylesheet" href="../../../../lib/iconfont/iconfont.css">
+
+		
+		<link
+			rel="shortcut icon"
+			href="https://kira.host/assets/Pictures/Others/116359b4ccf19917.jpg"
+			type="image/png"
+		/>
+		
+<link rel="stylesheet" href="../../../../deps/css/APlayer.min.css">
+
+		
+		
+<script src="../../../../deps/js/APlayer.min.js"></script>
+<script src="../../../../deps/js/Meting.min.js"></script>
+
+	<meta name="generator" content="Hexo 7.3.0"></head>
+
+	<body>
+		<div
+			class="kira-background"
+			style="background-image: url('https://cdn.pixabay.com/photo/2023/11/10/16/05/anime-8379662_960_720.jpg')"
+		></div>
+		<div class="kira-header">
+    <a
+        class="kira-drawer-button mdui-ripple"
+        title="导航栏"
+        onclick="document.querySelector('.kira-sidebar-modal').classList.add('show');document.querySelector('.kira-sidebar#sidebar').classList.add('show');"
+    >
+        <i class="kirafont icon-menu"></i>
+    </a>
+    <a href="../../../../index.html" title="chao&#39;s blog">
+        <img
+			src="https://kira.host/assets/Pictures/Others/20220922230447.jpg"
+			alt="mason.chao"
+		/>
+    </a>
+</div>
+		<div class="kira-body">
+			<div class="kira-sidebar" id="sidebar">
+	<div class="kira-avatar mdui-ripple">
+		<a target="_blank" rel="noopener" href="https://kira.host/assets/Pictures/Others/20220922230447.jpg" title="mason.chao">
+			<img
+				src="https://kira.host/assets/Pictures/Others/20220922230447.jpg"
+				alt="mason.chao"
+			/>
+		</a>
+	</div>
+	<div class="kira-count">
+		<div><span>文章</span>6</div>
+		<div><span>标签</span>24</div>
+		<div><span>分类</span>5</div>
+	</div>
+	<div class="kira-list">
+		
+		<a
+			class="kira-list-item mdui-ripple false"
+			href="../../../../index.html"
+			title="回到首页"
+		>
+			<i
+				class="kirafont
+					
+						icon-home
+					"
+			></i>
+			<div class="kira-list-item-content">
+				回到首页
+			</div>
+		</a>
+		
+		<a
+			class="kira-list-item mdui-ripple false"
+			href="../../../../archive.html"
+			title="文章归档"
+		>
+			<i
+				class="kirafont
+					
+						icon-container
+					"
+			></i>
+			<div class="kira-list-item-content">
+				文章归档
+			</div>
+		</a>
+		
+		<a
+			class="kira-list-item mdui-ripple false"
+			href="../../../../about.html"
+			title="关于本人"
+		>
+			<i
+				class="kirafont
+					
+						icon-user
+					"
+			></i>
+			<div class="kira-list-item-content">
+				关于本人
+			</div>
+		</a>
+		
+		<a
+			class="kira-list-item mdui-ripple false"
+			href="../../../../friends.html"
+			title="我的朋友"
+		>
+			<i
+				class="kirafont
+					
+						icon-team
+					"
+			></i>
+			<div class="kira-list-item-content">
+				我的朋友
+			</div>
+		</a>
+		
+	</div>
+	<aside id="kira-sidebar">
+		
+			<div class="kira-widget-wrap">
+	<div class="kira-widget kira-social">
+		
+			<a
+				class="mdui-ripple"
+				href="../../../../tencent:/AddContact/?fromId=45&fromSubId=1&subcmd=all&uin=%3C%E5%8E%BB%E6%8E%89%E5%B0%96%E6%8B%AC%E5%8F%B7%E5%90%8E%E5%A1%AB%E4%B8%8A%E4%BD%A0%E7%9A%84QQ%E5%8F%B7%3E&website=www.oicqzone.com"
+				target="_blank"
+				mdui-tooltip="{content: 'QQ'}"
+				style="color: rgb(49, 174, 255); background-color: rgba(49, 174, 255, .1);"
+			>
+				<i
+					class="kirafont
+					
+						icon-QQ
+					"
+				></i>
+			</a>
+		
+			<a
+				class="mdui-ripple"
+				href="https://space.bilibili.com/<改成你的B站uid>"
+				target="_blank"
+				mdui-tooltip="{content: '哔哩哔哩'}"
+				style="color: rgb(231, 106, 141); background-color: rgba(231, 106, 141, .15);"
+			>
+				<i
+					class="kirafont
+					
+						icon-bilibili
+					"
+				></i>
+			</a>
+		
+			<a
+				class="mdui-ripple"
+				href="https://github.com/<你的github id>/"
+				target="_blank"
+				mdui-tooltip="{content: 'GitHub'}"
+				style="color: rgb(25, 23, 23); background-color: rgba(25, 23, 23, .15);"
+			>
+				<i
+					class="kirafont
+					
+						icon-github
+					"
+				></i>
+			</a>
+		
+			<a
+				class="mdui-ripple"
+				href="https://gitee.com/<你的gitee id>"
+				target="_blank"
+				mdui-tooltip="{content: 'Gitee'}"
+				style="color: rgb(165, 15, 15); background-color: rgba(165, 15, 15, .15);"
+			>
+				<i
+					class="kirafont
+					
+						icon-gitee
+					"
+				></i>
+			</a>
+		
+	</div>
+</div>
+
+		
+			
+  <div class="kira-widget-wrap">
+    <h3 class="kira-widget-title">分类</h3>
+    <div class="kira-widget">
+      <ul class="category-list">
+        
+        
+
+        
+          <li class="category-list-item">
+            <a class="category-list-link" href="/categories/AI实践/">
+              AI实践
+            </a>
+            <span class="category-list-count">1</span>
+          </li>
+        
+          <li class="category-list-item">
+            <a class="category-list-link" href="/categories/AI工具/">
+              AI工具
+            </a>
+            <span class="category-list-count">2</span>
+          </li>
+        
+          <li class="category-list-item">
+            <a class="category-list-link" href="/categories/AI技术/">
+              AI技术
+            </a>
+            <span class="category-list-count">1</span>
+          </li>
+        
+          <li class="category-list-item">
+            <a class="category-list-link" href="/categories/AI模型/">
+              AI模型
+            </a>
+            <span class="category-list-count">1</span>
+          </li>
+        
+          <li class="category-list-item">
+            <a class="category-list-link" href="/categories/AI趋势/">
+              AI趋势
+            </a>
+            <span class="category-list-count">1</span>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+		
+			
+	<div class="kira-widget-wrap">
+		<div id="randomtagcloud" class="kira-widget tagcloud kira-rainbow">
+			<a href="../../../../tags/AI-Agent/" style="font-size: 10px;">AI Agent</a> <a href="../../../../tags/AI%E5%B7%A5%E5%85%B7/" style="font-size: 20px;">AI工具</a> <a href="../../../../tags/AI%E6%8A%80%E6%9C%AF/" style="font-size: 10px;">AI技术</a> <a href="../../../../tags/AI%E6%A8%A1%E5%9E%8B/" style="font-size: 10px;">AI模型</a> <a href="../../../../tags/AI%E7%BB%98%E7%94%BB/" style="font-size: 10px;">AI绘画</a> <a href="../../../../tags/AI%E8%B6%8B%E5%8A%BF/" style="font-size: 10px;">AI趋势</a> <a href="../../../../tags/Claude/" style="font-size: 10px;">Claude</a> <a href="../../../../tags/Claude-Code/" style="font-size: 10px;">Claude Code</a> <a href="../../../../tags/Copilot/" style="font-size: 10px;">Copilot</a> <a href="../../../../tags/Cursor/" style="font-size: 10px;">Cursor</a> <a href="../../../../tags/DALL-E/" style="font-size: 10px;">DALL-E</a> <a href="../../../../tags/GPT/" style="font-size: 10px;">GPT</a> <a href="../../../../tags/Gemini/" style="font-size: 10px;">Gemini</a> <a href="../../../../tags/Llama/" style="font-size: 10px;">Llama</a> <a href="../../../../tags/Midjourney/" style="font-size: 10px;">Midjourney</a> <a href="../../../../tags/RAG/" style="font-size: 10px;">RAG</a> <a href="../../../../tags/Stable-Diffusion/" style="font-size: 10px;">Stable Diffusion</a> <a href="../../../../tags/%E5%90%91%E9%87%8F%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 10px;">向量数据库</a> <a href="../../../../tags/%E5%A4%A7%E8%AF%AD%E8%A8%80%E6%A8%A1%E5%9E%8B/" style="font-size: 10px;">大语言模型</a> <a href="../../../../tags/%E5%B7%A5%E4%BD%9C%E6%B5%81/" style="font-size: 10px;">工作流</a> <a href="../../../../tags/%E6%95%88%E7%8E%87%E6%8F%90%E5%8D%87/" style="font-size: 10px;">效率提升</a> <a href="../../../../tags/%E7%9F%A5%E8%AF%86%E5%BA%93/" style="font-size: 10px;">知识库</a> <a href="../../../../tags/%E7%BC%96%E7%A8%8B/" style="font-size: 10px;">编程</a> <a href="../../../../tags/%E8%87%AA%E5%8A%A8%E5%8C%96/" style="font-size: 10px;">自动化</a>
+		</div>
+		
+	</div>
+
+
+		
+			
+	<div class="kira-widget-wrap">
+		<h3 class="kira-widget-title">
+			Archive
+		</h3>
+		<div class="kira-widget">
+			<ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="../../../../archives/2025/">2025</a><span class="archive-list-count">6</span></li></ul>
+		</div>
+	</div>
+
+
+		
+	</aside>
+	<div class="kira-copyright">
+		&copy; 2026
+		<a href="../../../../index.html">mason.chao</a>
+		Powered by <a href="http://hexo.io/" target="_blank">Hexo</a> &
+		<a href="https://github.com/ch1ny/kira-hexo/" target="_blank">Kira-Hexo</a>
+		<br />
+		
+		
+	</div>
+</div>
+<div
+	class="kira-sidebar-modal"
+	id="sidebar-modal"
+	onclick="(function(self) {
+		self.classList.remove('show');
+		document.querySelector('.kira-sidebar.show#sidebar').classList.remove('show');
+	})(this)"
+></div>
+			<div class="kira-content">
+				<div id="kira-top-header"></div>
+				<div class="kira-main-content">
+					
+<link rel="stylesheet" href="../../../../css/kira-image.css">
+
+
+<script src="../../../../js/kira-image.js"></script>
+
+<div class="kira-image">
+    <div class="kira-image-modal">
+        <div class="kira-image-header">
+            <div class="kira-image-counter"></div>
+            <div class="kira-image-title"></div>
+            <div class="kira-image-operation">
+                <div class="kira-image-operation-button" id="kira-image-operation-button-zoom">
+                    <i class="kirafont icon-zoom-in"></i>
+                </div>
+                <div class="kira-image-operation-button" id="kira-image-operation-button-close">
+                    <i class="kirafont icon-close"></i>
+                </div>
+            </div>
+        </div>
+        <div class="kira-image-container">
+            <div class="kira-image-prev-button-panel">
+                <div class="kira-image-exchange-button">
+                    <i class="kirafont icon-left"></i>
+                </div>
+            </div>
+            <div class="kira-image-list">
+                <div class="kira-image-prev">
+                    <img />
+                </div>
+                <div class="kira-image-now">
+                    <img />
+                </div>
+                <div class="kira-image-next">
+                    <img />
+                </div>
+            </div>
+            <div class="kira-image-next-button-panel">
+                <div class="kira-image-exchange-button">
+                    <i class="kirafont icon-right"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+	
+<link rel="stylesheet" href="../../../../css/kira-code-copy.css">
+
+	
+<script src="../../../../js/kira-code-copy.js"></script>
+
+
+<div class="kira-post">
+	<article>
+		
+		<div class="kira-post-cover">
+			<img
+				data-src="https://images.unsplash.com/photo-148318613c7046-1a350a4276eb?w=1200"
+				data-sizes="auto"
+				alt="搭建个人 AI 工作流：让效率翻倍的实用方案"
+				class="lazyload kira-post-cover-image disabled-kira-image"
+			/>
+			<h1>搭建个人 AI 工作流：让效率翻倍的实用方案</h1>
+		</div>
+		
+		<div class="kira-post-meta kira-rainbow" style="margin:10px 0!important;">
+			<a><i class="kirafont icon-calendar-fill"></i>2025年04月22日</a>
+			<a><i class="kirafont icon-edit-fill"></i>1.3k 字</a>
+			<a><i class="kirafont icon-time-circle-fill"></i>大概 5 分钟</a>
+		</div>
+		<html><head></head><body><blockquote>
+<p><strong>🎯 阅读提示</strong>：本文分享一套经过实践检验的个人 AI 工作流方案，帮你打造高效的 AI 增强工作环境。预计阅读时间：10 分钟。</p>
+</blockquote>
+<p>AI 工具用得好，效率翻倍不是梦。但很多朋友的问题是：<strong>工具太多，不知道怎么组合使用</strong>。本文分享一套经过实践检验的工作流方案，让 AI 真正融入你的日常。</p>
+<hr>
+<h2><span id="%F0%9F%92%A1-%E6%A0%B8%E5%BF%83%E7%90%86%E5%BF%B5">💡 核心理念</span></h2><blockquote>
+<p><strong>不要追求”最强大的工具”，而要追求”最适合工作流的组合”</strong></p>
+</blockquote>
+<h3><span id="%E8%AE%BE%E8%AE%A1%E5%8E%9F%E5%88%99">设计原则</span></h3><table>
+<thead>
+<tr>
+<th align="center">原则</th>
+<th align="left">说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center"><strong>场景化</strong></td>
+<td align="left">不同场景用不同工具</td>
+</tr>
+<tr>
+<td align="center"><strong>无缝衔接</strong></td>
+<td align="left">工具之间数据流转顺畅</td>
+</tr>
+<tr>
+<td align="center"><strong>人机协作</strong></td>
+<td align="left">AI 辅助，人做决策</td>
+</tr>
+<tr>
+<td align="center"><strong>渐进增强</strong></td>
+<td align="left">从简单开始，逐步优化</td>
+</tr>
+</tbody></table>
+<hr>
+<h2><span id="%E4%B8%80%E6%88%91%E7%9A%84-ai-%E5%B7%A5%E5%85%B7%E6%A0%88">一、我的 AI 工具栈</span></h2><h3><span id="%F0%9F%92%BB-%E7%BC%96%E7%A8%8B%E5%9C%BA%E6%99%AF">💻 编程场景</span></h3><table>
+<thead>
+<tr>
+<th align="center">任务</th>
+<th align="center">首选工具</th>
+<th align="center">备选</th>
+<th align="left">选择理由</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">日常编码</td>
+<td align="center"><strong>Copilot</strong></td>
+<td align="center">-</td>
+<td align="left">行内补全，流畅不打断</td>
+</tr>
+<tr>
+<td align="center">复杂重构</td>
+<td align="center"><strong>Claude Code</strong></td>
+<td align="center">Cursor</td>
+<td align="left">全局理解，自主执行</td>
+</tr>
+<tr>
+<td align="center">Debug</td>
+<td align="center"><strong>Claude Code</strong></td>
+<td align="center">-</td>
+<td align="left">可运行测试，闭环修复</td>
+</tr>
+<tr>
+<td align="center">代码审查</td>
+<td align="center"><strong>Claude Sonnet 4</strong></td>
+<td align="center">GPT-4o</td>
+<td align="left">理解上下文，建议精准</td>
+</tr>
+<tr>
+<td align="center">快速原型</td>
+<td align="center"><strong>Cursor</strong></td>
+<td align="center">Claude Code</td>
+<td align="left">可视化，多文件编辑</td>
+</tr>
+</tbody></table>
+<h3><span id="%E2%9C%8D%EF%B8%8F-%E5%86%99%E4%BD%9C%E5%9C%BA%E6%99%AF">✍️ 写作场景</span></h3><table>
+<thead>
+<tr>
+<th align="center">任务</th>
+<th align="center">首选工具</th>
+<th align="center">备选</th>
+<th align="left">选择理由</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">大纲构思</td>
+<td align="center"><strong>Claude Opus 4</strong></td>
+<td align="center">GPT-4o</td>
+<td align="left">创意丰富，逻辑清晰</td>
+</tr>
+<tr>
+<td align="center">内容撰写</td>
+<td align="center"><strong>Claude Sonnet 4</strong></td>
+<td align="center">GPT-4o</td>
+<td align="left">文笔好，速度快</td>
+</tr>
+<tr>
+<td align="center">润色修改</td>
+<td align="center"><strong>GPT-4o</strong></td>
+<td align="center">Claude</td>
+<td align="left">灵活调整风格</td>
+</tr>
+<tr>
+<td align="center">翻译</td>
+<td align="center"><strong>DeepSeek</strong></td>
+<td align="center">GPT-4o</td>
+<td align="left">准确且自然</td>
+</tr>
+</tbody></table>
+<h3><span id="%F0%9F%94%8D-%E7%A0%94%E7%A9%B6%E5%9C%BA%E6%99%AF">🔍 研究场景</span></h3><table>
+<thead>
+<tr>
+<th align="center">任务</th>
+<th align="center">首选工具</th>
+<th align="center">备选</th>
+<th align="left">选择理由</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">搜索资料</td>
+<td align="center"><strong>Perplexity</strong></td>
+<td align="center">-</td>
+<td align="left">实时搜索，带引用</td>
+</tr>
+<tr>
+<td align="center">整理笔记</td>
+<td align="center"><strong>Claude + Notion</strong></td>
+<td align="center">-</td>
+<td align="left">结构化能力强</td>
+</tr>
+<tr>
+<td align="center">生成报告</td>
+<td align="center"><strong>Claude Opus 4</strong></td>
+<td align="center">GPT-4o</td>
+<td align="left">深度分析，逻辑严密</td>
+</tr>
+</tbody></table>
+<h3><span id="%F0%9F%8E%A8-%E5%88%9B%E6%84%8F%E5%9C%BA%E6%99%AF">🎨 创意场景</span></h3><table>
+<thead>
+<tr>
+<th align="center">任务</th>
+<th align="center">首选工具</th>
+<th align="center">备选</th>
+<th align="left">选择理由</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">图片生成</td>
+<td align="center"><strong>Midjourney</strong></td>
+<td align="center">DALL-E 3</td>
+<td align="left">画质最佳</td>
+</tr>
+<tr>
+<td align="center">带文字图</td>
+<td align="center"><strong>DALL-E 3</strong></td>
+<td align="center">-</td>
+<td align="left">文字渲染准</td>
+</tr>
+<tr>
+<td align="center">Logo 设计</td>
+<td align="center"><strong>Midjourney</strong></td>
+<td align="center">DALL-E 3</td>
+<td align="left">各有擅长</td>
+</tr>
+</tbody></table>
+<hr>
+<h2><span id="%E4%BA%8C%E5%85%B8%E5%9E%8B%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A4%BA%E4%BE%8B">二、典型工作流示例</span></h2><h3><span id="%F0%9F%93%9D-%E5%B7%A5%E4%BD%9C%E6%B5%81-1%E5%86%99%E4%B8%80%E7%AF%87%E6%8A%80%E6%9C%AF%E5%8D%9A%E5%AE%A2">📝 工作流 1：写一篇技术博客</span></h3><figure class="highlight plaintext"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><code class="hljs plaintext">┌─────────────────────────────────────────────────────────┐<br>│  Step 1: 构思阶段                                        │<br>│  ┌─────────────────────────────────────────────────┐   │<br>│  │ Claude Opus 4: "帮我构思一篇关于 RAG 的技术博客"  │   │<br>│  │ → 生成大纲，讨论调整                            │   │<br>│  └─────────────────────────────────────────────────┘   │<br>├─────────────────────────────────────────────────────────┤<br>│  Step 2: 资料收集                                        │<br>│  ┌─────────────────────────────────────────────────┐   │<br>│  │ Perplexity: "RAG 最新技术进展 2025"              │   │<br>│  │ → 获取最新资料和引用                            │   │<br>│  └─────────────────────────────────────────────────┘   │<br>├─────────────────────────────────────────────────────────┤<br>│  Step 3: 内容撰写                                        │<br>│  ┌─────────────────────────────────────────────────┐   │<br>│  │ Claude Sonnet 4: 基于大纲和资料撰写正文          │   │<br>│  │ → 分节生成，保持连贯                           │   │<br>│  └─────────────────────────────────────────────────┘   │<br>├─────────────────────────────────────────────────────────┤<br>│  Step 4: 配图                                            │<br>│  ┌─────────────────────────────────────────────────┐   │<br>│  │ Midjourney: 生成封面图                          │   │<br>│  │ DALL-E 3: 生成带文字的示意图                     │   │<br>│  └─────────────────────────────────────────────────┘   │<br>├─────────────────────────────────────────────────────────┤<br>│  Step 5: 润色                                            │<br>│  ┌─────────────────────────────────────────────────┐   │<br>│  │ GPT-4o: "润色这篇文章，让表达更流畅"              │   │<br>│  │ → 最终定稿                                     │   │<br>│  └─────────────────────────────────────────────────┘   │<br>└─────────────────────────────────────────────────────────┘<br></code></pre></td></tr></tbody></table></figure>
+
+<hr>
+<h3><span id="%F0%9F%92%BB-%E5%B7%A5%E4%BD%9C%E6%B5%81-2%E5%BC%80%E5%8F%91%E4%B8%80%E4%B8%AA%E6%96%B0%E5%8A%9F%E8%83%BD">💻 工作流 2：开发一个新功能</span></h3><figure class="highlight plaintext"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><code class="hljs plaintext">┌─────────────────────────────────────────────────────────┐<br>│  Step 1: 需求分析                                        │<br>│  ┌─────────────────────────────────────────────────┐   │<br>│  │ Claude Code: "分析这个需求，给出技术方案"         │   │<br>│  │ → 生成技术设计文档                             │   │<br>│  └─────────────────────────────────────────────────┘   │<br>├─────────────────────────────────────────────────────────┤<br>│  Step 2: 编码实现                                        │<br>│  ┌─────────────────────────────────────────────────┐   │<br>│  │ Claude Code: "实现这个功能，包括前端和后端"       │   │<br>│  │ → 自主编写代码，处理依赖                        │   │<br>│  └─────────────────────────────────────────────────┘   │<br>├─────────────────────────────────────────────────────────┤<br>│  Step 3: 测试验证                                        │<br>│  ┌─────────────────────────────────────────────────┐   │<br>│  │ Claude Code: "运行测试，确保功能正常"            │   │<br>│  │ → 执行测试，修复问题                           │   │<br>│  └─────────────────────────────────────────────────┘   │<br>├─────────────────────────────────────────────────────────┤<br>│  Step 4: 代码审查                                        │<br>│  ┌─────────────────────────────────────────────────┐   │<br>│  │ Claude Sonnet 4: "审查这段代码，指出潜在问题"     │   │<br>│  │ → 优化代码质量                                 │   │<br>│  └─────────────────────────────────────────────────┘   │<br>├─────────────────────────────────────────────────────────┤<br>│  Step 5: 文档更新                                        │<br>│  ┌─────────────────────────────────────────────────┐   │<br>│  │ Claude Sonnet 4: "更新 README 和 API 文档"       │   │<br>│  │ → 同步文档                                     │   │<br>│  └─────────────────────────────────────────────────┘   │<br>└─────────────────────────────────────────────────────────┘<br></code></pre></td></tr></tbody></table></figure>
+
+<hr>
+<h3><span id="%F0%9F%93%A7-%E5%B7%A5%E4%BD%9C%E6%B5%81-3%E6%97%A5%E5%B8%B8%E9%82%AE%E4%BB%B6%E5%A4%84%E7%90%86">📧 工作流 3：日常邮件处理</span></h3><figure class="highlight plaintext"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs plaintext">┌─────────────────────────────────────────────────────────┐<br>│  Step 1: 分类                                            │<br>│  ┌─────────────────────────────────────────────────┐   │<br>│  │ AI 助手: 扫描邮件，按重要性分类                   │   │<br>│  └─────────────────────────────────────────────────┘   │<br>├─────────────────────────────────────────────────────────┤<br>│  Step 2: 起草回复                                        │<br>│  ┌─────────────────────────────────────────────────┐   │<br>│  │ Claude Haiku: 根据邮件内容起草回复               │   │<br>│  │ → 快速生成，人工审核                           │   │<br>│  └─────────────────────────────────────────────────┘   │<br>├─────────────────────────────────────────────────────────┤<br>│  Step 3: 复杂邮件                                        │<br>│  ┌─────────────────────────────────────────────────┐   │<br>│  │ Claude Sonnet 4: 处理需要深度思考的邮件          │   │<br>│  │ → 详细分析，给出建议回复                        │   │<br>│  └─────────────────────────────────────────────────┘   │<br>└─────────────────────────────────────────────────────────┘<br></code></pre></td></tr></tbody></table></figure>
+
+<hr>
+<h2><span id="%E4%B8%89%E5%B7%A5%E5%85%B7%E9%9B%86%E6%88%90%E6%96%B9%E6%A1%88">三、工具集成方案</span></h2><h3><span id="%F0%9F%85%B0%EF%B8%8F-%E6%96%B9%E6%A1%88-aclaude-code-%E4%B8%BA%E6%A0%B8%E5%BF%83">🅰️ 方案 A：Claude Code 为核心</span></h3><blockquote>
+<p>适合：终端重度用户、后端开发者</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs plaintext">Claude Code (核心)<br>│<br>├── MCP 集成<br>│   ├── 📁 文件系统<br>│   ├── 🔗 GitHub<br>│   ├── 🗄️ 数据库<br>│   └── 🔧 自定义工具<br>│<br>└── 外部调用<br>    ├── 🔍 Perplexity (搜索)<br>    └── 🎨 Midjourney (图片)<br></code></pre></td></tr></tbody></table></figure>
+
+<hr>
+<h3><span id="%F0%9F%85%B1%EF%B8%8F-%E6%96%B9%E6%A1%88-bcursor-%E4%B8%BA%E6%A0%B8%E5%BF%83">🅱️ 方案 B：Cursor 为核心</span></h3><blockquote>
+<p>适合：前端/全栈开发者、VS Code 用户</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs plaintext">Cursor (核心 IDE)<br>│<br>├── 内置 AI<br>│   ├── ✏️ Composer (多文件编辑)<br>│   └── 💬 Chat (对话)<br>│<br>├── 插件扩展<br>│   ├── 🤖 Copilot (补全)<br>│   └── 🔌 其他 AI 插件<br>│<br>└── 外部工具<br>    └── 📡 Claude API (复杂任务)<br></code></pre></td></tr></tbody></table></figure>
+
+<hr>
+<h3><span id="%F0%9F%85%B2%EF%B8%8F-%E6%96%B9%E6%A1%88-capi-%E7%BC%96%E6%8E%92">🅲️ 方案 C：API 编排</span></h3><blockquote>
+<p>适合：需要定制化、追求自动化的用户</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs plaintext">自建工作流<br>│<br>├── 🧩 LangChain / LangGraph<br>│   ├── 调度多个模型<br>│   └── 工具编排<br>│<br>├── 🤖 模型选择<br>│   ├── Claude (编程/写作)<br>│   ├── GPT-4o (通用)<br>│   └── Gemini (长文本)<br>│<br>└── 🔧 工具集成<br>    ├── 🔍 搜索<br>    ├── 💻 代码执行<br>    └── 📁 文件操作<br></code></pre></td></tr></tbody></table></figure>
+
+<hr>
+<h2><span id="%E5%9B%9B%E6%88%90%E6%9C%AC%E4%BC%98%E5%8C%96%E7%AD%96%E7%95%A5">四、成本优化策略</span></h2><h3><span id="%F0%9F%92%B0-%E6%A8%A1%E5%9E%8B%E5%88%86%E7%BA%A7%E4%BD%BF%E7%94%A8">💰 模型分级使用</span></h3><figure class="highlight plaintext"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs plaintext">┌─────────────────────────────────────────────────────┐<br>│  简单任务 → Haiku / GPT-4o mini / Gemini Flash      │<br>│  中等任务 → Sonnet / GPT-4o                         │<br>│  复杂任务 → Opus / o3                               │<br>└─────────────────────────────────────────────────────┘<br></code></pre></td></tr></tbody></table></figure>
+
+<h3><span id="%F0%9F%93%8A-%E6%88%90%E6%9C%AC%E5%AF%B9%E6%AF%94%E7%A4%BA%E4%BE%8B">📊 成本对比示例</span></h3><table>
+<thead>
+<tr>
+<th align="center">任务类型</th>
+<th align="center">模型选择</th>
+<th align="center">预估成本</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">日常对话</td>
+<td align="center">Gemini Flash</td>
+<td align="center">~$0.01</td>
+</tr>
+<tr>
+<td align="center">代码补全</td>
+<td align="center">GPT-4o mini</td>
+<td align="center">~$0.05</td>
+</tr>
+<tr>
+<td align="center">文章撰写</td>
+<td align="center">Claude Sonnet 4</td>
+<td align="center">~$0.30</td>
+</tr>
+<tr>
+<td align="center">复杂推理</td>
+<td align="center">Claude Opus 4</td>
+<td align="center">~$1.50</td>
+</tr>
+</tbody></table>
+<h3><span id="%F0%9F%94%84-%E7%BC%93%E5%AD%98%E7%AD%96%E7%95%A5">🔄 缓存策略</span></h3><ul>
+<li>✅ 使用 <strong>Prompt Caching</strong>（Claude）减少重复输入成本</li>
+<li>✅ 对话历史本地缓存，减少上下文传输</li>
+<li>✅ 批量处理相似请求</li>
+</ul>
+<hr>
+<h2><span id="%E4%BA%94%E5%BC%80%E5%A7%8B%E8%A1%8C%E5%8A%A8">五、开始行动</span></h2><blockquote>
+<p><strong>🚀 不要试图一次性搭建完美的工作流</strong></p>
+</blockquote>
+<h3><span id="%E6%B8%90%E8%BF%9B%E5%BC%8F%E8%B7%AF%E7%BA%BF%E5%9B%BE">渐进式路线图</span></h3><table>
+<thead>
+<tr>
+<th align="center">阶段</th>
+<th align="left">目标</th>
+<th align="left">行动</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center"><strong>第 1 周</strong></td>
+<td align="left">熟悉基础</td>
+<td align="left">选择 1-2 个核心工具，熟悉基本用法</td>
+</tr>
+<tr>
+<td align="center"><strong>第 2 周</strong></td>
+<td align="left">实践应用</td>
+<td align="left">在日常工作中尝试使用，找到痛点</td>
+</tr>
+<tr>
+<td align="center"><strong>第 3 周</strong></td>
+<td align="left">组合优化</td>
+<td align="left">引入更多工具，开始组合使用</td>
+</tr>
+<tr>
+<td align="center"><strong>持续</strong></td>
+<td align="left">迭代改进</td>
+<td align="left">根据反馈调整工作流</td>
+</tr>
+</tbody></table>
+<hr>
+<blockquote>
+<p><strong>📌 总结</strong>：工具是手段，效率是目的。适合自己的工作流，才是最好的工作流。从简单开始，持续优化，让 AI 真正成为你的效率倍增器。</p>
+</blockquote>
+<hr>
+<p><strong>相关阅读：</strong></p>
+<ul>
+<li><a href="/2025/04/22/2025-AI%E7%BC%96%E7%A8%8B%E5%B7%A5%E5%85%B7%E6%A8%AA%E8%AF%84/">AI 编程工具横评</a></li>
+<li><a href="/2025/04/22/2025-AI-Agent%E5%B4%9B%E8%B5%B7/">AI Agent 崛起</a></li>
+</ul>
+<!-- hexo injector body_end start --><script data-pjax src="https://unpkg.com/oh-my-live2d"></script><script>const oml2d = OML2D.loadOml2d({dockedPosition:"left",mobileDisplay:true,models:[{"path":"https://unpkg.com/live2d-widget-model-shizuku@1.0.5/assets/shizuku.model.json","mobilePosition":[-10,23],"mobileScale":0.1,"mobileStageStyle":{"width":180,"height":166},"motionPreloadStrategy":"IDLE","position":[-10,35],"scale":0.15,"stageStyle":{"width":250,"height":250}},{"path":"https://unpkg.com/live2d-widget-model-koharu@1.0.5/assets/koharu.model.json","scale":0.12,"position":[0,0],"stageStyle":{"width":250},"mobileScale":0.08,"mobilePosition":[0,0],"mobileStageStyle":{"width":180}},{"path":"https://unpkg.com/live2d-widget-model-haruto@1.0.5/assets/haruto.model.json","scale":0.12,"position":[0,0],"mobileScale":0.08,"mobilePosition":[0,0],"mobileStageStyle":{"width":180},"stageStyle":{"width":250}}],parentElement:document.body,primaryColor:"var(--btn-bg)",sayHello:false,tips:{style: {"width":230,"height":120,"left":"calc(50% - 20px)","top":"-100px"},mobileStyle: {"width":180,"height":80,"left":"calc(50% - 30px)","top":"-100px"},idleTips:{interval:15000,message:function(){
+  return axios.get('https://v1.hitokoto.cn?c=i')
+    .then(function (response) {
+      return response.data.hitokoto ;
+    })
+    .catch(function (error) {
+      console.error(error);
+    });
+}
+}}});</script><!-- hexo injector body_end end --></body></html>
+	</article>
+
+	 
+    <div class="kira-post-copyright">
+        <strong>Author：</strong>mason.chao<br>
+        <strong>Link：</strong><a href="https://dochaoing.github.io/2025/04/22/2025-%E6%90%AD%E5%BB%BA%E4%B8%AA%E4%BA%BAAI%E5%B7%A5%E4%BD%9C%E6%B5%81/" title="https:&#x2F;&#x2F;dochaoing.github.io&#x2F;2025&#x2F;04&#x2F;22&#x2F;2025-搭建个人AI工作流&#x2F;" target="_blank" rel="noopener">https:&#x2F;&#x2F;dochaoing.github.io&#x2F;2025&#x2F;04&#x2F;22&#x2F;2025-搭建个人AI工作流&#x2F;</a><br>
+        
+            <strong>版权声明：</strong>本文采用 <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/cn/deed.zh" target="_blank">CC BY-NC-SA 3.0 CN</a> 协议进行许可
+        
+    </div>
+
+  
+	<div class="kira-post-nav">
+		<nav class="post-nav">
+			                  
+			<!-- 先找到与当前文字相同的目录 -->
+			   
+			<!-- 在找到当前文章所在的 index -->
+			          
+		</nav>
+	</div>
+	
+	<div class="kira-post-meta kira-rainbow">
+		
+			<a class="kirafont icon-container-fill -link" href="../../../../categories/AI%E5%AE%9E%E8%B7%B5/">AI实践</a>
+		
+		
+			<a class="kirafont icon-tag-fill -none-link" href="../../../../tags/AI%E5%B7%A5%E5%85%B7/" rel="tag">AI工具</a> <a class="kirafont icon-tag-fill -none-link" href="../../../../tags/%E5%B7%A5%E4%BD%9C%E6%B5%81/" rel="tag">工作流</a> <a class="kirafont icon-tag-fill -none-link" href="../../../../tags/%E6%95%88%E7%8E%87%E6%8F%90%E5%8D%87/" rel="tag">效率提升</a>
+		
+	</div>
+	
+	<div class="kira-post-footer">
+		
+
+		
+	<div class="giscus"></div>
+  
+    <script src="https://giscus.app/client.js"
+      data-repo="DoChaoing/dochaoing.github.io"
+      data-repo-id="R_kgDOQkK0BA"
+      data-category="Announcements"
+      data-category-id="DIC_kwDOQkK0BM4Czj3r"
+      data-mapping="pathname"
+      data-strict="0"
+      data-reactions-enabled="1"
+      data-emit-metadata="0"
+      data-input-position="top"
+      data-theme="light"
+      data-lang="en"
+      data-loading="lazy"
+      crossorigin="anonymous"
+      async  
+    ></script>
+  
+
+	</div>
+	
+</div>
+
+				</div>
+			</div>
+			<div class="kira-right-column">
+	<a onclick="document.querySelector('#kira-top-header').scrollIntoView({behavior: 'smooth'});" class="kira-backtotop" aria-label="回到顶部" title="回到顶部">
+		<button class="mdui-fab mdui-ripple">
+			<i class="kirafont icon-caret-up"></i>
+		</button>
+	</a>
+</div>
+
+		</div>
+	</body>
+</html>

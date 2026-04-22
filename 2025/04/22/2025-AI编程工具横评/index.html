@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html 
+	lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		
+<link rel="stylesheet" href="../../../../css/layout.css">
+
+		
+		<title> 2025 AI 编程工具横评：Claude Code vs Cursor vs GitHub Copilot -  chao&#39;s blog</title>
+		<!-- <link rel="stylesheet" href="https://unpkg.com/mdui@1.0.2/dist/css/mdui.min.css" /> -->
+		<!-- <script src="https://unpkg.com/mdui@1.0.2/dist/js/mdui.min.js"></script> -->
+		
+<link rel="stylesheet" href="../../../../lib/mdui/mdui.min.css">
+
+		
+<script src="../../../../lib/mdui/mdui.min.js"></script>
+
+		<!-- lazyload -->
+		
+<script src="../../../../lib/lazysizes.js"></script>
+
+		<!-- smooth-scrolling -->
+		
+<script src="../../../../lib/smooth-scrolling.js"></script>
+
+		<!-- highlight -->
+		
+<link rel="stylesheet" href="../../../../lib/highlight/atom-one-dark.min.css">
+
+		
+<script src="../../../../lib/highlight/highlight.min.js"></script>
+
+		<!-- 预置 kiraicon -->
+		
+<link rel="stylesheet" href="../../../../lib/iconfont/iconfont.css">
+
+		
+		<link
+			rel="shortcut icon"
+			href="https://kira.host/assets/Pictures/Others/116359b4ccf19917.jpg"
+			type="image/png"
+		/>
+		
+<link rel="stylesheet" href="../../../../deps/css/APlayer.min.css">
+
+		
+		
+<script src="../../../../deps/js/APlayer.min.js"></script>
+<script src="../../../../deps/js/Meting.min.js"></script>
+
+	<meta name="generator" content="Hexo 7.3.0"></head>
+
+	<body>
+		<div
+			class="kira-background"
+			style="background-image: url('https://cdn.pixabay.com/photo/2023/11/10/16/05/anime-8379662_960_720.jpg')"
+		></div>
+		<div class="kira-header">
+    <a
+        class="kira-drawer-button mdui-ripple"
+        title="导航栏"
+        onclick="document.querySelector('.kira-sidebar-modal').classList.add('show');document.querySelector('.kira-sidebar#sidebar').classList.add('show');"
+    >
+        <i class="kirafont icon-menu"></i>
+    </a>
+    <a href="../../../../index.html" title="chao&#39;s blog">
+        <img
+			src="https://kira.host/assets/Pictures/Others/20220922230447.jpg"
+			alt="mason.chao"
+		/>
+    </a>
+</div>
+		<div class="kira-body">
+			<div class="kira-sidebar" id="sidebar">
+	<div class="kira-avatar mdui-ripple">
+		<a target="_blank" rel="noopener" href="https://kira.host/assets/Pictures/Others/20220922230447.jpg" title="mason.chao">
+			<img
+				src="https://kira.host/assets/Pictures/Others/20220922230447.jpg"
+				alt="mason.chao"
+			/>
+		</a>
+	</div>
+	<div class="kira-count">
+		<div><span>文章</span>6</div>
+		<div><span>标签</span>24</div>
+		<div><span>分类</span>5</div>
+	</div>
+	<div class="kira-list">
+		
+		<a
+			class="kira-list-item mdui-ripple false"
+			href="../../../../index.html"
+			title="回到首页"
+		>
+			<i
+				class="kirafont
+					
+						icon-home
+					"
+			></i>
+			<div class="kira-list-item-content">
+				回到首页
+			</div>
+		</a>
+		
+		<a
+			class="kira-list-item mdui-ripple false"
+			href="../../../../archive.html"
+			title="文章归档"
+		>
+			<i
+				class="kirafont
+					
+						icon-container
+					"
+			></i>
+			<div class="kira-list-item-content">
+				文章归档
+			</div>
+		</a>
+		
+		<a
+			class="kira-list-item mdui-ripple false"
+			href="../../../../about.html"
+			title="关于本人"
+		>
+			<i
+				class="kirafont
+					
+						icon-user
+					"
+			></i>
+			<div class="kira-list-item-content">
+				关于本人
+			</div>
+		</a>
+		
+		<a
+			class="kira-list-item mdui-ripple false"
+			href="../../../../friends.html"
+			title="我的朋友"
+		>
+			<i
+				class="kirafont
+					
+						icon-team
+					"
+			></i>
+			<div class="kira-list-item-content">
+				我的朋友
+			</div>
+		</a>
+		
+	</div>
+	<aside id="kira-sidebar">
+		
+			<div class="kira-widget-wrap">
+	<div class="kira-widget kira-social">
+		
+			<a
+				class="mdui-ripple"
+				href="../../../../tencent:/AddContact/?fromId=45&fromSubId=1&subcmd=all&uin=%3C%E5%8E%BB%E6%8E%89%E5%B0%96%E6%8B%AC%E5%8F%B7%E5%90%8E%E5%A1%AB%E4%B8%8A%E4%BD%A0%E7%9A%84QQ%E5%8F%B7%3E&website=www.oicqzone.com"
+				target="_blank"
+				mdui-tooltip="{content: 'QQ'}"
+				style="color: rgb(49, 174, 255); background-color: rgba(49, 174, 255, .1);"
+			>
+				<i
+					class="kirafont
+					
+						icon-QQ
+					"
+				></i>
+			</a>
+		
+			<a
+				class="mdui-ripple"
+				href="https://space.bilibili.com/<改成你的B站uid>"
+				target="_blank"
+				mdui-tooltip="{content: '哔哩哔哩'}"
+				style="color: rgb(231, 106, 141); background-color: rgba(231, 106, 141, .15);"
+			>
+				<i
+					class="kirafont
+					
+						icon-bilibili
+					"
+				></i>
+			</a>
+		
+			<a
+				class="mdui-ripple"
+				href="https://github.com/<你的github id>/"
+				target="_blank"
+				mdui-tooltip="{content: 'GitHub'}"
+				style="color: rgb(25, 23, 23); background-color: rgba(25, 23, 23, .15);"
+			>
+				<i
+					class="kirafont
+					
+						icon-github
+					"
+				></i>
+			</a>
+		
+			<a
+				class="mdui-ripple"
+				href="https://gitee.com/<你的gitee id>"
+				target="_blank"
+				mdui-tooltip="{content: 'Gitee'}"
+				style="color: rgb(165, 15, 15); background-color: rgba(165, 15, 15, .15);"
+			>
+				<i
+					class="kirafont
+					
+						icon-gitee
+					"
+				></i>
+			</a>
+		
+	</div>
+</div>
+
+		
+			
+  <div class="kira-widget-wrap">
+    <h3 class="kira-widget-title">分类</h3>
+    <div class="kira-widget">
+      <ul class="category-list">
+        
+        
+
+        
+          <li class="category-list-item">
+            <a class="category-list-link" href="/categories/AI实践/">
+              AI实践
+            </a>
+            <span class="category-list-count">1</span>
+          </li>
+        
+          <li class="category-list-item">
+            <a class="category-list-link" href="/categories/AI工具/">
+              AI工具
+            </a>
+            <span class="category-list-count">2</span>
+          </li>
+        
+          <li class="category-list-item">
+            <a class="category-list-link" href="/categories/AI技术/">
+              AI技术
+            </a>
+            <span class="category-list-count">1</span>
+          </li>
+        
+          <li class="category-list-item">
+            <a class="category-list-link" href="/categories/AI模型/">
+              AI模型
+            </a>
+            <span class="category-list-count">1</span>
+          </li>
+        
+          <li class="category-list-item">
+            <a class="category-list-link" href="/categories/AI趋势/">
+              AI趋势
+            </a>
+            <span class="category-list-count">1</span>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+		
+			
+	<div class="kira-widget-wrap">
+		<div id="randomtagcloud" class="kira-widget tagcloud kira-rainbow">
+			<a href="../../../../tags/AI-Agent/" style="font-size: 10px;">AI Agent</a> <a href="../../../../tags/AI%E5%B7%A5%E5%85%B7/" style="font-size: 20px;">AI工具</a> <a href="../../../../tags/AI%E6%8A%80%E6%9C%AF/" style="font-size: 10px;">AI技术</a> <a href="../../../../tags/AI%E6%A8%A1%E5%9E%8B/" style="font-size: 10px;">AI模型</a> <a href="../../../../tags/AI%E7%BB%98%E7%94%BB/" style="font-size: 10px;">AI绘画</a> <a href="../../../../tags/AI%E8%B6%8B%E5%8A%BF/" style="font-size: 10px;">AI趋势</a> <a href="../../../../tags/Claude/" style="font-size: 10px;">Claude</a> <a href="../../../../tags/Claude-Code/" style="font-size: 10px;">Claude Code</a> <a href="../../../../tags/Copilot/" style="font-size: 10px;">Copilot</a> <a href="../../../../tags/Cursor/" style="font-size: 10px;">Cursor</a> <a href="../../../../tags/DALL-E/" style="font-size: 10px;">DALL-E</a> <a href="../../../../tags/GPT/" style="font-size: 10px;">GPT</a> <a href="../../../../tags/Gemini/" style="font-size: 10px;">Gemini</a> <a href="../../../../tags/Llama/" style="font-size: 10px;">Llama</a> <a href="../../../../tags/Midjourney/" style="font-size: 10px;">Midjourney</a> <a href="../../../../tags/RAG/" style="font-size: 10px;">RAG</a> <a href="../../../../tags/Stable-Diffusion/" style="font-size: 10px;">Stable Diffusion</a> <a href="../../../../tags/%E5%90%91%E9%87%8F%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 10px;">向量数据库</a> <a href="../../../../tags/%E5%A4%A7%E8%AF%AD%E8%A8%80%E6%A8%A1%E5%9E%8B/" style="font-size: 10px;">大语言模型</a> <a href="../../../../tags/%E5%B7%A5%E4%BD%9C%E6%B5%81/" style="font-size: 10px;">工作流</a> <a href="../../../../tags/%E6%95%88%E7%8E%87%E6%8F%90%E5%8D%87/" style="font-size: 10px;">效率提升</a> <a href="../../../../tags/%E7%9F%A5%E8%AF%86%E5%BA%93/" style="font-size: 10px;">知识库</a> <a href="../../../../tags/%E7%BC%96%E7%A8%8B/" style="font-size: 10px;">编程</a> <a href="../../../../tags/%E8%87%AA%E5%8A%A8%E5%8C%96/" style="font-size: 10px;">自动化</a>
+		</div>
+		
+	</div>
+
+
+		
+			
+	<div class="kira-widget-wrap">
+		<h3 class="kira-widget-title">
+			Archive
+		</h3>
+		<div class="kira-widget">
+			<ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="../../../../archives/2025/">2025</a><span class="archive-list-count">6</span></li></ul>
+		</div>
+	</div>
+
+
+		
+	</aside>
+	<div class="kira-copyright">
+		&copy; 2026
+		<a href="../../../../index.html">mason.chao</a>
+		Powered by <a href="http://hexo.io/" target="_blank">Hexo</a> &
+		<a href="https://github.com/ch1ny/kira-hexo/" target="_blank">Kira-Hexo</a>
+		<br />
+		
+		
+	</div>
+</div>
+<div
+	class="kira-sidebar-modal"
+	id="sidebar-modal"
+	onclick="(function(self) {
+		self.classList.remove('show');
+		document.querySelector('.kira-sidebar.show#sidebar').classList.remove('show');
+	})(this)"
+></div>
+			<div class="kira-content">
+				<div id="kira-top-header"></div>
+				<div class="kira-main-content">
+					
+<link rel="stylesheet" href="../../../../css/kira-image.css">
+
+
+<script src="../../../../js/kira-image.js"></script>
+
+<div class="kira-image">
+    <div class="kira-image-modal">
+        <div class="kira-image-header">
+            <div class="kira-image-counter"></div>
+            <div class="kira-image-title"></div>
+            <div class="kira-image-operation">
+                <div class="kira-image-operation-button" id="kira-image-operation-button-zoom">
+                    <i class="kirafont icon-zoom-in"></i>
+                </div>
+                <div class="kira-image-operation-button" id="kira-image-operation-button-close">
+                    <i class="kirafont icon-close"></i>
+                </div>
+            </div>
+        </div>
+        <div class="kira-image-container">
+            <div class="kira-image-prev-button-panel">
+                <div class="kira-image-exchange-button">
+                    <i class="kirafont icon-left"></i>
+                </div>
+            </div>
+            <div class="kira-image-list">
+                <div class="kira-image-prev">
+                    <img />
+                </div>
+                <div class="kira-image-now">
+                    <img />
+                </div>
+                <div class="kira-image-next">
+                    <img />
+                </div>
+            </div>
+            <div class="kira-image-next-button-panel">
+                <div class="kira-image-exchange-button">
+                    <i class="kirafont icon-right"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+	
+<link rel="stylesheet" href="../../../../css/kira-code-copy.css">
+
+	
+<script src="../../../../js/kira-code-copy.js"></script>
+
+
+<div class="kira-post">
+	<article>
+		
+		<div class="kira-post-cover">
+			<img
+				data-src="https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=1200"
+				data-sizes="auto"
+				alt="2025 AI 编程工具横评：Claude Code vs Cursor vs GitHub Copilot"
+				class="lazyload kira-post-cover-image disabled-kira-image"
+			/>
+			<h1>2025 AI 编程工具横评：Claude Code vs Cursor vs GitHub Copilot</h1>
+		</div>
+		
+		<div class="kira-post-meta kira-rainbow" style="margin:10px 0!important;">
+			<a><i class="kirafont icon-calendar-fill"></i>2025年04月22日</a>
+			<a><i class="kirafont icon-edit-fill"></i>1.6k 字</a>
+			<a><i class="kirafont icon-time-circle-fill"></i>大概 6 分钟</a>
+		</div>
+		<html><head></head><body><blockquote>
+<p><strong>🎯 阅读提示</strong>：本文将深度对比三款主流 AI 编程工具，帮助你根据自身需求做出最优选择。预计阅读时间：10 分钟。</p>
+</blockquote>
+<p>2025 年，AI 编程助手已从”锦上添花”变成”不可或缺”。面对三款市场焦点产品：<strong>Claude Code</strong>、<strong>Cursor</strong> 和 <strong>GitHub Copilot</strong>，开发者该如何选择？本文将从功能、体验、适用场景等多个维度进行深度对比。</p>
+<hr>
+<h2><span id="%F0%9F%93%8A-%E5%BF%AB%E9%80%9F%E7%BB%93%E8%AE%BA">📊 快速结论</span></h2><p>如果你只想知道答案：</p>
+<table>
+<thead>
+<tr>
+<th align="center">你的需求</th>
+<th align="center">推荐工具</th>
+<th align="center">原因</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">终端重度用户</td>
+<td align="center"><strong>Claude Code</strong></td>
+<td align="center">CLI 原生体验，agentic 能力最强</td>
+</tr>
+<tr>
+<td align="center">VS Code 用户</td>
+<td align="center"><strong>Cursor</strong></td>
+<td align="center">开箱即用，AI 优先 IDE</td>
+</tr>
+<tr>
+<td align="center">代码补全为主</td>
+<td align="center"><strong>Copilot</strong></td>
+<td align="center">最流畅补全，价格最低</td>
+</tr>
+<tr>
+<td align="center">追求全能</td>
+<td align="center"><strong>组合使用</strong></td>
+<td align="center">各有擅长，搭配效率最高</td>
+</tr>
+</tbody></table>
+<hr>
+<h2><span id="%E4%B8%80%E5%B7%A5%E5%85%B7%E6%A6%82%E8%A7%88">一、工具概览</span></h2><h3><span id="%F0%9F%94%B7-claude-code">🔷 Claude Code</span></h3><blockquote>
+<p><strong>一句话定位</strong>：终端里的 AI 程序员，能自主完成复杂任务</p>
+</blockquote>
+<p>Anthropic 推出的命令行 AI 编程助手，基于 Claude 模型。它不只是”回答问题”，而是能<strong>自主规划、执行、验证</strong>的 Agent。</p>
+<p><strong>核心能力矩阵：</strong></p>
+<table>
+<thead>
+<tr>
+<th>能力</th>
+<th>描述</th>
+<th align="center">评分</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Agentic Coding</td>
+<td>自主完成多步骤任务</td>
+<td align="center">⭐⭐⭐⭐⭐</td>
+</tr>
+<tr>
+<td>代码库理解</td>
+<td>全项目上下文分析</td>
+<td align="center">⭐⭐⭐⭐⭐</td>
+</tr>
+<tr>
+<td>Git 集成</td>
+<td>自动创建 PR、代码审查</td>
+<td align="center">⭐⭐⭐⭐⭐</td>
+</tr>
+<tr>
+<td>MCP 扩展</td>
+<td>连接任意外部工具</td>
+<td align="center">⭐⭐⭐⭐⭐</td>
+</tr>
+<tr>
+<td>多文件编辑</td>
+<td>跨文件重构无障碍</td>
+<td align="center">⭐⭐⭐⭐</td>
+</tr>
+</tbody></table>
+<p><strong>适合人群：</strong></p>
+<ul>
+<li>✅ 喜欢终端工作流的后端开发者</li>
+<li>✅ 需要处理复杂重构任务</li>
+<li>✅ 追求 AI 自主完成任务</li>
+</ul>
+<hr>
+<h3><span id="%F0%9F%94%B6-cursor">🔶 Cursor</span></h3><blockquote>
+<p><strong>一句话定位</strong>：AI 优先的 IDE，VS Code 的进化形态</p>
+</blockquote>
+<p>基于 VS Code 分叉的 IDE，从底层重新设计以拥抱 AI。最大的特点是<strong>开箱即用</strong>，无需配置即可享受强大 AI 能力。</p>
+<p><strong>核心能力矩阵：</strong></p>
+<table>
+<thead>
+<tr>
+<th>能力</th>
+<th>描述</th>
+<th align="center">评分</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Composer</td>
+<td>多文件可视化 AI 编辑</td>
+<td align="center">⭐⭐⭐⭐⭐</td>
+</tr>
+<tr>
+<td>多模型支持</td>
+<td>GPT/Claude/Gemini 自选</td>
+<td align="center">⭐⭐⭐⭐⭐</td>
+</tr>
+<tr>
+<td>@codebase</td>
+<td>代码库级上下文理解</td>
+<td align="center">⭐⭐⭐⭐</td>
+</tr>
+<tr>
+<td>开箱即用</td>
+<td>零配置，上手即用</td>
+<td align="center">⭐⭐⭐⭐⭐</td>
+</tr>
+<tr>
+<td>可视化 Diff</td>
+<td>直观预览所有修改</td>
+<td align="center">⭐⭐⭐⭐</td>
+</tr>
+</tbody></table>
+<p><strong>适合人群：</strong></p>
+<ul>
+<li>✅ 前端/全栈开发者</li>
+<li>✅ VS Code 重度用户</li>
+<li>✅ 追求最简单的上手体验</li>
+</ul>
+<hr>
+<h3><span id="%F0%9F%94%B4-github-copilot">🔴 GitHub Copilot</span></h3><blockquote>
+<p><strong>一句话定位</strong>：代码补全之王，生态最完善</p>
+</blockquote>
+<p>微软/GitHub 推出的 AI 编程助手，市场份额最大。核心优势是<strong>行内实时补全</strong>，让 AI 融入编码节奏。</p>
+<p><strong>核心能力矩阵：</strong></p>
+<table>
+<thead>
+<tr>
+<th>能力</th>
+<th>描述</th>
+<th align="center">评分</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>行内补全</td>
+<td>实时代码建议</td>
+<td align="center">⭐⭐⭐⭐⭐</td>
+</tr>
+<tr>
+<td>IDE 生态</td>
+<td>VS Code/JetBrains 全支持</td>
+<td align="center">⭐⭐⭐⭐⭐</td>
+</tr>
+<tr>
+<td>Copilot Chat</td>
+<td>对话式编程辅助</td>
+<td align="center">⭐⭐⭐⭐</td>
+</tr>
+<tr>
+<td>Workspace</td>
+<td>Issue → PR 全流程</td>
+<td align="center">⭐⭐⭐⭐</td>
+</tr>
+<tr>
+<td>价格</td>
+<td>最低入门门槛</td>
+<td align="center">⭐⭐⭐⭐⭐</td>
+</tr>
+</tbody></table>
+<p><strong>适合人群：</strong></p>
+<ul>
+<li>✅ 日常编码为主，追求流畅补全</li>
+<li>✅ JetBrains 系 IDE 用户</li>
+<li>✅ 企业团队协作需求</li>
+<li>✅ 预算敏感</li>
+</ul>
+<hr>
+<h2><span id="%E4%BA%8C%E6%A0%B8%E5%BF%83%E8%83%BD%E5%8A%9B%E6%B7%B1%E5%BA%A6%E5%AF%B9%E6%AF%94">二、核心能力深度对比</span></h2><h3><span id="%E2%9A%94%EF%B8%8F-%E5%85%A8%E9%9D%A2%E5%AF%B9%E6%AF%94%E8%A1%A8">⚔️ 全面对比表</span></h3><table>
+<thead>
+<tr>
+<th align="center">维度</th>
+<th align="center">Claude Code</th>
+<th align="center">Cursor</th>
+<th align="center">GitHub Copilot</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center"><strong>交互方式</strong></td>
+<td align="center">CLI 对话</td>
+<td align="center">IDE 内对话</td>
+<td align="center">行内补全+Chat</td>
+</tr>
+<tr>
+<td align="center"><strong>多文件编辑</strong></td>
+<td align="center">⭐⭐⭐⭐⭐</td>
+<td align="center">⭐⭐⭐⭐⭐</td>
+<td align="center">⭐⭐⭐</td>
+</tr>
+<tr>
+<td align="center"><strong>代码库理解</strong></td>
+<td align="center">⭐⭐⭐⭐⭐</td>
+<td align="center">⭐⭐⭐⭐⭐</td>
+<td align="center">⭐⭐⭐</td>
+</tr>
+<tr>
+<td align="center"><strong>模型选择</strong></td>
+<td align="center">Claude 系列</td>
+<td align="center">多模型可选</td>
+<td align="center">GPT 系列</td>
+</tr>
+<tr>
+<td align="center"><strong>终端集成</strong></td>
+<td align="center">⭐⭐⭐⭐⭐ 原生</td>
+<td align="center">⭐⭐⭐⭐ 内置</td>
+<td align="center">⭐⭐⭐ 需配置</td>
+</tr>
+<tr>
+<td align="center"><strong>Git 集成</strong></td>
+<td align="center">⭐⭐⭐⭐⭐ 深度</td>
+<td align="center">⭐⭐ 无</td>
+<td align="center">⭐⭐⭐⭐ Workspace</td>
+</tr>
+<tr>
+<td align="center"><strong>上下文窗口</strong></td>
+<td align="center">200K tokens</td>
+<td align="center">取决于模型</td>
+<td align="center">有限</td>
+</tr>
+<tr>
+<td align="center"><strong>MCP 扩展</strong></td>
+<td align="center">✅ 支持</td>
+<td align="center">❌</td>
+<td align="center">❌</td>
+</tr>
+<tr>
+<td align="center"><strong>学习曲线</strong></td>
+<td align="center">📈 中等</td>
+<td align="center">📉 低</td>
+<td align="center">📉 低</td>
+</tr>
+<tr>
+<td align="center"><strong>个人价格</strong></td>
+<td align="center">$20/月</td>
+<td align="center">$20/月</td>
+<td align="center">$10/月</td>
+</tr>
+</tbody></table>
+<hr>
+<h2><span id="%E4%B8%89%E5%AE%9E%E6%88%98%E5%9C%BA%E6%99%AF-pk">三、实战场景 PK</span></h2><h3><span id="%F0%9F%8F%83-%E5%9C%BA%E6%99%AF-1%E4%BB%8E%E9%9B%B6%E6%90%AD%E5%BB%BA%E6%96%B0%E9%A1%B9%E7%9B%AE">🏃 场景 1：从零搭建新项目</span></h3><p><strong>王者：Claude Code</strong></p>
+<p>一条命令，自主完成：</p>
+<figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs bash">&gt; 帮我创建一个 Next.js 15 博客项目，<br>  使用 Tailwind CSS，支持 MDX 文章，部署到 Vercel<br></code></pre></td></tr></tbody></table></figure>
+
+<p>Claude Code 会：</p>
+<ol>
+<li>✅ 创建项目结构</li>
+<li>✅ 安装依赖包</li>
+<li>✅ 配置 Tailwind</li>
+<li>✅ 设置 MDX 支持</li>
+<li>✅ 运行测试验证</li>
+<li>✅ 准备部署配置</li>
+</ol>
+<p><strong>Cursor</strong> 的 Composer 同样强大，可视化预览更直观。</p>
+<p><strong>Copilot</strong> 此场景较弱，更适合辅助已有项目。</p>
+<hr>
+<h3><span id="%F0%9F%90%9B-%E5%9C%BA%E6%99%AF-2bug-%E4%BF%AE%E5%A4%8D">🐛 场景 2：Bug 修复</span></h3><p><strong>王者：Claude Code</strong></p>
+<p>形成完整闭环：</p>
+<figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">&gt; 运行测试，找到失败的用例并修复<br></code></pre></td></tr></tbody></table></figure>
+
+<p>Claude Code 执行流程：</p>
+<figure class="highlight plaintext"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs plaintext">运行测试 → 分析错误日志 → 定位问题代码 <br>→ 生成修复方案 → 应用修复 → 再次测试 → 确认解决 ✅<br></code></pre></td></tr></tbody></table></figure>
+
+<blockquote>
+<p><strong>💡 关键差异</strong>：Copilot Chat 只能分析错误信息，无法自主运行验证；Cursor 需手动触发。</p>
+</blockquote>
+<hr>
+<h3><span id="%F0%9F%94%A7-%E5%9C%BA%E6%99%AF-3%E5%A4%A7%E8%A7%84%E6%A8%A1%E9%87%8D%E6%9E%84">🔧 场景 3：大规模重构</span></h3><p><strong>双雄：Claude Code &amp; Cursor</strong></p>
+<p>都能处理跨文件重构，各有优势：</p>
+<table>
+<thead>
+<tr>
+<th>工具</th>
+<th>优势</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Claude Code</td>
+<td>精确控制每一步，可随时干预</td>
+</tr>
+<tr>
+<td>Cursor</td>
+<td>可视化 Diff，直观预览所有改动</td>
+</tr>
+</tbody></table>
+<hr>
+<h3><span id="%E2%8C%A8%EF%B8%8F-%E5%9C%BA%E6%99%AF-4%E6%97%A5%E5%B8%B8%E7%BC%96%E7%A0%81%E8%A1%A5%E5%85%A8">⌨️ 场景 4：日常编码补全</span></h3><p><strong>王者：GitHub Copilot</strong></p>
+<p>行内补全是 Copilot 的绝对优势：</p>
+<ul>
+<li>⚡ 低延迟（毫秒级响应）</li>
+<li>🎯 高准确率（理解上下文意图）</li>
+<li>🌊 不打断编码节奏</li>
+</ul>
+<blockquote>
+<p><strong>💡 为什么重要</strong>：日常编码 80% 是简单补全，Copilot 在这个场景体验最流畅。</p>
+</blockquote>
+<hr>
+<h2><span id="%E5%9B%9B%E4%BB%B7%E6%A0%BC%E5%85%A8%E9%9D%A2%E5%AF%B9%E6%AF%94">四、价格全面对比</span></h2><h3><span id="%F0%9F%92%B0-%E8%AF%A6%E7%BB%86%E5%AE%9A%E4%BB%B7%E8%A1%A8">💰 详细定价表</span></h3><table>
+<thead>
+<tr>
+<th align="center">套餐</th>
+<th align="center">Claude Code</th>
+<th align="center">Cursor</th>
+<th align="center">GitHub Copilot</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center"><strong>免费版</strong></td>
+<td align="center">有额度限制</td>
+<td align="center">2000 补全/月</td>
+<td align="center">学生/开源免费</td>
+</tr>
+<tr>
+<td align="center"><strong>个人版</strong></td>
+<td align="center">$20/月</td>
+<td align="center">$20/月</td>
+<td align="center"><strong>$10/月</strong> ✅</td>
+</tr>
+<tr>
+<td align="center"><strong>团队版</strong></td>
+<td align="center">按用量计费</td>
+<td align="center">$40/月</td>
+<td align="center">$19/月</td>
+</tr>
+<tr>
+<td align="center"><strong>企业版</strong></td>
+<td align="center">定制</td>
+<td align="center">定制</td>
+<td align="center">$39/月</td>
+</tr>
+</tbody></table>
+<p><strong>性价比分析：</strong></p>
+<ul>
+<li>🥇 <strong>最便宜入门</strong>：Copilot（$10/月）</li>
+<li>🥈 <strong>功能最全</strong>：Cursor（$20/月，多模型）</li>
+<li>🥉 <strong>能力最强</strong>：Claude Code（Agentic 能力无对手）</li>
+</ul>
+<hr>
+<h2><span id="%E4%BA%94%E6%9C%80%E7%BB%88%E6%8E%A8%E8%8D%90%E6%8C%87%E5%8D%97">五、最终推荐指南</span></h2><h3><span id="%F0%9F%8E%AF-%E9%80%89%E6%8B%A9-claude-code-%E5%A6%82%E6%9E%9C%E4%BD%A0">🎯 选择 Claude Code 如果你：</span></h3><ul>
+<li>✅ 习惯终端工作流</li>
+<li>✅ 需要 AI 自主完成复杂任务</li>
+<li>✅ 重视代码库全局理解</li>
+<li>✅ 需要连接外部工具（MCP）</li>
+<li>✅ 追求深度 Git 集成</li>
+</ul>
+<h3><span id="%F0%9F%8E%AF-%E9%80%89%E6%8B%A9-cursor-%E5%A6%82%E6%9E%9C%E4%BD%A0">🎯 选择 Cursor 如果你：</span></h3><ul>
+<li>✅ 是 VS Code 重度用户</li>
+<li>✅ 想要开箱即用体验</li>
+<li>✅ 需要多模型灵活切换</li>
+<li>✅ 偏好可视化编辑预览</li>
+<li>✅ 前端/全栈开发为主</li>
+</ul>
+<h3><span id="%F0%9F%8E%AF-%E9%80%89%E6%8B%A9-github-copilot-%E5%A6%82%E6%9E%9C%E4%BD%A0">🎯 选择 GitHub Copilot 如果你：</span></h3><ul>
+<li>✅ 主要需求是代码补全</li>
+<li>✅ 使用 JetBrains 系 IDE</li>
+<li>✅ 团队协作需求强</li>
+<li>✅ 预算敏感（最低 $10/月）</li>
+<li>✅ 追求最成熟生态</li>
+</ul>
+<hr>
+<h2><span id="%E5%85%AD%E8%BF%9B%E9%98%B6%E7%AD%96%E7%95%A5%E7%BB%84%E5%90%88%E4%BD%BF%E7%94%A8">六、进阶策略：组合使用</span></h2><blockquote>
+<p><strong>💡 高效开发者的秘诀</strong>：不是选一个，而是组合用</p>
+</blockquote>
+<p><strong>推荐组合方案：</strong></p>
+<figure class="highlight plaintext"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs plaintext">┌─────────────────────────────────────────────┐<br>│  日常编码：Copilot → 实时补全，保持流畅     │<br>│  复杂任务：Claude Code → 重构、Bug 定位      │<br>│  主力 IDE：Cursor → AI 优先编辑体验          │<br>└─────────────────────────────────────────────┘<br></code></pre></td></tr></tbody></table></figure>
+
+<p>AI 编程工具不是互相替代，而是各有擅长的利器。找到最适合自己工作流的组合，才是效率倍增的关键。</p>
+<hr>
+<blockquote>
+<p><strong>📌 总结</strong>：2025 年的 AI 编程工具已进入”各有擅长”的时代。不要追求”最强大”，而要追求”最适合你的场景”。建议先试用再决定，三款工具都提供免费体验机会。</p>
+</blockquote>
+<hr>
+<p><strong>相关阅读：</strong></p>
+<ul>
+<li><a href="/2025/04/22/2025-%E4%B8%BB%E6%B5%81%E5%A4%A7%E6%A8%A1%E5%9E%8B%E5%85%A8%E8%A7%A3%E6%9E%90/">2025 主流大模型全解析</a></li>
+<li><a href="/2025/04/22/2025-%E6%90%AD%E5%BB%BA%E4%B8%AA%E4%BA%BAAI%E5%B7%A5%E4%BD%9C%E6%B5%81/">搭建个人 AI 工作流</a></li>
+</ul>
+<!-- hexo injector body_end start --><script data-pjax src="https://unpkg.com/oh-my-live2d"></script><script>const oml2d = OML2D.loadOml2d({dockedPosition:"left",mobileDisplay:true,models:[{"path":"https://unpkg.com/live2d-widget-model-shizuku@1.0.5/assets/shizuku.model.json","mobilePosition":[-10,23],"mobileScale":0.1,"mobileStageStyle":{"width":180,"height":166},"motionPreloadStrategy":"IDLE","position":[-10,35],"scale":0.15,"stageStyle":{"width":250,"height":250}},{"path":"https://unpkg.com/live2d-widget-model-koharu@1.0.5/assets/koharu.model.json","scale":0.12,"position":[0,0],"stageStyle":{"width":250},"mobileScale":0.08,"mobilePosition":[0,0],"mobileStageStyle":{"width":180}},{"path":"https://unpkg.com/live2d-widget-model-haruto@1.0.5/assets/haruto.model.json","scale":0.12,"position":[0,0],"mobileScale":0.08,"mobilePosition":[0,0],"mobileStageStyle":{"width":180},"stageStyle":{"width":250}}],parentElement:document.body,primaryColor:"var(--btn-bg)",sayHello:false,tips:{style: {"width":230,"height":120,"left":"calc(50% - 20px)","top":"-100px"},mobileStyle: {"width":180,"height":80,"left":"calc(50% - 30px)","top":"-100px"},idleTips:{interval:15000,message:function(){
+  return axios.get('https://v1.hitokoto.cn?c=i')
+    .then(function (response) {
+      return response.data.hitokoto ;
+    })
+    .catch(function (error) {
+      console.error(error);
+    });
+}
+}}});</script><!-- hexo injector body_end end --></body></html>
+	</article>
+
+	 
+    <div class="kira-post-copyright">
+        <strong>Author：</strong>mason.chao<br>
+        <strong>Link：</strong><a href="https://dochaoing.github.io/2025/04/22/2025-AI%E7%BC%96%E7%A8%8B%E5%B7%A5%E5%85%B7%E6%A8%AA%E8%AF%84/" title="https:&#x2F;&#x2F;dochaoing.github.io&#x2F;2025&#x2F;04&#x2F;22&#x2F;2025-AI编程工具横评&#x2F;" target="_blank" rel="noopener">https:&#x2F;&#x2F;dochaoing.github.io&#x2F;2025&#x2F;04&#x2F;22&#x2F;2025-AI编程工具横评&#x2F;</a><br>
+        
+            <strong>版权声明：</strong>本文采用 <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/cn/deed.zh" target="_blank">CC BY-NC-SA 3.0 CN</a> 协议进行许可
+        
+    </div>
+
+  
+	<div class="kira-post-nav">
+		<nav class="post-nav">
+			      
+			<!-- 先找到与当前文字相同的目录 -->
+			      
+			<!-- 在找到当前文章所在的 index -->
+			    
+			<!-- 上一篇文章 -->
+			<div class="old">
+				<span>上一章</span>
+				<a href="../2025-AI%E7%BB%98%E7%94%BB%E5%B7%A5%E5%85%B7%E5%AE%9E%E6%88%98%E6%8C%87%E5%8D%97/"> AI 绘画工具实战指南：Midjourney、DALL-E 3 与 Stable Diffusion</a>
+			</div>
+			                      
+		</nav>
+	</div>
+	
+	<div class="kira-post-meta kira-rainbow">
+		
+			<a class="kirafont icon-container-fill -link" href="../../../../categories/AI%E5%B7%A5%E5%85%B7/">AI工具</a>
+		
+		
+			<a class="kirafont icon-tag-fill -none-link" href="../../../../tags/AI%E5%B7%A5%E5%85%B7/" rel="tag">AI工具</a> <a class="kirafont icon-tag-fill -none-link" href="../../../../tags/Claude-Code/" rel="tag">Claude Code</a> <a class="kirafont icon-tag-fill -none-link" href="../../../../tags/Copilot/" rel="tag">Copilot</a> <a class="kirafont icon-tag-fill -none-link" href="../../../../tags/Cursor/" rel="tag">Cursor</a> <a class="kirafont icon-tag-fill -none-link" href="../../../../tags/%E7%BC%96%E7%A8%8B/" rel="tag">编程</a>
+		
+	</div>
+	
+	<div class="kira-post-footer">
+		
+
+		
+	<div class="giscus"></div>
+  
+    <script src="https://giscus.app/client.js"
+      data-repo="DoChaoing/dochaoing.github.io"
+      data-repo-id="R_kgDOQkK0BA"
+      data-category="Announcements"
+      data-category-id="DIC_kwDOQkK0BM4Czj3r"
+      data-mapping="pathname"
+      data-strict="0"
+      data-reactions-enabled="1"
+      data-emit-metadata="0"
+      data-input-position="top"
+      data-theme="light"
+      data-lang="en"
+      data-loading="lazy"
+      crossorigin="anonymous"
+      async  
+    ></script>
+  
+
+	</div>
+	
+</div>
+
+				</div>
+			</div>
+			<div class="kira-right-column">
+	<a onclick="document.querySelector('#kira-top-header').scrollIntoView({behavior: 'smooth'});" class="kira-backtotop" aria-label="回到顶部" title="回到顶部">
+		<button class="mdui-fab mdui-ripple">
+			<i class="kirafont icon-caret-up"></i>
+		</button>
+	</a>
+</div>
+
+		</div>
+	</body>
+</html>

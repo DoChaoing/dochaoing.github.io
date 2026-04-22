@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html 
+	lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		
+<link rel="stylesheet" href="../../../../css/layout.css">
+
+		
+		<title> 2025 主流大语言模型全解析：GPT、Claude、Gemini、Llama 与更多 -  chao&#39;s blog</title>
+		<!-- <link rel="stylesheet" href="https://unpkg.com/mdui@1.0.2/dist/css/mdui.min.css" /> -->
+		<!-- <script src="https://unpkg.com/mdui@1.0.2/dist/js/mdui.min.js"></script> -->
+		
+<link rel="stylesheet" href="../../../../lib/mdui/mdui.min.css">
+
+		
+<script src="../../../../lib/mdui/mdui.min.js"></script>
+
+		<!-- lazyload -->
+		
+<script src="../../../../lib/lazysizes.js"></script>
+
+		<!-- smooth-scrolling -->
+		
+<script src="../../../../lib/smooth-scrolling.js"></script>
+
+		<!-- highlight -->
+		
+<link rel="stylesheet" href="../../../../lib/highlight/atom-one-dark.min.css">
+
+		
+<script src="../../../../lib/highlight/highlight.min.js"></script>
+
+		<!-- 预置 kiraicon -->
+		
+<link rel="stylesheet" href="../../../../lib/iconfont/iconfont.css">
+
+		
+		<link
+			rel="shortcut icon"
+			href="https://kira.host/assets/Pictures/Others/116359b4ccf19917.jpg"
+			type="image/png"
+		/>
+		
+<link rel="stylesheet" href="../../../../deps/css/APlayer.min.css">
+
+		
+		
+<script src="../../../../deps/js/APlayer.min.js"></script>
+<script src="../../../../deps/js/Meting.min.js"></script>
+
+	<meta name="generator" content="Hexo 7.3.0"></head>
+
+	<body>
+		<div
+			class="kira-background"
+			style="background-image: url('https://cdn.pixabay.com/photo/2023/11/10/16/05/anime-8379662_960_720.jpg')"
+		></div>
+		<div class="kira-header">
+    <a
+        class="kira-drawer-button mdui-ripple"
+        title="导航栏"
+        onclick="document.querySelector('.kira-sidebar-modal').classList.add('show');document.querySelector('.kira-sidebar#sidebar').classList.add('show');"
+    >
+        <i class="kirafont icon-menu"></i>
+    </a>
+    <a href="../../../../index.html" title="chao&#39;s blog">
+        <img
+			src="https://kira.host/assets/Pictures/Others/20220922230447.jpg"
+			alt="mason.chao"
+		/>
+    </a>
+</div>
+		<div class="kira-body">
+			<div class="kira-sidebar" id="sidebar">
+	<div class="kira-avatar mdui-ripple">
+		<a target="_blank" rel="noopener" href="https://kira.host/assets/Pictures/Others/20220922230447.jpg" title="mason.chao">
+			<img
+				src="https://kira.host/assets/Pictures/Others/20220922230447.jpg"
+				alt="mason.chao"
+			/>
+		</a>
+	</div>
+	<div class="kira-count">
+		<div><span>文章</span>6</div>
+		<div><span>标签</span>24</div>
+		<div><span>分类</span>5</div>
+	</div>
+	<div class="kira-list">
+		
+		<a
+			class="kira-list-item mdui-ripple false"
+			href="../../../../index.html"
+			title="回到首页"
+		>
+			<i
+				class="kirafont
+					
+						icon-home
+					"
+			></i>
+			<div class="kira-list-item-content">
+				回到首页
+			</div>
+		</a>
+		
+		<a
+			class="kira-list-item mdui-ripple false"
+			href="../../../../archive.html"
+			title="文章归档"
+		>
+			<i
+				class="kirafont
+					
+						icon-container
+					"
+			></i>
+			<div class="kira-list-item-content">
+				文章归档
+			</div>
+		</a>
+		
+		<a
+			class="kira-list-item mdui-ripple false"
+			href="../../../../about.html"
+			title="关于本人"
+		>
+			<i
+				class="kirafont
+					
+						icon-user
+					"
+			></i>
+			<div class="kira-list-item-content">
+				关于本人
+			</div>
+		</a>
+		
+		<a
+			class="kira-list-item mdui-ripple false"
+			href="../../../../friends.html"
+			title="我的朋友"
+		>
+			<i
+				class="kirafont
+					
+						icon-team
+					"
+			></i>
+			<div class="kira-list-item-content">
+				我的朋友
+			</div>
+		</a>
+		
+	</div>
+	<aside id="kira-sidebar">
+		
+			<div class="kira-widget-wrap">
+	<div class="kira-widget kira-social">
+		
+			<a
+				class="mdui-ripple"
+				href="../../../../tencent:/AddContact/?fromId=45&fromSubId=1&subcmd=all&uin=%3C%E5%8E%BB%E6%8E%89%E5%B0%96%E6%8B%AC%E5%8F%B7%E5%90%8E%E5%A1%AB%E4%B8%8A%E4%BD%A0%E7%9A%84QQ%E5%8F%B7%3E&website=www.oicqzone.com"
+				target="_blank"
+				mdui-tooltip="{content: 'QQ'}"
+				style="color: rgb(49, 174, 255); background-color: rgba(49, 174, 255, .1);"
+			>
+				<i
+					class="kirafont
+					
+						icon-QQ
+					"
+				></i>
+			</a>
+		
+			<a
+				class="mdui-ripple"
+				href="https://space.bilibili.com/<改成你的B站uid>"
+				target="_blank"
+				mdui-tooltip="{content: '哔哩哔哩'}"
+				style="color: rgb(231, 106, 141); background-color: rgba(231, 106, 141, .15);"
+			>
+				<i
+					class="kirafont
+					
+						icon-bilibili
+					"
+				></i>
+			</a>
+		
+			<a
+				class="mdui-ripple"
+				href="https://github.com/<你的github id>/"
+				target="_blank"
+				mdui-tooltip="{content: 'GitHub'}"
+				style="color: rgb(25, 23, 23); background-color: rgba(25, 23, 23, .15);"
+			>
+				<i
+					class="kirafont
+					
+						icon-github
+					"
+				></i>
+			</a>
+		
+			<a
+				class="mdui-ripple"
+				href="https://gitee.com/<你的gitee id>"
+				target="_blank"
+				mdui-tooltip="{content: 'Gitee'}"
+				style="color: rgb(165, 15, 15); background-color: rgba(165, 15, 15, .15);"
+			>
+				<i
+					class="kirafont
+					
+						icon-gitee
+					"
+				></i>
+			</a>
+		
+	</div>
+</div>
+
+		
+			
+  <div class="kira-widget-wrap">
+    <h3 class="kira-widget-title">分类</h3>
+    <div class="kira-widget">
+      <ul class="category-list">
+        
+        
+
+        
+          <li class="category-list-item">
+            <a class="category-list-link" href="/categories/AI实践/">
+              AI实践
+            </a>
+            <span class="category-list-count">1</span>
+          </li>
+        
+          <li class="category-list-item">
+            <a class="category-list-link" href="/categories/AI工具/">
+              AI工具
+            </a>
+            <span class="category-list-count">2</span>
+          </li>
+        
+          <li class="category-list-item">
+            <a class="category-list-link" href="/categories/AI技术/">
+              AI技术
+            </a>
+            <span class="category-list-count">1</span>
+          </li>
+        
+          <li class="category-list-item">
+            <a class="category-list-link" href="/categories/AI模型/">
+              AI模型
+            </a>
+            <span class="category-list-count">1</span>
+          </li>
+        
+          <li class="category-list-item">
+            <a class="category-list-link" href="/categories/AI趋势/">
+              AI趋势
+            </a>
+            <span class="category-list-count">1</span>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+		
+			
+	<div class="kira-widget-wrap">
+		<div id="randomtagcloud" class="kira-widget tagcloud kira-rainbow">
+			<a href="../../../../tags/AI-Agent/" style="font-size: 10px;">AI Agent</a> <a href="../../../../tags/AI%E5%B7%A5%E5%85%B7/" style="font-size: 20px;">AI工具</a> <a href="../../../../tags/AI%E6%8A%80%E6%9C%AF/" style="font-size: 10px;">AI技术</a> <a href="../../../../tags/AI%E6%A8%A1%E5%9E%8B/" style="font-size: 10px;">AI模型</a> <a href="../../../../tags/AI%E7%BB%98%E7%94%BB/" style="font-size: 10px;">AI绘画</a> <a href="../../../../tags/AI%E8%B6%8B%E5%8A%BF/" style="font-size: 10px;">AI趋势</a> <a href="../../../../tags/Claude/" style="font-size: 10px;">Claude</a> <a href="../../../../tags/Claude-Code/" style="font-size: 10px;">Claude Code</a> <a href="../../../../tags/Copilot/" style="font-size: 10px;">Copilot</a> <a href="../../../../tags/Cursor/" style="font-size: 10px;">Cursor</a> <a href="../../../../tags/DALL-E/" style="font-size: 10px;">DALL-E</a> <a href="../../../../tags/GPT/" style="font-size: 10px;">GPT</a> <a href="../../../../tags/Gemini/" style="font-size: 10px;">Gemini</a> <a href="../../../../tags/Llama/" style="font-size: 10px;">Llama</a> <a href="../../../../tags/Midjourney/" style="font-size: 10px;">Midjourney</a> <a href="../../../../tags/RAG/" style="font-size: 10px;">RAG</a> <a href="../../../../tags/Stable-Diffusion/" style="font-size: 10px;">Stable Diffusion</a> <a href="../../../../tags/%E5%90%91%E9%87%8F%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 10px;">向量数据库</a> <a href="../../../../tags/%E5%A4%A7%E8%AF%AD%E8%A8%80%E6%A8%A1%E5%9E%8B/" style="font-size: 10px;">大语言模型</a> <a href="../../../../tags/%E5%B7%A5%E4%BD%9C%E6%B5%81/" style="font-size: 10px;">工作流</a> <a href="../../../../tags/%E6%95%88%E7%8E%87%E6%8F%90%E5%8D%87/" style="font-size: 10px;">效率提升</a> <a href="../../../../tags/%E7%9F%A5%E8%AF%86%E5%BA%93/" style="font-size: 10px;">知识库</a> <a href="../../../../tags/%E7%BC%96%E7%A8%8B/" style="font-size: 10px;">编程</a> <a href="../../../../tags/%E8%87%AA%E5%8A%A8%E5%8C%96/" style="font-size: 10px;">自动化</a>
+		</div>
+		
+	</div>
+
+
+		
+			
+	<div class="kira-widget-wrap">
+		<h3 class="kira-widget-title">
+			Archive
+		</h3>
+		<div class="kira-widget">
+			<ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="../../../../archives/2025/">2025</a><span class="archive-list-count">6</span></li></ul>
+		</div>
+	</div>
+
+
+		
+	</aside>
+	<div class="kira-copyright">
+		&copy; 2026
+		<a href="../../../../index.html">mason.chao</a>
+		Powered by <a href="http://hexo.io/" target="_blank">Hexo</a> &
+		<a href="https://github.com/ch1ny/kira-hexo/" target="_blank">Kira-Hexo</a>
+		<br />
+		
+		
+	</div>
+</div>
+<div
+	class="kira-sidebar-modal"
+	id="sidebar-modal"
+	onclick="(function(self) {
+		self.classList.remove('show');
+		document.querySelector('.kira-sidebar.show#sidebar').classList.remove('show');
+	})(this)"
+></div>
+			<div class="kira-content">
+				<div id="kira-top-header"></div>
+				<div class="kira-main-content">
+					
+<link rel="stylesheet" href="../../../../css/kira-image.css">
+
+
+<script src="../../../../js/kira-image.js"></script>
+
+<div class="kira-image">
+    <div class="kira-image-modal">
+        <div class="kira-image-header">
+            <div class="kira-image-counter"></div>
+            <div class="kira-image-title"></div>
+            <div class="kira-image-operation">
+                <div class="kira-image-operation-button" id="kira-image-operation-button-zoom">
+                    <i class="kirafont icon-zoom-in"></i>
+                </div>
+                <div class="kira-image-operation-button" id="kira-image-operation-button-close">
+                    <i class="kirafont icon-close"></i>
+                </div>
+            </div>
+        </div>
+        <div class="kira-image-container">
+            <div class="kira-image-prev-button-panel">
+                <div class="kira-image-exchange-button">
+                    <i class="kirafont icon-left"></i>
+                </div>
+            </div>
+            <div class="kira-image-list">
+                <div class="kira-image-prev">
+                    <img />
+                </div>
+                <div class="kira-image-now">
+                    <img />
+                </div>
+                <div class="kira-image-next">
+                    <img />
+                </div>
+            </div>
+            <div class="kira-image-next-button-panel">
+                <div class="kira-image-exchange-button">
+                    <i class="kirafont icon-right"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+	
+<link rel="stylesheet" href="../../../../css/kira-code-copy.css">
+
+	
+<script src="../../../../js/kira-code-copy.js"></script>
+
+
+<div class="kira-post">
+	<article>
+		
+		<div class="kira-post-cover">
+			<img
+				data-src="https://images.unsplash.com/photo-1677442136019-21780ecad995?w=1200"
+				data-sizes="auto"
+				alt="2025 主流大语言模型全解析：GPT、Claude、Gemini、Llama 与更多"
+				class="lazyload kira-post-cover-image disabled-kira-image"
+			/>
+			<h1>2025 主流大语言模型全解析：GPT、Claude、Gemini、Llama 与更多</h1>
+		</div>
+		
+		<div class="kira-post-meta kira-rainbow" style="margin:10px 0!important;">
+			<a><i class="kirafont icon-calendar-fill"></i>2025年04月22日</a>
+			<a><i class="kirafont icon-edit-fill"></i>1.7k 字</a>
+			<a><i class="kirafont icon-time-circle-fill"></i>大概 7 分钟</a>
+		</div>
+		<html><head></head><body><blockquote>
+<p><strong>🎯 阅读提示</strong>：本文全面解析 2025 年主流大语言模型，包含性能对比、价格分析和场景推荐。预计阅读时间：15 分钟。</p>
+</blockquote>
+<p>大语言模型（LLM）正在以前所未有的速度进化。2025 年，各家厂商推出了更强大的模型，能力边界不断扩展。从编程到推理，从图文到视频，一场模型军备竞赛正在上演。本文将帮你理清格局，做出最优选择。</p>
+<hr>
+<h2><span id="%F0%9F%93%8A-%E6%A8%A1%E5%9E%8B%E5%85%A8%E5%AE%B6%E7%A6%8F">📊 模型全家福</span></h2><figure class="highlight plaintext"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs plaintext">2025 大模型格局<br>├── 🔵 OpenAI        → GPT-4o / o3 / GPT-4.5<br>├── 🟣 Anthropic     → Claude Opus 4 / Sonnet 4<br>├── 🟢 Google        → Gemini 2.5 Pro / Flash<br>├── 🟠 Meta          → Llama 4 Scout / Maverick<br>├── 🔴 DeepSeek      → DeepSeek-V3 / R1<br>├── 🟡 阿里云        → Qwen 2.5<br>└── ⚪ 其他           → Mistral / Grok / GLM-4<br></code></pre></td></tr></tbody></table></figure>
+
+<hr>
+<h2><span id="%E4%B8%80openai-gpt-%E7%B3%BB%E5%88%97">一、OpenAI GPT 系列</span></h2><blockquote>
+<p><strong>定位</strong>：生态最完善、市场占有率最高的闭源模型家族</p>
+</blockquote>
+<h3><span id="%F0%9F%93%8B-%E6%A8%A1%E5%9E%8B%E4%B8%80%E8%A7%88">📋 模型一览</span></h3><table>
+<thead>
+<tr>
+<th align="center">模型</th>
+<th align="center">发布</th>
+<th align="center">上下文</th>
+<th align="center">定位</th>
+<th align="center">输入价格</th>
+<th align="center">输出价格</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center"><strong>GPT-4.5</strong></td>
+<td align="center">2025.02</td>
+<td align="center">128K</td>
+<td align="center">旗舰对话</td>
+<td align="center">$2.50</td>
+<td align="center">$10.00</td>
+</tr>
+<tr>
+<td align="center"><strong>GPT-4o</strong></td>
+<td align="center">2024.05</td>
+<td align="center">128K</td>
+<td align="center">多模态旗舰</td>
+<td align="center">$2.50</td>
+<td align="center">$10.00</td>
+</tr>
+<tr>
+<td align="center"><strong>o3</strong></td>
+<td align="center">2025.01</td>
+<td align="center">200K</td>
+<td align="center">推理增强</td>
+<td align="center">-</td>
+<td align="center">-</td>
+</tr>
+<tr>
+<td align="center"><strong>o3-mini</strong></td>
+<td align="center">2025.01</td>
+<td align="center">200K</td>
+<td align="center">轻量推理</td>
+<td align="center">$1.10</td>
+<td align="center">$4.40</td>
+</tr>
+<tr>
+<td align="center"><strong>GPT-4o mini</strong></td>
+<td align="center">2024.07</td>
+<td align="center">128K</td>
+<td align="center">性价比之王</td>
+<td align="center">$0.15</td>
+<td align="center">$0.60</td>
+</tr>
+</tbody></table>
+<h3><span id="%E2%AD%90-%E8%83%BD%E5%8A%9B%E8%AF%84%E4%BC%B0">⭐ 能力评估</span></h3><table>
+<thead>
+<tr>
+<th align="center">维度</th>
+<th align="center">评分</th>
+<th align="left">评价</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">综合能力</td>
+<td align="center">⭐⭐⭐⭐⭐</td>
+<td align="left">仍然是最均衡的选择</td>
+</tr>
+<tr>
+<td align="center">编程</td>
+<td align="center">⭐⭐⭐⭐</td>
+<td align="left">强，但 Claude 已追上</td>
+</tr>
+<tr>
+<td align="center">推理</td>
+<td align="center">⭐⭐⭐⭐⭐</td>
+<td align="left">o 系列推理能力领先</td>
+</tr>
+<tr>
+<td align="center">多模态</td>
+<td align="center">⭐⭐⭐⭐⭐</td>
+<td align="left">语音+视觉+图像生成一体</td>
+</tr>
+<tr>
+<td align="center">中文</td>
+<td align="center">⭐⭐⭐⭐</td>
+<td align="left">良好，不如国产模型</td>
+</tr>
+<tr>
+<td align="center">生态</td>
+<td align="center">⭐⭐⭐⭐⭐</td>
+<td align="left">API 最成熟，插件最多</td>
+</tr>
+</tbody></table>
+<h3><span id="%E2%9C%85-%E4%BC%98%E5%8A%BF--%E2%9D%8C-%E5%8A%A3%E5%8A%BF">✅ 优势 &amp; ❌ 劣势</span></h3><ul>
+<li>✅ 生态最完善，API 最稳定</li>
+<li>✅ o 系列推理模型独步天下</li>
+<li>✅ 多模态能力全面</li>
+<li>❌ 价格偏高</li>
+<li>❌ 闭源，不可自部署</li>
+<li>❌ 推理模型速度偏慢</li>
+</ul>
+<hr>
+<h2><span id="%E4%BA%8Canthropic-claude-%E7%B3%BB%E5%88%97">二、Anthropic Claude 系列</span></h2><blockquote>
+<p><strong>定位</strong>：代码能力顶尖、安全性最强的新锐挑战者</p>
+</blockquote>
+<h3><span id="%F0%9F%93%8B-%E6%A8%A1%E5%9E%8B%E4%B8%80%E8%A7%88">📋 模型一览</span></h3><table>
+<thead>
+<tr>
+<th align="center">模型</th>
+<th align="center">发布</th>
+<th align="center">上下文</th>
+<th align="center">定位</th>
+<th align="center">输入价格</th>
+<th align="center">输出价格</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center"><strong>Claude Opus 4</strong></td>
+<td align="center">2025.04</td>
+<td align="center">200K</td>
+<td align="center">顶级推理</td>
+<td align="center">$15.00</td>
+<td align="center">$75.00</td>
+</tr>
+<tr>
+<td align="center"><strong>Claude Sonnet 4</strong></td>
+<td align="center">2025.04</td>
+<td align="center">200K</td>
+<td align="center">高性能均衡</td>
+<td align="center">$3.00</td>
+<td align="center">$15.00</td>
+</tr>
+<tr>
+<td align="center"><strong>Claude 3.5 Haiku</strong></td>
+<td align="center">2024.11</td>
+<td align="center">200K</td>
+<td align="center">快速轻量</td>
+<td align="center">$0.80</td>
+<td align="center">$4.00</td>
+</tr>
+</tbody></table>
+<h3><span id="%E2%AD%90-%E8%83%BD%E5%8A%9B%E8%AF%84%E4%BC%B0">⭐ 能力评估</span></h3><table>
+<thead>
+<tr>
+<th align="center">维度</th>
+<th align="center">评分</th>
+<th align="left">评价</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">综合能力</td>
+<td align="center">⭐⭐⭐⭐⭐</td>
+<td align="left">第一梯队</td>
+</tr>
+<tr>
+<td align="center">编程</td>
+<td align="center">⭐⭐⭐⭐⭐</td>
+<td align="left"><strong>当前最强</strong></td>
+</tr>
+<tr>
+<td align="center">推理</td>
+<td align="center">⭐⭐⭐⭐⭐</td>
+<td align="left">Opus 4 追平 o3</td>
+</tr>
+<tr>
+<td align="center">长文本</td>
+<td align="center">⭐⭐⭐⭐</td>
+<td align="left">200K 上下文</td>
+</tr>
+<tr>
+<td align="center">安全性</td>
+<td align="center">⭐⭐⭐⭐⭐</td>
+<td align="left">行业标杆</td>
+</tr>
+<tr>
+<td align="center">上下文</td>
+<td align="center">⭐⭐⭐⭐</td>
+<td align="left">200K，不如 Gemini</td>
+</tr>
+</tbody></table>
+<h3><span id="%E2%9C%85-%E4%BC%98%E5%8A%BF--%E2%9D%8C-%E5%8A%A3%E5%8A%BF">✅ 优势 &amp; ❌ 劣势</span></h3><ul>
+<li>✅ 代码生成和 Debug 能力最强</li>
+<li>✅ 200K 超长上下文</li>
+<li>✅ 安全性和可解释性领先</li>
+<li>✅ MCP 协议拓展性强</li>
+<li>❌ 不支持图像生成</li>
+<li>❌ API 生态不如 OpenAI 成熟</li>
+<li>❌ Opus 4 价格昂贵</li>
+</ul>
+<hr>
+<h2><span id="%E4%B8%89google-gemini-%E7%B3%BB%E5%88%97">三、Google Gemini 系列</span></h2><blockquote>
+<p><strong>定位</strong>：超长上下文王者，Google 生态深度整合</p>
+</blockquote>
+<h3><span id="%F0%9F%93%8B-%E6%A8%A1%E5%9E%8B%E4%B8%80%E8%A7%88">📋 模型一览</span></h3><table>
+<thead>
+<tr>
+<th align="center">模型</th>
+<th align="center">发布</th>
+<th align="center">上下文</th>
+<th align="center">定位</th>
+<th align="center">输入价格</th>
+<th align="center">输出价格</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center"><strong>Gemini 2.5 Pro</strong></td>
+<td align="center">2025.03</td>
+<td align="center">1M</td>
+<td align="center">推理旗舰</td>
+<td align="center">$1.25</td>
+<td align="center">$10.00</td>
+</tr>
+<tr>
+<td align="center"><strong>Gemini 2.0 Flash</strong></td>
+<td align="center">2024.12</td>
+<td align="center">1M</td>
+<td align="center">快速高效</td>
+<td align="center">$0.10</td>
+<td align="center">$0.40</td>
+</tr>
+<tr>
+<td align="center"><strong>Gemini 1.5 Pro</strong></td>
+<td align="center">2024.02</td>
+<td align="center">2M</td>
+<td align="center">超长上下文</td>
+<td align="center">$1.25</td>
+<td align="center">$5.00</td>
+</tr>
+</tbody></table>
+<h3><span id="%E2%AD%90-%E8%83%BD%E5%8A%9B%E8%AF%84%E4%BC%B0">⭐ 能力评估</span></h3><table>
+<thead>
+<tr>
+<th align="center">维度</th>
+<th align="center">评分</th>
+<th align="left">评价</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">综合能力</td>
+<td align="center">⭐⭐⭐⭐</td>
+<td align="left">第一梯队</td>
+</tr>
+<tr>
+<td align="center">长文本</td>
+<td align="center">⭐⭐⭐⭐⭐</td>
+<td align="left"><strong>百万级上下文无敌</strong></td>
+</tr>
+<tr>
+<td align="center">多模态</td>
+<td align="center">⭐⭐⭐⭐⭐</td>
+<td align="left">原生多模态设计</td>
+</tr>
+<tr>
+<td align="center">性价比</td>
+<td align="center">⭐⭐⭐⭐⭐</td>
+<td align="left">Flash 价格极低</td>
+</tr>
+<tr>
+<td align="center">编程</td>
+<td align="center">⭐⭐⭐⭐</td>
+<td align="left">良好</td>
+</tr>
+<tr>
+<td align="center">中文</td>
+<td align="center">⭐⭐⭐</td>
+<td align="left">一般</td>
+</tr>
+</tbody></table>
+<h3><span id="%E2%9C%85-%E4%BC%98%E5%8A%BF--%E2%9D%8C-%E5%8A%A3%E5%8A%BF">✅ 优势 &amp; ❌ 劣势</span></h3><ul>
+<li>✅ 百万级上下文，长文档分析无敌</li>
+<li>✅ Google 生态深度整合</li>
+<li>✅ Flash 版性价比极高</li>
+<li>✅ 原生多模态设计</li>
+<li>❌ 创造力有时不足</li>
+<li>❌ API 文档体验一般</li>
+<li>❌ 中文能力不如国产模型</li>
+</ul>
+<hr>
+<h2><span id="%E5%9B%9Bmeta-llama-%E7%B3%BB%E5%88%97%E5%BC%80%E6%BA%90">四、Meta Llama 系列（开源）</span></h2><blockquote>
+<p><strong>定位</strong>：最强开源模型，可自由部署</p>
+</blockquote>
+<h3><span id="%F0%9F%93%8B-%E6%A8%A1%E5%9E%8B%E4%B8%80%E8%A7%88">📋 模型一览</span></h3><table>
+<thead>
+<tr>
+<th align="center">模型</th>
+<th align="center">发布</th>
+<th align="center">上下文</th>
+<th align="center">定位</th>
+<th align="left">特点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center"><strong>Llama 4 Maverick</strong></td>
+<td align="center">2025.04</td>
+<td align="center">1M</td>
+<td align="center">多模态旗舰</td>
+<td align="left">开源最强</td>
+</tr>
+<tr>
+<td align="center"><strong>Llama 4 Scout</strong></td>
+<td align="center">2025.04</td>
+<td align="center">10M</td>
+<td align="center">超长上下文</td>
+<td align="left">开源最长上下文</td>
+</tr>
+<tr>
+<td align="center"><strong>Llama 3.1 405B</strong></td>
+<td align="center">2024.07</td>
+<td align="center">128K</td>
+<td align="center">高性能</td>
+<td align="left">上一代旗舰</td>
+</tr>
+</tbody></table>
+<h3><span id="%E2%9C%85-%E4%BC%98%E5%8A%BF--%E2%9D%8C-%E5%8A%A3%E5%8A%BF">✅ 优势 &amp; ❌ 劣势</span></h3><ul>
+<li>✅ 开源可自部署，数据可控</li>
+<li>✅ 社区活跃，微调资源丰富</li>
+<li>✅ Llama 4 性能大幅提升</li>
+<li>❌ 需要自行部署运维</li>
+<li>❌ 与闭源旗舰仍有差距</li>
+<li>❌ 硬件成本高</li>
+</ul>
+<hr>
+<h2><span id="%E4%BA%94%E5%85%B6%E4%BB%96%E9%87%8D%E8%A6%81%E6%A8%A1%E5%9E%8B">五、其他重要模型</span></h2><table>
+<thead>
+<tr>
+<th align="center">模型</th>
+<th align="center">厂商</th>
+<th align="center">核心亮点</th>
+<th align="center">推荐场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">🔴 <strong>DeepSeek-R1</strong></td>
+<td align="center">深度求索</td>
+<td align="center">开源推理，性价比之王</td>
+<td align="center">预算有限的推理任务</td>
+</tr>
+<tr>
+<td align="center">🔴 <strong>DeepSeek-V3</strong></td>
+<td align="center">深度求索</td>
+<td align="center">开源通用，中文优秀</td>
+<td align="center">中文内容创作</td>
+</tr>
+<tr>
+<td align="center">🟡 <strong>Qwen 2.5</strong></td>
+<td align="center">阿里云</td>
+<td align="center">中文最强</td>
+<td align="center">中文应用首选</td>
+</tr>
+<tr>
+<td align="center">⚪ <strong>Mistral Large</strong></td>
+<td align="center">Mistral AI</td>
+<td align="center">欧洲代表，高效</td>
+<td align="center">欧洲合规场景</td>
+</tr>
+<tr>
+<td align="center">🟤 <strong>Grok</strong></td>
+<td align="center">xAI</td>
+<td align="center">实时信息，幽默风格</td>
+<td align="center">实时资讯</td>
+</tr>
+<tr>
+<td align="center">🟢 <strong>GLM-4</strong></td>
+<td align="center">智谱 AI</td>
+<td align="center">中英双语优秀</td>
+<td align="center">双语场景</td>
+</tr>
+</tbody></table>
+<hr>
+<h2><span id="%E5%85%AD%E5%85%B3%E9%94%AE%E8%83%BD%E5%8A%9B%E6%8E%92%E8%A1%8C%E6%A6%9C">六、关键能力排行榜</span></h2><h3><span id="%F0%9F%8F%86-%E7%BC%96%E7%A8%8B%E8%83%BD%E5%8A%9B">🏆 编程能力</span></h3><figure class="highlight plaintext"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs plaintext">🥇 Claude Opus 4 / Sonnet 4     ⭐⭐⭐⭐⭐  代码生成 &amp; Debug 最强<br>🥇 GPT-4.5 / o3                 ⭐⭐⭐⭐⭐  算法竞赛类出色<br>🥉 Gemini 2.5 Pro               ⭐⭐⭐⭐   稳定可靠<br>4. Llama 4 Maverick             ⭐⭐⭐⭐   开源最强<br>5. DeepSeek-R1                  ⭐⭐⭐⭐   性价比高<br></code></pre></td></tr></tbody></table></figure>
+
+<h3><span id="%F0%9F%8F%86-%E6%95%B0%E5%AD%A6%E6%8E%A8%E7%90%86">🏆 数学推理</span></h3><figure class="highlight plaintext"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs plaintext">🥇 o3 / o3-mini                  ⭐⭐⭐⭐⭐  推理模型标杆<br>🥇 Claude Opus 4                ⭐⭐⭐⭐⭐  扩展思维强<br>🥉 Gemini 2.5 Pro               ⭐⭐⭐⭐   推理增强<br>4. DeepSeek-R1                  ⭐⭐⭐⭐   开源推理领先<br>5. GPT-4.5                      ⭐⭐⭐⭐   综合推理<br></code></pre></td></tr></tbody></table></figure>
+
+<h3><span id="%F0%9F%8F%86-%E9%95%BF%E6%96%87%E6%9C%AC%E5%A4%84%E7%90%86">🏆 长文本处理</span></h3><figure class="highlight plaintext"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs plaintext">🥇 Gemini 2.5 Pro (1M-2M)      ⭐⭐⭐⭐⭐  百万上下文<br>🥇 Llama 4 Scout (10M)          ⭐⭐⭐⭐⭐  开源最长<br>🥉 Claude 系列 (200K)           ⭐⭐⭐⭐   稳定可靠<br>4. GPT 系列 (128K-200K)         ⭐⭐⭐⭐   够用<br></code></pre></td></tr></tbody></table></figure>
+
+<h3><span id="%F0%9F%8F%86-%E4%B8%AD%E6%96%87%E8%83%BD%E5%8A%9B">🏆 中文能力</span></h3><figure class="highlight plaintext"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs plaintext">🥇 Qwen 2.5                     ⭐⭐⭐⭐⭐  中文最强<br>🥇 GLM-4                         ⭐⭐⭐⭐⭐  双语优秀<br>🥉 DeepSeek-V3                  ⭐⭐⭐⭐   中文出色<br>4. Claude Sonnet 4              ⭐⭐⭐⭐   良好<br>5. GPT-4.5                      ⭐⭐⭐⭐   良好<br></code></pre></td></tr></tbody></table></figure>
+
+<hr>
+<h2><span id="%E4%B8%83%E5%9C%BA%E6%99%AF%E9%80%89%E6%8B%A9%E6%8C%87%E5%8D%97">七、场景选择指南</span></h2><h3><span id="%F0%9F%8E%AF-%E6%8C%89%E5%9C%BA%E6%99%AF%E9%80%89%E6%A8%A1%E5%9E%8B">🎯 按场景选模型</span></h3><table>
+<thead>
+<tr>
+<th align="center">场景</th>
+<th align="center">首选</th>
+<th align="center">备选</th>
+<th align="left">理由</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">日常对话</td>
+<td align="center">GPT-4o mini</td>
+<td align="center">Haiku</td>
+<td align="left">便宜快速</td>
+</tr>
+<tr>
+<td align="center">编程助手</td>
+<td align="center"><strong>Claude Sonnet 4</strong></td>
+<td align="center">GPT-4o</td>
+<td align="left">代码最强</td>
+</tr>
+<tr>
+<td align="center">复杂推理</td>
+<td align="center"><strong>o3</strong></td>
+<td align="center">Claude Opus 4</td>
+<td align="left">推理最深</td>
+</tr>
+<tr>
+<td align="center">长文档分析</td>
+<td align="center"><strong>Gemini 2.5 Pro</strong></td>
+<td align="center">Llama 4 Scout</td>
+<td align="left">上下文最长</td>
+</tr>
+<tr>
+<td align="center">私有部署</td>
+<td align="center"><strong>Llama 4</strong></td>
+<td align="center">DeepSeek</td>
+<td align="left">开源可控</td>
+</tr>
+<tr>
+<td align="center">中文内容</td>
+<td align="center"><strong>Qwen 2.5</strong></td>
+<td align="center">DeepSeek-V3</td>
+<td align="left">中文最优</td>
+</tr>
+<tr>
+<td align="center">成本敏感</td>
+<td align="center"><strong>Gemini Flash</strong></td>
+<td align="center">GPT-4o mini</td>
+<td align="left">极低单价</td>
+</tr>
+</tbody></table>
+<h3><span id="%F0%9F%8E%AF-%E6%8C%89%E7%94%A8%E6%88%B7%E7%B1%BB%E5%9E%8B%E9%80%89%E6%A8%A1%E5%9E%8B">🎯 按用户类型选模型</span></h3><table>
+<thead>
+<tr>
+<th align="center">用户类型</th>
+<th align="center">推荐组合</th>
+<th align="left">理由</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">👨‍💻 个人开发者</td>
+<td align="center">Sonnet 4 + Flash</td>
+<td align="left">编程+日常，性价比最高</td>
+</tr>
+<tr>
+<td align="center">🏢 企业用户</td>
+<td align="center">GPT-4o + Claude</td>
+<td align="left">稳定生态+安全合规</td>
+</tr>
+<tr>
+<td align="center">🔬 研究者</td>
+<td align="center">Llama 4 + DeepSeek-R1</td>
+<td align="left">开源可控+推理强</td>
+</tr>
+<tr>
+<td align="center">✍️ 内容创作者</td>
+<td align="center">Claude Opus 4 + GPT-4o</td>
+<td align="left">写作最强+多模态</td>
+</tr>
+</tbody></table>
+<hr>
+<h2><span id="%E5%85%AB2025-%E4%B8%8B%E5%8D%8A%E5%B9%B4%E5%B1%95%E6%9C%9B">八、2025 下半年展望</span></h2><blockquote>
+<p><strong>🔮 五大趋势预测</strong></p>
+</blockquote>
+<ol>
+<li><strong>🧠 推理模型成主流</strong> — o 系列、Claude 扩展思维让 AI 能处理更复杂任务</li>
+<li><strong>👁️ 多模态大统一</strong> — 文本、图像、音频、视频一个模型搞定</li>
+<li><strong>🤖 Agent 时代到来</strong> — 从单轮问答到自主完成任务的 Agent</li>
+<li><strong>🔓 开源追赶闭源</strong> — Llama 4、DeepSeek 正在快速缩小差距</li>
+<li><strong>📱 端侧模型崛起</strong> — 小模型在手机/PC 本地运行，隐私+速度</li>
+</ol>
+<p>选择大模型不再是”哪个最强”的问题，而是”哪个最适合你的场景”。希望本文能帮你做出更明智的选择。</p>
+<hr>
+<blockquote>
+<p><strong>📌 总结</strong>：2025 年的大模型市场百花齐放，没有绝对的王者，只有最适合的选择。建议先用免费额度试用，再根据实际体验做决定。</p>
+</blockquote>
+<hr>
+<p><strong>相关阅读：</strong></p>
+<ul>
+<li><a href="/2025/04/22/2025-AI%E7%BC%96%E7%A8%8B%E5%B7%A5%E5%85%B7%E6%A8%AA%E8%AF%84/">AI 编程工具横评</a></li>
+<li><a href="/2025/04/22/2025-%E6%90%AD%E5%BB%BA%E4%B8%AA%E4%BA%BAAI%E5%B7%A5%E4%BD%9C%E6%B5%81/">搭建个人 AI 工作流</a></li>
+</ul>
+<!-- hexo injector body_end start --><script data-pjax src="https://unpkg.com/oh-my-live2d"></script><script>const oml2d = OML2D.loadOml2d({dockedPosition:"left",mobileDisplay:true,models:[{"path":"https://unpkg.com/live2d-widget-model-shizuku@1.0.5/assets/shizuku.model.json","mobilePosition":[-10,23],"mobileScale":0.1,"mobileStageStyle":{"width":180,"height":166},"motionPreloadStrategy":"IDLE","position":[-10,35],"scale":0.15,"stageStyle":{"width":250,"height":250}},{"path":"https://unpkg.com/live2d-widget-model-koharu@1.0.5/assets/koharu.model.json","scale":0.12,"position":[0,0],"stageStyle":{"width":250},"mobileScale":0.08,"mobilePosition":[0,0],"mobileStageStyle":{"width":180}},{"path":"https://unpkg.com/live2d-widget-model-haruto@1.0.5/assets/haruto.model.json","scale":0.12,"position":[0,0],"mobileScale":0.08,"mobilePosition":[0,0],"mobileStageStyle":{"width":180},"stageStyle":{"width":250}}],parentElement:document.body,primaryColor:"var(--btn-bg)",sayHello:false,tips:{style: {"width":230,"height":120,"left":"calc(50% - 20px)","top":"-100px"},mobileStyle: {"width":180,"height":80,"left":"calc(50% - 30px)","top":"-100px"},idleTips:{interval:15000,message:function(){
+  return axios.get('https://v1.hitokoto.cn?c=i')
+    .then(function (response) {
+      return response.data.hitokoto ;
+    })
+    .catch(function (error) {
+      console.error(error);
+    });
+}
+}}});</script><!-- hexo injector body_end end --></body></html>
+	</article>
+
+	 
+    <div class="kira-post-copyright">
+        <strong>Author：</strong>mason.chao<br>
+        <strong>Link：</strong><a href="https://dochaoing.github.io/2025/04/22/2025-%E4%B8%BB%E6%B5%81%E5%A4%A7%E6%A8%A1%E5%9E%8B%E5%85%A8%E8%A7%A3%E6%9E%90/" title="https:&#x2F;&#x2F;dochaoing.github.io&#x2F;2025&#x2F;04&#x2F;22&#x2F;2025-主流大模型全解析&#x2F;" target="_blank" rel="noopener">https:&#x2F;&#x2F;dochaoing.github.io&#x2F;2025&#x2F;04&#x2F;22&#x2F;2025-主流大模型全解析&#x2F;</a><br>
+        
+            <strong>版权声明：</strong>本文采用 <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/cn/deed.zh" target="_blank">CC BY-NC-SA 3.0 CN</a> 协议进行许可
+        
+    </div>
+
+  
+	<div class="kira-post-nav">
+		<nav class="post-nav">
+			              
+			<!-- 先找到与当前文字相同的目录 -->
+			   
+			<!-- 在找到当前文章所在的 index -->
+			              
+		</nav>
+	</div>
+	
+	<div class="kira-post-meta kira-rainbow">
+		
+			<a class="kirafont icon-container-fill -link" href="../../../../categories/AI%E6%A8%A1%E5%9E%8B/">AI模型</a>
+		
+		
+			<a class="kirafont icon-tag-fill -none-link" href="../../../../tags/AI%E6%A8%A1%E5%9E%8B/" rel="tag">AI模型</a> <a class="kirafont icon-tag-fill -none-link" href="../../../../tags/Claude/" rel="tag">Claude</a> <a class="kirafont icon-tag-fill -none-link" href="../../../../tags/GPT/" rel="tag">GPT</a> <a class="kirafont icon-tag-fill -none-link" href="../../../../tags/Gemini/" rel="tag">Gemini</a> <a class="kirafont icon-tag-fill -none-link" href="../../../../tags/Llama/" rel="tag">Llama</a> <a class="kirafont icon-tag-fill -none-link" href="../../../../tags/%E5%A4%A7%E8%AF%AD%E8%A8%80%E6%A8%A1%E5%9E%8B/" rel="tag">大语言模型</a>
+		
+	</div>
+	
+	<div class="kira-post-footer">
+		
+
+		
+	<div class="giscus"></div>
+  
+    <script src="https://giscus.app/client.js"
+      data-repo="DoChaoing/dochaoing.github.io"
+      data-repo-id="R_kgDOQkK0BA"
+      data-category="Announcements"
+      data-category-id="DIC_kwDOQkK0BM4Czj3r"
+      data-mapping="pathname"
+      data-strict="0"
+      data-reactions-enabled="1"
+      data-emit-metadata="0"
+      data-input-position="top"
+      data-theme="light"
+      data-lang="en"
+      data-loading="lazy"
+      crossorigin="anonymous"
+      async  
+    ></script>
+  
+
+	</div>
+	
+</div>
+
+				</div>
+			</div>
+			<div class="kira-right-column">
+	<a onclick="document.querySelector('#kira-top-header').scrollIntoView({behavior: 'smooth'});" class="kira-backtotop" aria-label="回到顶部" title="回到顶部">
+		<button class="mdui-fab mdui-ripple">
+			<i class="kirafont icon-caret-up"></i>
+		</button>
+	</a>
+</div>
+
+		</div>
+	</body>
+</html>
