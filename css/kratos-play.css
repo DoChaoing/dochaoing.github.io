@@ -1,0 +1,245 @@
+:root {
+  --nf-accent: #17b8a6;
+  --nf-accent-2: #6c7cff;
+  --nf-warm: #ffbd59;
+  --nf-ink: rgba(18, 24, 38, 0.82);
+  --nf-glass: rgba(255, 255, 255, 0.78);
+  --nf-line: rgba(255, 255, 255, 0.34);
+}
+
+html[data-theme="dark"] {
+  --nf-ink: rgba(238, 244, 255, 0.88);
+  --nf-glass: rgba(18, 24, 38, 0.66);
+  --nf-line: rgba(255, 255, 255, 0.14);
+}
+
+#nf-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 9999;
+  width: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--nf-accent), var(--nf-accent-2), var(--nf-warm));
+  box-shadow: 0 0 14px rgba(23, 184, 166, 0.45);
+  pointer-events: none;
+}
+
+#nf-starfield {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  opacity: 0.38;
+  pointer-events: none;
+}
+
+.kratos-cover-2::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 18% 24%, rgba(23, 184, 166, 0.2), transparent 24%),
+    radial-gradient(circle at 80% 30%, rgba(108, 124, 255, 0.18), transparent 22%),
+    linear-gradient(180deg, rgba(3, 7, 18, 0.06), rgba(3, 7, 18, 0.18));
+  pointer-events: none;
+}
+
+.kratos-cover-2 .desc,
+.kratos-cover-2 .cover-title,
+.kratos-cover-2 h2,
+.kratos-cover-2 p {
+  position: relative;
+  z-index: 1;
+}
+
+.nf-hero-chip {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: min(92vw, 620px);
+  margin-top: 14px;
+  padding: 8px 14px;
+  border: 1px solid var(--nf-line);
+  border-radius: 999px;
+  color: #fff;
+  background: rgba(5, 12, 26, 0.34);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
+  backdrop-filter: blur(12px);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.nf-hero-chip::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--nf-accent);
+  box-shadow: 0 0 0 6px rgba(23, 184, 166, 0.16), 0 0 18px rgba(23, 184, 166, 0.8);
+}
+
+.kratos-hentry,
+.widget {
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+}
+
+.kratos-hentry:hover,
+.widget:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 20px 44px rgba(20, 28, 45, 0.14);
+}
+
+html[data-theme="dark"] .kratos-hentry:hover,
+html[data-theme="dark"] .widget:hover {
+  box-shadow: 0 20px 44px rgba(0, 0, 0, 0.28);
+}
+
+.kratos-entry-thumb-img {
+  transition: transform 380ms ease, filter 380ms ease;
+}
+
+.kratos-entry-thumb:hover .kratos-entry-thumb-img {
+  transform: scale(1.035);
+  filter: saturate(1.12) contrast(1.04);
+}
+
+.nf-signal-widget {
+  overflow: hidden;
+}
+
+.nf-signal-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+  color: var(--nf-ink);
+  font-weight: 700;
+}
+
+.nf-signal-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--nf-accent);
+  box-shadow: 0 0 0 6px rgba(23, 184, 166, 0.14);
+}
+
+.nf-signal-track {
+  display: grid;
+  gap: 8px;
+}
+
+.nf-signal-item {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr) 38px;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--nf-ink);
+}
+
+.nf-signal-bar {
+  position: relative;
+  height: 7px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(127, 143, 166, 0.18);
+}
+
+.nf-signal-bar span {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: var(--value);
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--nf-accent), var(--nf-accent-2));
+}
+
+.nf-toast {
+  position: fixed;
+  right: 22px;
+  bottom: 92px;
+  z-index: 9998;
+  max-width: min(320px, calc(100vw - 32px));
+  padding: 14px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 14px;
+  color: #fff;
+  background: rgba(14, 22, 38, 0.86);
+  box-shadow: 0 20px 54px rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(14px);
+  opacity: 0;
+  transform: translateY(12px);
+  pointer-events: none;
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.nf-toast.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.nf-toast strong {
+  display: block;
+  margin-bottom: 4px;
+  color: #9cf1e8;
+}
+
+.kr-tool .tool .nf-inspire-box a {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+}
+
+.kr-tool .tool .nf-inspire-box span {
+  color: var(--nf-accent);
+}
+
+.nf-pop {
+  position: fixed;
+  z-index: 9997;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--nf-accent);
+  pointer-events: none;
+  animation: nf-pop 700ms ease forwards;
+}
+
+@keyframes nf-pop {
+  to {
+    transform: translate(var(--x), var(--y)) scale(0);
+    opacity: 0;
+  }
+}
+
+@media (max-width: 767px) {
+  .nf-hero-chip {
+    padding: 7px 12px;
+    font-size: 12px;
+  }
+
+  .nf-toast {
+    right: 16px;
+    bottom: 82px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #nf-starfield,
+  .nf-pop {
+    display: none;
+  }
+
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}

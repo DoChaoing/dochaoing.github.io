@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+  <!-- 元数据 -->
+  <meta charset="utf-8">
+  
+    <link rel="icon" href="/favicon.ico">
+  
+  
+  <title>AI Agents Rising: The Most Important AI Trend of 2025 | Chao Blog</title>
+  <link rel="canonical" href="https://dochaoing.github.io/2025/04/22/2025-AI-Agent%E5%B4%9B%E8%B5%B7/">
+  <meta name="author" content="Chao" />
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="robots" content="index,follow" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <meta name="format-detection" content="telphone=no, email=no" />
+  
+    <meta name="keywords" content="AI Agent, Agentic AI, Automation, LangChain" />
+  
+  <meta name="description" content="TL;DR — LLMs answer questions. Agents do things. This is the paradigm shift of 2025. 12 min read.  If 2023 was the year of the LLM, 2025 is the year of the Agent. The difference? An agent doesn&#39;t">
+<meta property="og:type" content="article">
+<meta property="og:title" content="AI Agents Rising: The Most Important AI Trend of 2025">
+<meta property="og:url" content="https://dochaoing.github.io/2025/04/22/2025-AI-Agent%E5%B4%9B%E8%B5%B7/index.html">
+<meta property="og:site_name" content="Chao Blog">
+<meta property="og:description" content="TL;DR — LLMs answer questions. Agents do things. This is the paradigm shift of 2025. 12 min read.  If 2023 was the year of the LLM, 2025 is the year of the Agent. The difference? An agent doesn&#39;t">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://dochaoing.github.io/favicon.ico">
+<meta property="article:published_time" content="2025-04-22T14:00:00.000Z">
+<meta property="article:modified_time" content="2026-06-30T05:40:24.518Z">
+<meta property="article:author" content="Chao">
+<meta property="article:tag" content="AI Agent">
+<meta property="article:tag" content="Agentic AI">
+<meta property="article:tag" content="LangChain">
+<meta property="article:tag" content="Automation">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://dochaoing.github.io/favicon.ico">
+  
+    <link rel="alternate" href="/atom.xml" title="Chao Blog" type="application/atom+xml">
+  
+  <!-- JSON-LD 结构化数据 -->
+  
+  
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"BlogPosting","headline":"AI Agents Rising: The Most Important AI Trend of 2025","description":"\nTL;DR — LLMs answer questions. Agents do things. This is the paradigm shift of 2025. 12 min read.\n","image":"https://avatars.githubusercontent.com/u/16796652","author":{"@type":"Person","name":"Chao"},"publisher":{"@type":"Organization","name":"Chao Blog","logo":{"@type":"ImageObject","url":"https://avatars.githubusercontent.com/u/16796652"}},"datePublished":"2025-04-22T14:00:00.000Z","dateModified":"2026-06-30T05:40:24.518Z","mainEntityOfPage":{"@type":"WebPage","@id":"https://dochaoing.github.io/2025/04/22/2025-AI-Agent%E5%B4%9B%E8%B5%B7/"}}
+    </script>
+  
+  <!-- 关键 CSS 预加载 -->
+  <link rel="preload" href="/css/kr-core.min.css" as="style" crossorigin>
+  <link rel="preload" href="/css/kr-theme/light.min.css" as="style" crossorigin>
+  <link rel="preload" href="/css/kr-theme/dark.min.css" as="style" crossorigin>
+  <!-- 样式表文件 -->
+  <link rel="stylesheet" id="kratos-css" href="/css/kr-core.min.css" media="all">
+  <link rel="stylesheet" id="theme-light-css" href="/css/kr-theme/light.min.css" media="all">
+  <link rel="stylesheet" id="theme-dark-css" href="/css/kr-theme/dark.min.css" media="(prefers-color-scheme: dark)">
+  
+    <link rel="stylesheet"  id="highlight-css" href="/css/highlight/highlight.js/night-eighties.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/css/highlight/highlight.js/night-eighties.min.css"></noscript>
+  
+  <script src="/js/kr-theme.min.js"></script>
+  <link rel="stylesheet"  id="fontawe-css" href="/vendors/font-awesome@4.7.0/css/font-awesome.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/font-awesome@4.7.0/css/font-awesome.min.css"></noscript>
+  
+    <link rel="stylesheet"  id="nprogress-css" href="/vendors/nprogress@0.2.0/nprogress.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/nprogress@0.2.0/nprogress.css"></noscript>
+  
+  
+    <link rel="stylesheet"  href="/vendors/viewerjs@1.11.6/dist/viewer.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/viewerjs@1.11.6/dist/viewer.min.css"></noscript>
+  
+  <!-- 预先加载的JS文件 -->
+  
+    <script src="/vendors/qr-code-styling@1.6.0-rc.1/lib/qr-code-styling.js"></script>
+  
+  <!-- 自定义站点横幅和背景 -->
+  <style>
+    
+      .kratos-cover.kratos-cover-2 {
+        background-image: url('https://images.unsplash.com/photo-1518770660439-4636190af2dd?w=1600');
+      }
+      html[data-theme="dark"] .kratos-cover.kratos-cover-2 {
+        background-image: url('https://images.unsplash.com/photo-1518770660439-4636190af2dd?w=1600');
+      }
+    
+    
+      @media(min-width:768px) {
+        body.custom-background {
+          background-image: url('https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=1800');
+        }
+        html[data-theme="dark"] body.custom-background {
+          background-image: url('https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=1800');
+        }
+      }
+    
+    
+      .widget-kratos-about .photo-background {
+        background-image: url('https://images.unsplash.com/photo-1677442136019-21780ecad995?w=1200');
+      }
+      html[data-theme="dark"] .widget-kratos-about .photo-background {
+        background-image: url('https://images.unsplash.com/photo-1677442136019-21780ecad995?w=1200');
+      }
+    
+  </style>
+
+  <!-- 额外的追加注入项 -->
+  
+    <link rel="stylesheet" href="/css/kratos-play.css">
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+    <body class="custom-background">
+        <div id="kratos-wrapper">
+    <div id="kratos-page">
+        <div id="kratos-header">
+            <header id="kratos-desktop-topnav" class="kratos-topnav">
+                <div class="container">
+                    <div class="nav-header">
+                        <nav id="kratos-menu-wrap">
+                            <ul id="kratos-primary-menu" class="sf-menu">
+                                
+                                    <li>
+                                        
+                                            <a href="/">
+                                        
+                                            
+                                                <i class="fa fa-home"></i>
+                                            
+                                            Home
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/archives/">
+                                        
+                                            
+                                                <i class="fa fa-archive"></i>
+                                            
+                                            Archives
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/categories/">
+                                        
+                                            
+                                                <i class="fa fa-folder"></i>
+                                            
+                                            Categories
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/tags/">
+                                        
+                                            
+                                                <i class="fa fa-tags"></i>
+                                            
+                                            Tags
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/about.html">
+                                        
+                                            
+                                                <i class="fa fa-user"></i>
+                                            
+                                            About
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/friends.html">
+                                        
+                                            
+                                                <i class="fa fa-link"></i>
+                                            
+                                            Friends
+                                        </a>
+                                        
+                                    </li>
+                                
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </header>
+            <header id="kratos-mobile-topnav" class="kratos-topnav">
+                <div class="container">
+                    <div class="color-logo"><a href="/">Chao Blog</a></div>
+                    <div id="kratos-nav-toggle-wrapper" class="nav-toggle">
+                        <a id="kratos-nav-toggle" class="kratos-nav-toggle">
+                            <i></i>
+                        </a>
+                    </div>
+                </div>
+            </header>
+        </div>
+        <div class="kratos-start kratos-hero-2">
+            <!-- <div class="kratos-overlay"></div> -->
+            <div class="kratos-cover kratos-cover-2 text-center">
+                <div class="desc desc2 animate-box">
+                    <a href="/">
+                        <h2>Chao Blog</h2> <br />
+                        <span>Exploring AI · Code · Future</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div id="kratos-blog-post">
+            <div class="container">
+                <div id="main" class="row">
+
+
+        
+
+            
+
+            <section class="kr-main-col col-md-8">
+
+        
+
+            <article itemscope itemtype="https://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="https://dochaoing.github.io/2025/04/22/2025-AI-Agent%E5%B4%9B%E8%B5%B7/">
+    <div class="kratos-hentry kratos-page-inner clearfix">
+        <header class="kratos-page-header">
+            
+                <h1 class="kratos-page-title text-center" itemprop="name headline">AI Agents Rising: The Most Important AI Trend of 2025</h1>
+            
+            <ul class="kratos-page-meta text-center">
+                <li><time datetime="2025-04-22T14:00:00.000Z" itemprop="datePublished"><i class="fa fa-calendar"></i> 2025-04-22</time></li>
+                <li itemprop="author" itemscope itemtype="https://schema.org/Person">
+                    <i class="fa fa-user"></i> 作者 <span itemprop="name">Chao</span>
+                </li>
+                
+                    <li>
+                        <i class="fa fa-edit"></i> 
+                        
+                        
+                            ~8.95K
+                        
+                        字
+                    </li>
+                
+                
+                
+            </ul>
+        </header>
+        <div class="kratos-page-content kr-post">
+            
+            
+            
+            <hr />
+            <div itemprop="articleBody"><blockquote>
+<p><strong>TL;DR</strong> — LLMs answer questions. Agents <em>do</em> things. This is the paradigm shift of 2025. 12 min read.</p>
+</blockquote>
+<p>If 2023 was the year of the LLM, <strong>2025 is the year of the Agent</strong>. The difference? An agent doesn&#39;t just chat — it plans, executes, iterates, and delivers. Let&#39;s dive into the technology that&#39;s reshaping how we work with AI.</p>
+<hr>
+<h2 id="🧠-Core-Concept-What-s-an-Agent"><a href="#🧠-Core-Concept-What-s-an-Agent" class="headerlink" title="🧠 Core Concept: What&#39;s an Agent?"></a>🧠 Core Concept: What&#39;s an Agent?</h2><h3 id="LLM-vs-Agent"><a href="#LLM-vs-Agent" class="headerlink" title="LLM vs Agent"></a>LLM vs Agent</h3><pre><code class="highlight plaintext">┌─────────────────────────────────────────────────────────┐
+│  Traditional LLM                                        │
+│  Question → Model → Answer                              │
+│                                                         │
+│  AI Agent                                               │
+│  Goal → Plan → Execute Tools → Check → Deliver         │
+└─────────────────────────────────────────────────────────┘</code></pre>
+
+<blockquote>
+<p><strong>Key difference:</strong> Agents have <strong>autonomy</strong> and <strong>agency</strong>. They don&#39;t just talk — they act.</p>
+</blockquote>
+<h3 id="🏗️-Four-Pillars-of-Agency"><a href="#🏗️-Four-Pillars-of-Agency" class="headerlink" title="🏗️ Four Pillars of Agency"></a>🏗️ Four Pillars of Agency</h3><table>
+<thead>
+<tr>
+<th align="left">Pillar</th>
+<th align="left">Description</th>
+<th align="left">Analogy</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><strong>🧭 Planning</strong></td>
+<td align="left">Decompose goals into executable steps</td>
+<td align="left">Travel planning → book flight → reserve hotel</td>
+</tr>
+<tr>
+<td align="left"><strong>💾 Memory</strong></td>
+<td align="left">Retain context, history, learned patterns</td>
+<td align="left">Remember your preferences</td>
+</tr>
+<tr>
+<td align="left"><strong>🔧 Tool Use</strong></td>
+<td align="left">Call search, code exec, APIs, etc.</td>
+<td align="left">Search web, run Python, query DB</td>
+</tr>
+<tr>
+<td align="left"><strong>🔄 Reflection</strong></td>
+<td align="left">Evaluate results, self-correct</td>
+<td align="left">&quot;That failed, let me try another approach&quot;</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="2-Major-Agent-Frameworks"><a href="#2-Major-Agent-Frameworks" class="headerlink" title="2. Major Agent Frameworks"></a>2. Major Agent Frameworks</h2><h3 id="📊-Framework-Landscape"><a href="#📊-Framework-Landscape" class="headerlink" title="📊 Framework Landscape"></a>📊 Framework Landscape</h3><table>
+<thead>
+<tr>
+<th align="left">Framework</th>
+<th align="center">Language</th>
+<th align="left">Superpower</th>
+<th align="left">Best For</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><strong>LangChain</strong></td>
+<td align="center">Python&#x2F;JS</td>
+<td align="left">Richest ecosystem</td>
+<td align="left">Rapid prototyping</td>
+</tr>
+<tr>
+<td align="left"><strong>LangGraph</strong></td>
+<td align="center">Python</td>
+<td align="left">State machine workflows</td>
+<td align="left">Complex pipelines</td>
+</tr>
+<tr>
+<td align="left"><strong>CrewAI</strong></td>
+<td align="center">Python</td>
+<td align="left">Multi-agent teams</td>
+<td align="left">Collaborative tasks</td>
+</tr>
+<tr>
+<td align="left"><strong>AutoGPT</strong></td>
+<td align="center">Python</td>
+<td align="left">Autonomous execution</td>
+<td align="left">Experimental projects</td>
+</tr>
+<tr>
+<td align="left"><strong>Assistants API</strong></td>
+<td align="center">REST</td>
+<td align="left">Production-ready</td>
+<td align="left">Enterprise use</td>
+</tr>
+</tbody></table>
+<hr>
+<h3 id="🔷-LangChain-LangGraph"><a href="#🔷-LangChain-LangGraph" class="headerlink" title="🔷 LangChain &#x2F; LangGraph"></a>🔷 LangChain &#x2F; LangGraph</h3><p>The most popular agent framework. Massive ecosystem.</p>
+<pre><code class="highlight python"><span class="keyword">from</span> langgraph.prebuilt <span class="keyword">import</span> create_react_agent
+<span class="keyword">from</span> langchain_openai <span class="keyword">import</span> ChatOpenAI
+
+model = ChatOpenAI(model=<span class="string">&quot;gpt-4o&quot;</span>)
+tools = [search_tool, calculator_tool]
+
+agent = create_react_agent(model, tools)
+result = agent.invoke(&#123;
+    <span class="string">&quot;messages&quot;</span>: [(<span class="string">&quot;user&quot;</span>, <span class="string">&quot;What&#x27;s the weather in Tokyo today?&quot;</span>)]
+&#125;)</code></pre>
+
+<p><strong>LangGraph State Machine:</strong></p>
+<pre><code class="highlight plaintext">┌─────────┐    ┌─────────┐    ┌─────────┐
+│  START  │ → │  SEARCH │ → │ ANALYZE │
+└─────────┘    └─────────┘    └─────────┘
+                    ↓              ↓
+               ┌─────────┐    ┌─────────┐
+               │  RETRY  │ ← │ DECIDE  │ → DONE
+               └─────────┘    └─────────┘</code></pre>
+
+<hr>
+<h3 id="👥-CrewAI-—-Multi-Agent-Teams"><a href="#👥-CrewAI-—-Multi-Agent-Teams" class="headerlink" title="👥 CrewAI — Multi-Agent Teams"></a>👥 CrewAI — Multi-Agent Teams</h3><p>Multiple agents collaborating on complex tasks.</p>
+<pre><code class="highlight python"><span class="keyword">from</span> crewai <span class="keyword">import</span> Agent, Task, Crew
+
+researcher = Agent(
+    role=<span class="string">&quot;Research Analyst&quot;</span>,
+    goal=<span class="string">&quot;Gather and analyze information&quot;</span>,
+    backstory=<span class="string">&quot;Data science expert&quot;</span>,
+    tools=[search_tool]
+)
+
+writer = Agent(
+    role=<span class="string">&quot;Technical Writer&quot;</span>,
+    goal=<span class="string">&quot;Produce high-quality articles&quot;</span>,
+    backstory=<span class="string">&quot;Senior tech journalist&quot;</span>,
+)
+
+crew = Crew(
+    agents=[researcher, writer], 
+    tasks=[research_task, write_task]
+)
+
+result = crew.kickoff()</code></pre>
+
+<p><strong>Collaboration Flow:</strong></p>
+<pre><code class="highlight plaintext">Researcher Agent         Writer Agent
+     │                       │
+     ├─→ Search web          │
+     ├─→ Extract data        │
+     └─→ Pass results ──────→├─→ Draft article
+                             └─→ Output deliverable</code></pre>
+
+<hr>
+<h3 id="🟢-OpenAI-Assistants-API"><a href="#🟢-OpenAI-Assistants-API" class="headerlink" title="🟢 OpenAI Assistants API"></a>🟢 OpenAI Assistants API</h3><p>Production-grade official solution from OpenAI.</p>
+<pre><code class="highlight python"><span class="keyword">from</span> openai <span class="keyword">import</span> OpenAI
+client = OpenAI()
+
+assistant = client.beta.assistants.create(
+    name=<span class="string">&quot;Data Analyst&quot;</span>,
+    instructions=<span class="string">&quot;You are a data analysis expert&quot;</span>,
+    model=<span class="string">&quot;gpt-4o&quot;</span>,
+    tools=[
+        &#123;<span class="string">&quot;type&quot;</span>: <span class="string">&quot;code_interpreter&quot;</span>&#125;,
+        &#123;<span class="string">&quot;type&quot;</span>: <span class="string">&quot;file_search&quot;</span>&#125;
+    ]
+)
+
+thread = client.beta.threads.create()
+
+message = client.beta.threads.messages.create(
+    thread_id=thread.<span class="built_in">id</span>,
+    role=<span class="string">&quot;user&quot;</span>,
+    content=<span class="string">&quot;Analyze the sales trends in this CSV&quot;</span>
+)
+
+run = client.beta.threads.runs.create_and_poll(
+    thread_id=thread.<span class="built_in">id</span>,
+    assistant_id=assistant.<span class="built_in">id</span>
+)</code></pre>
+
+<hr>
+<h2 id="3-Real-World-Applications"><a href="#3-Real-World-Applications" class="headerlink" title="3. Real-World Applications"></a>3. Real-World Applications</h2><h3 id="💻-Scenario-1-Coding-Agent"><a href="#💻-Scenario-1-Coding-Agent" class="headerlink" title="💻 Scenario 1: Coding Agent"></a>💻 Scenario 1: Coding Agent</h3><p>Claude Code and Cursor Composer exemplify coding agents:</p>
+<pre><code class="highlight plaintext">User: Add user authentication
+
+Agent execution:
+┌─────────────────────────────────────────────────────┐
+│ 1. 🔍 Analyze codebase architecture                  │
+│ 2. 📝 Design auth logic                             │
+│ 3. ✏️ Create/modify files                            │
+│    - auth.py (authentication)                       │
+│    - login.html (frontend)                          │
+│    - routes.py (routing)                             │
+│ 4. 🧪 Run tests, verify                             │
+│ 5. 🔧 Auto-fix discovered issues                    │
+│ 6. ✅ Feature complete                               │
+└─────────────────────────────────────────────────────┘</code></pre>
+
+<hr>
+<h3 id="📚-Scenario-2-Research-Agent"><a href="#📚-Scenario-2-Research-Agent" class="headerlink" title="📚 Scenario 2: Research Agent"></a>📚 Scenario 2: Research Agent</h3><p>Autonomous research and synthesis:</p>
+<pre><code class="highlight plaintext">User: Research AI Agent trends in 2025
+
+Agent execution:
+┌─────────────────────────────────────────────────────┐
+│ 1. 🔍 Search &quot;AI Agent 2025 trends&quot;                  │
+│ 2. 📄 Read multiple sources                          │
+│ 3. 📊 Extract key data &amp; insights                    │
+│ 4. 📝 Synthesize structured report                   │
+│ 5. ✅ Output with citations                          │
+└─────────────────────────────────────────────────────┘</code></pre>
+
+<hr>
+<h3 id="⚙️-Scenario-3-Automation-Agent"><a href="#⚙️-Scenario-3-Automation-Agent" class="headerlink" title="⚙️ Scenario 3: Automation Agent"></a>⚙️ Scenario 3: Automation Agent</h3><p>Connect tools and services:</p>
+<pre><code class="highlight plaintext">User: Process today&#x27;s emails
+
+Agent execution:
+┌─────────────────────────────────────────────────────┐
+│ 1. 📧 Fetch unread messages                          │
+│ 2. 🏷️ Classify: important/routine/spam              │
+│ 3. ✉️ Draft replies for routine emails               │
+│ 4. 📌 Create tasks for important ones               │
+│ 5. 🗑️ Archive spam                                   │
+│ 6. ✅ Report actions taken                           │
+└─────────────────────────────────────────────────────┘</code></pre>
+
+<hr>
+<h3 id="📊-Scenario-4-Data-Analysis-Agent"><a href="#📊-Scenario-4-Data-Analysis-Agent" class="headerlink" title="📊 Scenario 4: Data Analysis Agent"></a>📊 Scenario 4: Data Analysis Agent</h3><p>End-to-end analysis pipeline:</p>
+<pre><code class="highlight plaintext">User: Find growth opportunities in this sales data
+
+Agent execution:
+┌─────────────────────────────────────────────────────┐
+│ 1. 📂 Load data files                                │
+│ 2. 🧹 Clean and preprocess                           │
+│ 3. 📊 Run statistical analysis                       │
+│ 4. 📈 Generate visualizations                        │
+│ 5. 💡 Extract insights &amp; recommendations              │
+│ 6. 📝 Output analysis report                         │
+└─────────────────────────────────────────────────────┘</code></pre>
+
+<hr>
+<h2 id="4-Agent-Design-Best-Practices"><a href="#4-Agent-Design-Best-Practices" class="headerlink" title="4. Agent Design Best Practices"></a>4. Agent Design Best Practices</h2><h3 id="✅-Design-Principles"><a href="#✅-Design-Principles" class="headerlink" title="✅ Design Principles"></a>✅ Design Principles</h3><table>
+<thead>
+<tr>
+<th align="left">Principle</th>
+<th align="left">Description</th>
+<th align="left">Example</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><strong>Clear boundaries</strong></td>
+<td align="left">Define scope explicitly</td>
+<td align="left">Data agent only analyzes data</td>
+</tr>
+<tr>
+<td align="left"><strong>Single-purpose tools</strong></td>
+<td align="left">Each tool does one thing</td>
+<td align="left"><code>search_web(query)</code> only searches</td>
+</tr>
+<tr>
+<td align="left"><strong>Graceful failure</strong></td>
+<td align="left">Handle errors elegantly</td>
+<td align="left">Max 3 retries</td>
+</tr>
+<tr>
+<td align="left"><strong>Human-in-loop</strong></td>
+<td align="left">Confirm critical decisions</td>
+<td align="left">Ask before deleting files</td>
+</tr>
+</tbody></table>
+<h3 id="⚠️-Common-Pitfalls"><a href="#⚠️-Common-Pitfalls" class="headerlink" title="⚠️ Common Pitfalls"></a>⚠️ Common Pitfalls</h3><table>
+<thead>
+<tr>
+<th align="left">Pitfall</th>
+<th align="left">Consequence</th>
+<th align="left">Mitigation</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">Over-permissioned</td>
+<td align="left">Dangerous operations</td>
+<td align="left">Sandbox + permission scoping</td>
+</tr>
+<tr>
+<td align="left">Infinite loops</td>
+<td align="left">Resource exhaustion</td>
+<td align="left">Step count limit</td>
+</tr>
+<tr>
+<td align="left">Hallucinated actions</td>
+<td align="left">Claims false completion</td>
+<td align="left">Verify execution results</td>
+</tr>
+<tr>
+<td align="left">Cost runaway</td>
+<td align="left">Unexpected bills</td>
+<td align="left">Budget caps</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="5-Challenges-Risks"><a href="#5-Challenges-Risks" class="headerlink" title="5. Challenges &amp; Risks"></a>5. Challenges &amp; Risks</h2><h3 id="🚧-Technical-Challenges"><a href="#🚧-Technical-Challenges" class="headerlink" title="🚧 Technical Challenges"></a>🚧 Technical Challenges</h3><pre><code class="highlight plaintext">┌─────────────────────────────────────────────────────┐
+│  ⚠️ Hallucination                                   │
+│  Agent makes decisions on wrong information          │
+│  Fix: Verification steps, cross-check sources        │
+├─────────────────────────────────────────────────────┤
+│  ⚠️ Loop Risk                                       │
+│  May get stuck in infinite retry loops               │
+│  Fix: Max steps, timeout mechanisms                  │
+├─────────────────────────────────────────────────────┤
+│  ⚠️ Cost Control                                    │
+│  Multi-turn calls get expensive                      │
+│  Fix: Use cheaper models for simple steps             │
+└─────────────────────────────────────────────────────┘</code></pre>
+
+<h3 id="🔒-Security-Risks"><a href="#🔒-Security-Risks" class="headerlink" title="🔒 Security Risks"></a>🔒 Security Risks</h3><table>
+<thead>
+<tr>
+<th align="left">Risk</th>
+<th align="left">Description</th>
+<th align="left">Mitigation</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">Permission abuse</td>
+<td align="left">Execute dangerous actions</td>
+<td align="left">Minimal privilege principle</td>
+</tr>
+<tr>
+<td align="left">Data leakage</td>
+<td align="left">Auto-process sensitive info</td>
+<td align="left">Data sanitization</td>
+</tr>
+<tr>
+<td align="left">Opacity</td>
+<td align="left">Can&#39;t explain decisions</td>
+<td align="left">Comprehensive logging</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="6-What-s-Next"><a href="#6-What-s-Next" class="headerlink" title="6. What&#39;s Next"></a>6. What&#39;s Next</h2><blockquote>
+<p><strong>🔮 Agent evolution in H2 2025</strong></p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th align="left">Trend</th>
+<th align="left">Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><strong>🧠 Better reasoning</strong></td>
+<td align="left">o-series, Claude extended thinking make agents smarter</td>
+</tr>
+<tr>
+<td align="left"><strong>👁️ Multimodal agents</strong></td>
+<td align="left">See, hear, speak — unified interface</td>
+</tr>
+<tr>
+<td align="left"><strong>👥 Agent orchestration</strong></td>
+<td align="left">Teams of specialized agents</td>
+</tr>
+<tr>
+<td align="left"><strong>📱 On-device agents</strong></td>
+<td align="left">Privacy-first, run locally</td>
+</tr>
+<tr>
+<td align="left"><strong>🏥 Domain agents</strong></td>
+<td align="left">Medical, legal, finance specialists</td>
+</tr>
+</tbody></table>
+<hr>
+<p>Agents are evolving from &quot;can chat&quot; to &quot;can ship.&quot; This isn&#39;t just a capability upgrade — it&#39;s a <strong>paradigm shift</strong> in how we work with AI. Are you ready?</p>
+<hr>
+<blockquote>
+<p><strong>Bottom line:</strong> AI Agents are the 2025 story. Master agent development, master the future of AI applications. Start with LangChain, go deep with LangGraph.</p>
+</blockquote>
+<hr>
+<p><strong>Related:</strong></p>
+<ul>
+<li><a href="/2025/04/22/2025-%E6%90%AD%E5%BB%BA%E4%B8%AA%E4%BA%BAAI%E5%B7%A5%E4%BD%9C%E6%B5%81/">Build Your AI Workflow →</a></li>
+<li><a href="/2025/04/22/2025-RAG%E6%A3%80%E7%B4%A2%E5%A2%9E%E5%BC%BA%E7%94%9F%E6%88%90%E6%8C%87%E5%8D%97/">RAG Complete Guide →</a></li>
+</ul>
+</div>
+        </div>
+        
+            <div class="kratos-copyright text-center clearfix">
+                <span itemprop="copyrightNotice">This work is licensed under <a rel="license nofollow" target="_blank" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a>.</span>
+            </div>
+        
+        <footer class="kratos-entry-footer clearfix">
+            
+            
+            
+                <div class="post-actions text-center clearfix" id="post-actions">
+                
+                
+                    <a class="share" href="javascript:;" onclick="krOpenShareModal()"><i class="fa fa-share-alt"></i> 分享</a>
+                
+                </div>
+            
+            <div class="footer-tag clearfix">
+                <div class="pull-left">
+                <i class="fa fa-tags"></i>
+                    <a class="tag-none-link" href="/tags/AI-Agent/" rel="tag">AI Agent</a>, <a class="tag-none-link" href="/tags/Agentic-AI/" rel="tag">Agentic AI</a>, <a class="tag-none-link" href="/tags/Automation/" rel="tag">Automation</a>, <a class="tag-none-link" href="/tags/LangChain/" rel="tag">LangChain</a>
+                </div>
+                <div class="pull-date">
+                    <time datetime="2026-06-30T05:40:24.518Z" itemprop="dateModified">最后编辑：2026-06-30</time>
+                </div>
+            </div>
+        </footer>
+    </div>
+    
+        <nav class="navigation post-navigation clearfix" role="navigation">
+            
+            <div class="nav-previous clearfix">
+                <a title=" AI Image Generation 2025: Midjourney vs DALL-E 3 vs Stable Diffusion" href="/2025/04/22/2025-AI绘画工具实战指南/"><i class="fa fa-angle-left"></i> 上一篇</a>
+            </div>
+            
+            
+            <div class="nav-next clearfix">
+                <a title=" OpenClaw AI 使用技巧：打造高效智能工作流" href="/2025/04/29/2025-OpenClaw-AI使用技巧/">下一篇 <i class="fa fa-angle-right"></i></a>
+            </div>
+            
+        </nav>
+    
+    
+</article>
+
+        
+
+            </section>
+
+            
+                
+
+<section id="kratos-widget-area" class="col-md-4 hidden-xs hidden-sm">
+    <!-- 文章和页面根据splitter来分割，没有的话就从头开始设置为sticky -->
+    
+    
+                <aside id="krw-about" class="widget widget-kratos-about clearfix">
+    <div class="photo-background"></div>
+    <div class="photo-wrapper clearfix">
+        <div class="photo-wrapper-tip text-center">
+            <img class="about-photo" src="https://avatars.githubusercontent.com/u/16796652" alt="Chao" loading="lazy" decoding="auto" />
+        </div>
+    </div>
+    <div class="textwidget">
+        <p class="text-center">AI Engineer | Full-Stack Developer | Open Source Enthusiast</p>
+    </div>
+    <div class="site-meta">
+        <a class="meta-item" href="/archives/">
+            <span class="title">
+                文章
+            </span>
+            <span class="count">
+                7
+            </span>
+        </a>
+        <a class="meta-item" href="/categories/">
+            <span class="title">
+                分类
+            </span>
+            <span class="count">
+                5
+            </span>
+        </a>
+        <a class="meta-item" href="/tags/">
+            <span class="title">
+                标签
+            </span>
+            <span class="count">
+                28
+            </span>
+        </a>
+    </div>
+</aside>
+            
+                    <div class="sticky-area">
+                
+                
+  <aside id="krw-categories" class="widget widget-kratos-categories clearfix">
+    <h4 class="widget-title"><i class="fa fa-folder"></i>分类列表</h4>
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/AI-Engineering/">AI Engineering</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/AI-Models/">AI Models</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/AI-Practice/">AI Practice</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/AI-Tools/">AI Tools</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/AI-Trends/">AI Trends</a><span class="category-list-count">1</span></li></ul>
+  </aside>
+
+
+            
+                
+  <aside id="krw-tags" class="widget widget-kratos-tags clearfix">
+    <h4 class="widget-title"><i class="fa fa-tags"></i>标签聚合</h4>
+      <div class="tag-clouds">
+        <a href="/tags/AI-Agent/" style="font-size: 0.6em;">AI Agent</a> <a href="/tags/AI-Art/" style="font-size: 0.6em;">AI Art</a> <a href="/tags/AI-Tools/" style="font-size: 0.8em;">AI Tools</a> <a href="/tags/AI-Workflow/" style="font-size: 0.8em;">AI Workflow</a> <a href="/tags/Agentic-AI/" style="font-size: 0.6em;">Agentic AI</a> <a href="/tags/Automation/" style="font-size: 0.6em;">Automation</a> <a href="/tags/Claude/" style="font-size: 0.6em;">Claude</a> <a href="/tags/Claude-Code/" style="font-size: 0.6em;">Claude Code</a> <a href="/tags/Coding/" style="font-size: 0.6em;">Coding</a> <a href="/tags/Copilot/" style="font-size: 0.6em;">Copilot</a> <a href="/tags/Cursor/" style="font-size: 0.6em;">Cursor</a> <a href="/tags/DALL-E/" style="font-size: 0.6em;">DALL-E</a> <a href="/tags/DeepSeek/" style="font-size: 0.6em;">DeepSeek</a> <a href="/tags/DevTools/" style="font-size: 0.6em;">DevTools</a> <a href="/tags/GPT/" style="font-size: 0.6em;">GPT</a> <a href="/tags/Gemini/" style="font-size: 0.6em;">Gemini</a> <a href="/tags/Generative-AI/" style="font-size: 0.6em;">Generative AI</a> <a href="/tags/Knowledge-Base/" style="font-size: 0.6em;">Knowledge Base</a>
+      </div>
+  </aside>
+
+            
+                
+  <aside id="krw-posts" class="widget widget-kratos-posts">
+  <h4 class="widget-title"><i class="fa fa-file"></i>最新文章</h4>
+  <div class="tab-content">
+      <ul class="list-group">
+        
+        
+          
+          
+            <a class="list-group-item" href="/2025/04/29/2025-OpenClaw-AI%E4%BD%BF%E7%94%A8%E6%8A%80%E5%B7%A7/"><i class="fa fa-book"></i> OpenClaw AI 使用技巧：打造高效智能工作流</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2025/04/22/2025-AI-Agent%E5%B4%9B%E8%B5%B7/"><i class="fa fa-book"></i> AI Agents Rising: The Most Important AI Trend of 2025</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2025/04/22/2025-AI%E7%BB%98%E7%94%BB%E5%B7%A5%E5%85%B7%E5%AE%9E%E6%88%98%E6%8C%87%E5%8D%97/"><i class="fa fa-book"></i> AI Image Generation 2025: Midjourney vs DALL-E 3 vs Stable Diffusion</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2025/04/22/2025-AI%E7%BC%96%E7%A8%8B%E5%B7%A5%E5%85%B7%E6%A8%AA%E8%AF%84/"><i class="fa fa-book"></i> 2025 AI Coding Tools Showdown: Claude Code vs Cursor vs GitHub Copilot</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2025/04/22/2025-RAG%E6%A3%80%E7%B4%A2%E5%A2%9E%E5%BC%BA%E7%94%9F%E6%88%90%E6%8C%87%E5%8D%97/"><i class="fa fa-book"></i> RAG Complete Guide: Give Your LLM Private Knowledge</a>
+            
+          
+        
+          
+            
+          
+            
+      </ul>
+  </div>
+  </aside>
+
+            
+    </div>
+</section>
+            
+
+        
+
+                </div>
+    </div>
+</div>
+
+<footer>
+    <div id="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6 col-md-offset-3 footer-list text-center">
+                    <ul class="kratos-social-icons">
+                        
+                            <li>
+                                <a href="https://github.com/DoChaoing" target="_blank" rel="nofollow">
+                                    <i class="fa fa-github"></i>
+                                </a>
+                            </li>
+                        
+                            <li>
+                                <a href="/atom.xml" target="_blank" rel="nofollow">
+                                    <i class="fa fa-rss"></i>
+                                </a>
+                            </li>
+                        
+                    </ul>
+                    <ul class="kratos-copyright">
+                        <div>
+                            <li>&copy; 2026 Chao Blog 版权所有.</li>
+                            <li>Site running for<span id="kr-since">Loading...</span></li>
+                        </div>
+                        <div>
+                            <li>自豪地使用 <a href="https://github.com/Candinya/Kratos-Rebirth" target="_blank">Kratos:Rebirth</a> 主题</li>
+                            <li>站点由 <a href="https://github.com/DoChaoing" target="_blank">Chao</a> 用 <i class="fa fa-heart" style="color:#d43f57"></i> 搭建</li>
+                        </div>
+                        <!-- 额外的追加注入项 -->
+                        
+                            <div>
+                                
+                                    <li>Powered by <a href="https://hexo.io" target="_blank" rel="nofollow">Hexo</a></li>
+                                
+                                    <li>Theme <a href="https://github.com/Candinya/Kratos-Rebirth" target="_blank" rel="nofollow">Kratos-Rebirth</a></li>
+                                
+                            </div>
+                        
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="kr-tool text-center">
+            <div class="tool">
+                <!-- 额外的追加注入项 -->
+                
+                    <div class="box nf-inspire-box">
+  <a href="#" data-nf-inspire aria-label="Inspiration">
+    <span class="fa fa-magic"></span>
+  </a>
+</div>
+
+                
+                
+                    <div class="box search-box">
+                        <a href="/search">
+                            <span class="fa fa-search"></span>
+                        </a>
+                    </div>
+                
+                <div class="box theme-box" id="theme-toggle">
+                    <span class="fa fa-adjust"></span>
+                </div>
+            </div>
+            <div id="gotop-box" class="box gotop-box">
+                <span class="fa fa-chevron-up"></span>
+            </div>
+        </div>
+    </div>
+</footer>
+</div>
+</div>
+
+
+
+
+    <div id="kr-share-modal" class="kr-modal">
+    <div class="kr-modal-bg" onclick="krCloseShareModal()"></div>
+    <div class="kr-modal-content">
+        <div class="kr-modal-header">
+            <div class="kr-modal-icon">
+                <i class="fa fa-share-alt"></i>
+            </div>
+            <div class="kr-modal-title">Share</div>
+            <button class="kr-modal-close" onclick="krCloseShareModal()">
+                <i class="fa fa-times-circle"></i>
+            </button>
+        </div>
+        <div class="kr-modal-body">
+            <div class="kr-share-message">Share this post</div>
+            <div class="kr-share-qr" id="kr-share-qr"></div>
+            <div class="kr-share-platforms">
+                
+            </div>
+        </div>
+    </div>
+</div>
+<script defer src="/js/kr-modal/share.min.js"></script>
+
+
+
+<!-- 额外的追加注入项 -->
+
+
+        <script>
+    if (!window.kr) {
+        window.kr = {};
+    }
+    window.kr.notMobile = (!(navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i)));
+    window.kr.siteRoot = "/";
+</script>
+
+
+  <script defer src="/vendors/nprogress@0.2.0/nprogress.js"></script>
+
+
+
+  <script defer src="/vendors/viewerjs@1.11.6/dist/viewer.min.js"></script>
+
+
+<script defer src="/js/kr-core.min.js"></script>
+
+
+  <script defer src="/js/kr-pjax.min.js"></script>
+
+
+<!-- 额外的追加注入项 -->
+
+  <script defer src="/js/kratos-play.js"></script>
+
+
+
+    </body>
+</html>
