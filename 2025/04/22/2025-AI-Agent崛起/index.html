@@ -1,0 +1,648 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>AI Agents Rising: The Most Important AI Trend of 2025 | NeuralFlow</title>
+    <meta name="author" content="Chao" />
+    <meta name="description" content="AI Engineer | Full-Stack Developer | Open Source Enthusiast" />
+    <meta name="keywords" content="AI,Machine Learning,LLM,Claude,GPT,Programming,Tech Blog" />
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"
+    />
+    <link rel="icon" href="../../../../images/avatar.jpg" />
+    <link rel="preconnect" href="https://s4.zstatic.net" />
+<script src="https://s4.zstatic.net/ajax/libs/vue/3.3.7/vue.global.prod.min.js"></script>
+<link rel="stylesheet" href="https://s4.zstatic.net/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
+<link rel="preconnect" href="https://fonts.googleapis.cn" />
+<link rel="preconnect" href="https://fonts.gstatic.cn" crossorigin />
+<link
+    rel="stylesheet"
+    href="https://fonts.googleapis.cn/css2?family=Fira+Code:wght@400;500;600;700&family=Lexend:wght@400;500;600;700;800;900&family=Noto+Sans+SC:wght@400;500;600;700;800;900&display=swap"
+/>
+<script> const mixins = {}; </script>
+
+<script src="https://polyfill.alicdn.com/v3/polyfill.min.js?features=default"></script>
+
+
+<script src="https://s4.zstatic.net/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://s4.zstatic.net/ajax/libs/highlightjs-line-numbers.js/2.8.0/highlightjs-line-numbers.min.js"></script>
+<link
+    rel="stylesheet"
+    href="https://s4.zstatic.net/ajax/libs/highlight.js/11.9.0/styles/github.min.css"
+/>
+<script src="../../../../js/lib/highlight.js"></script>
+
+
+
+<script src="../../../../js/lib/preview.js"></script>
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="../../../../css/main.css" />
+
+<meta name="generator" content="Hexo 7.3.0"><link rel="alternate" href="atom.xml" title="NeuralFlow" type="application/atom+xml">
+</head>
+<body>
+    <div id="layout">
+        <transition name="fade">
+            <div id="loading" v-show="loading">
+                <div id="loading-circle">
+                    <h2>LOADING</h2>
+                    <p>加载过慢请开启缓存 浏览器默认开启</p>
+                    <img src="../../../../images/loading.gif" />
+                </div>
+            </div>
+        </transition>
+        <div id="menu" :class="{ hidden: hiddenMenu, 'menu-color': menuColor}">
+    <nav id="desktop-menu">
+        <a class="title" href="/">
+            <span>NEURALFLOW</span>
+        </a>
+        
+        <a href="../../../../index.html">
+            <i class="fa-solid fa-house fa-fw"></i>
+            <span>&ensp;Home</span>
+        </a>
+        
+        <a href="../../../../about">
+            <i class="fa-solid fa-id-card fa-fw"></i>
+            <span>&ensp;About</span>
+        </a>
+        
+        <a href="../../../../archives">
+            <i class="fa-solid fa-box-archive fa-fw"></i>
+            <span>&ensp;Archives</span>
+        </a>
+        
+        <a href="../../../../categories">
+            <i class="fa-solid fa-bookmark fa-fw"></i>
+            <span>&ensp;Categories</span>
+        </a>
+        
+        <a href="../../../../tags">
+            <i class="fa-solid fa-tags fa-fw"></i>
+            <span>&ensp;Tags</span>
+        </a>
+        
+        <a href="../../../../friends">
+            <i class="fa-solid fa-link fa-fw"></i>
+            <span>&ensp;Friends</span>
+        </a>
+        
+    </nav>
+    <nav id="mobile-menu">
+        <div class="title" @click="showMenuItems = !showMenuItems">
+            <i class="fa-solid fa-bars fa-fw"></i>
+            <span>&emsp;NEURALFLOW</span>
+        </div>
+        <transition name="slide">
+            <div class="items" v-show="showMenuItems">
+                
+                <a href="../../../../index.html">
+                    <div class="item">
+                        <div style="min-width: 20px; max-width: 50px; width: 10%">
+                            <i class="fa-solid fa-house fa-fw"></i>
+                        </div>
+                        <div style="min-width: 100px; max-width: 150%; width: 20%">Home</div>
+                    </div>
+                </a>
+                
+                <a href="../../../../about">
+                    <div class="item">
+                        <div style="min-width: 20px; max-width: 50px; width: 10%">
+                            <i class="fa-solid fa-id-card fa-fw"></i>
+                        </div>
+                        <div style="min-width: 100px; max-width: 150%; width: 20%">About</div>
+                    </div>
+                </a>
+                
+                <a href="../../../../archives">
+                    <div class="item">
+                        <div style="min-width: 20px; max-width: 50px; width: 10%">
+                            <i class="fa-solid fa-box-archive fa-fw"></i>
+                        </div>
+                        <div style="min-width: 100px; max-width: 150%; width: 20%">Archives</div>
+                    </div>
+                </a>
+                
+                <a href="../../../../categories">
+                    <div class="item">
+                        <div style="min-width: 20px; max-width: 50px; width: 10%">
+                            <i class="fa-solid fa-bookmark fa-fw"></i>
+                        </div>
+                        <div style="min-width: 100px; max-width: 150%; width: 20%">Categories</div>
+                    </div>
+                </a>
+                
+                <a href="../../../../tags">
+                    <div class="item">
+                        <div style="min-width: 20px; max-width: 50px; width: 10%">
+                            <i class="fa-solid fa-tags fa-fw"></i>
+                        </div>
+                        <div style="min-width: 100px; max-width: 150%; width: 20%">Tags</div>
+                    </div>
+                </a>
+                
+                <a href="../../../../friends">
+                    <div class="item">
+                        <div style="min-width: 20px; max-width: 50px; width: 10%">
+                            <i class="fa-solid fa-link fa-fw"></i>
+                        </div>
+                        <div style="min-width: 100px; max-width: 150%; width: 20%">Friends</div>
+                    </div>
+                </a>
+                
+            </div>
+        </transition>
+    </nav>
+</div>
+<transition name="fade">
+    <div id="menu-curtain" @click="showMenuItems = !showMenuItems" v-show="showMenuItems"></div>
+</transition>
+
+        <div id="main" :class="loading ? 'into-enter-from': 'into-enter-active'">
+            <div class="article">
+    <div>
+        <h1>AI Agents Rising: The Most Important AI Trend of 2025</h1>
+    </div>
+    <div class="info">
+        <span class="date">
+            <span class="icon">
+                <i class="fa-solid fa-calendar fa-fw"></i>
+            </span>
+            2025/4/22
+        </span>
+        
+        <span class="category">
+            <a href="../../../../categories/AI-Trends/">
+                <span class="icon">
+                    <i class="fa-solid fa-bookmark fa-fw"></i>
+                </span>
+                AI Trends
+            </a>
+        </span>
+        
+        
+        <span class="tags">
+            <span class="icon">
+                <i class="fa-solid fa-tags fa-fw"></i>
+            </span>
+            
+            
+            <span class="tag">
+                
+                <a href="../../../../tags/AI-Agent/" style="color: #00a596">
+                    AI Agent
+                </a>
+            </span>
+            
+            <span class="tag">
+                
+                <a href="../../../../tags/Agentic-AI/" style="color: #03a9f4">
+                    Agentic AI
+                </a>
+            </span>
+            
+            <span class="tag">
+                
+                <a href="../../../../tags/LangChain/" style="color: #00a596">
+                    LangChain
+                </a>
+            </span>
+            
+            <span class="tag">
+                
+                <a href="../../../../tags/Automation/" style="color: #ff7d73">
+                    Automation
+                </a>
+            </span>
+            
+        </span>
+        
+    </div>
+    
+    <div class="content" v-pre>
+        <blockquote>
+<p><strong>TL;DR</strong> — LLMs answer questions. Agents <em>do</em> things. This is the paradigm shift of 2025. 12 min read.</p>
+</blockquote>
+<p>If 2023 was the year of the LLM, <strong>2025 is the year of the Agent</strong>. The difference? An agent doesn&#39;t just chat — it plans, executes, iterates, and delivers. Let&#39;s dive into the technology that&#39;s reshaping how we work with AI.</p>
+<hr>
+<h2 id="🧠-Core-Concept-What-s-an-Agent"><a href="#🧠-Core-Concept-What-s-an-Agent" class="headerlink" title="🧠 Core Concept: What&#39;s an Agent?"></a>🧠 Core Concept: What&#39;s an Agent?</h2><h3 id="LLM-vs-Agent"><a href="#LLM-vs-Agent" class="headerlink" title="LLM vs Agent"></a>LLM vs Agent</h3><pre><code>┌─────────────────────────────────────────────────────────┐
+│  Traditional LLM                                        │
+│  Question → Model → Answer                              │
+│                                                         │
+│  AI Agent                                               │
+│  Goal → Plan → Execute Tools → Check → Deliver         │
+└─────────────────────────────────────────────────────────┘
+</code></pre>
+<blockquote>
+<p><strong>Key difference:</strong> Agents have <strong>autonomy</strong> and <strong>agency</strong>. They don&#39;t just talk — they act.</p>
+</blockquote>
+<h3 id="🏗️-Four-Pillars-of-Agency"><a href="#🏗️-Four-Pillars-of-Agency" class="headerlink" title="🏗️ Four Pillars of Agency"></a>🏗️ Four Pillars of Agency</h3><table>
+<thead>
+<tr>
+<th align="left">Pillar</th>
+<th align="left">Description</th>
+<th align="left">Analogy</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><strong>🧭 Planning</strong></td>
+<td align="left">Decompose goals into executable steps</td>
+<td align="left">Travel planning → book flight → reserve hotel</td>
+</tr>
+<tr>
+<td align="left"><strong>💾 Memory</strong></td>
+<td align="left">Retain context, history, learned patterns</td>
+<td align="left">Remember your preferences</td>
+</tr>
+<tr>
+<td align="left"><strong>🔧 Tool Use</strong></td>
+<td align="left">Call search, code exec, APIs, etc.</td>
+<td align="left">Search web, run Python, query DB</td>
+</tr>
+<tr>
+<td align="left"><strong>🔄 Reflection</strong></td>
+<td align="left">Evaluate results, self-correct</td>
+<td align="left">&quot;That failed, let me try another approach&quot;</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="2-Major-Agent-Frameworks"><a href="#2-Major-Agent-Frameworks" class="headerlink" title="2. Major Agent Frameworks"></a>2. Major Agent Frameworks</h2><h3 id="📊-Framework-Landscape"><a href="#📊-Framework-Landscape" class="headerlink" title="📊 Framework Landscape"></a>📊 Framework Landscape</h3><table>
+<thead>
+<tr>
+<th align="left">Framework</th>
+<th align="center">Language</th>
+<th align="left">Superpower</th>
+<th align="left">Best For</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><strong>LangChain</strong></td>
+<td align="center">Python&#x2F;JS</td>
+<td align="left">Richest ecosystem</td>
+<td align="left">Rapid prototyping</td>
+</tr>
+<tr>
+<td align="left"><strong>LangGraph</strong></td>
+<td align="center">Python</td>
+<td align="left">State machine workflows</td>
+<td align="left">Complex pipelines</td>
+</tr>
+<tr>
+<td align="left"><strong>CrewAI</strong></td>
+<td align="center">Python</td>
+<td align="left">Multi-agent teams</td>
+<td align="left">Collaborative tasks</td>
+</tr>
+<tr>
+<td align="left"><strong>AutoGPT</strong></td>
+<td align="center">Python</td>
+<td align="left">Autonomous execution</td>
+<td align="left">Experimental projects</td>
+</tr>
+<tr>
+<td align="left"><strong>Assistants API</strong></td>
+<td align="center">REST</td>
+<td align="left">Production-ready</td>
+<td align="left">Enterprise use</td>
+</tr>
+</tbody></table>
+<hr>
+<h3 id="🔷-LangChain-LangGraph"><a href="#🔷-LangChain-LangGraph" class="headerlink" title="🔷 LangChain &#x2F; LangGraph"></a>🔷 LangChain &#x2F; LangGraph</h3><p>The most popular agent framework. Massive ecosystem.</p>
+<pre><code class="language-python">from langgraph.prebuilt import create_react_agent
+from langchain_openai import ChatOpenAI
+
+model = ChatOpenAI(model=&quot;gpt-4o&quot;)
+tools = [search_tool, calculator_tool]
+
+agent = create_react_agent(model, tools)
+result = agent.invoke(&#123;
+    &quot;messages&quot;: [(&quot;user&quot;, &quot;What&#39;s the weather in Tokyo today?&quot;)]
+&#125;)
+</code></pre>
+<p><strong>LangGraph State Machine:</strong></p>
+<pre><code>┌─────────┐    ┌─────────┐    ┌─────────┐
+│  START  │ → │  SEARCH │ → │ ANALYZE │
+└─────────┘    └─────────┘    └─────────┘
+                    ↓              ↓
+               ┌─────────┐    ┌─────────┐
+               │  RETRY  │ ← │ DECIDE  │ → DONE
+               └─────────┘    └─────────┘
+</code></pre>
+<hr>
+<h3 id="👥-CrewAI-—-Multi-Agent-Teams"><a href="#👥-CrewAI-—-Multi-Agent-Teams" class="headerlink" title="👥 CrewAI — Multi-Agent Teams"></a>👥 CrewAI — Multi-Agent Teams</h3><p>Multiple agents collaborating on complex tasks.</p>
+<pre><code class="language-python">from crewai import Agent, Task, Crew
+
+researcher = Agent(
+    role=&quot;Research Analyst&quot;,
+    goal=&quot;Gather and analyze information&quot;,
+    backstory=&quot;Data science expert&quot;,
+    tools=[search_tool]
+)
+
+writer = Agent(
+    role=&quot;Technical Writer&quot;,
+    goal=&quot;Produce high-quality articles&quot;,
+    backstory=&quot;Senior tech journalist&quot;,
+)
+
+crew = Crew(
+    agents=[researcher, writer], 
+    tasks=[research_task, write_task]
+)
+
+result = crew.kickoff()
+</code></pre>
+<p><strong>Collaboration Flow:</strong></p>
+<pre><code>Researcher Agent         Writer Agent
+     │                       │
+     ├─→ Search web          │
+     ├─→ Extract data        │
+     └─→ Pass results ──────→├─→ Draft article
+                             └─→ Output deliverable
+</code></pre>
+<hr>
+<h3 id="🟢-OpenAI-Assistants-API"><a href="#🟢-OpenAI-Assistants-API" class="headerlink" title="🟢 OpenAI Assistants API"></a>🟢 OpenAI Assistants API</h3><p>Production-grade official solution from OpenAI.</p>
+<pre><code class="language-python">from openai import OpenAI
+client = OpenAI()
+
+assistant = client.beta.assistants.create(
+    name=&quot;Data Analyst&quot;,
+    instructions=&quot;You are a data analysis expert&quot;,
+    model=&quot;gpt-4o&quot;,
+    tools=[
+        &#123;&quot;type&quot;: &quot;code_interpreter&quot;&#125;,
+        &#123;&quot;type&quot;: &quot;file_search&quot;&#125;
+    ]
+)
+
+thread = client.beta.threads.create()
+
+message = client.beta.threads.messages.create(
+    thread_id=thread.id,
+    role=&quot;user&quot;,
+    content=&quot;Analyze the sales trends in this CSV&quot;
+)
+
+run = client.beta.threads.runs.create_and_poll(
+    thread_id=thread.id,
+    assistant_id=assistant.id
+)
+</code></pre>
+<hr>
+<h2 id="3-Real-World-Applications"><a href="#3-Real-World-Applications" class="headerlink" title="3. Real-World Applications"></a>3. Real-World Applications</h2><h3 id="💻-Scenario-1-Coding-Agent"><a href="#💻-Scenario-1-Coding-Agent" class="headerlink" title="💻 Scenario 1: Coding Agent"></a>💻 Scenario 1: Coding Agent</h3><p>Claude Code and Cursor Composer exemplify coding agents:</p>
+<pre><code>User: Add user authentication
+
+Agent execution:
+┌─────────────────────────────────────────────────────┐
+│ 1. 🔍 Analyze codebase architecture                  │
+│ 2. 📝 Design auth logic                             │
+│ 3. ✏️ Create/modify files                            │
+│    - auth.py (authentication)                       │
+│    - login.html (frontend)                          │
+│    - routes.py (routing)                             │
+│ 4. 🧪 Run tests, verify                             │
+│ 5. 🔧 Auto-fix discovered issues                    │
+│ 6. ✅ Feature complete                               │
+└─────────────────────────────────────────────────────┘
+</code></pre>
+<hr>
+<h3 id="📚-Scenario-2-Research-Agent"><a href="#📚-Scenario-2-Research-Agent" class="headerlink" title="📚 Scenario 2: Research Agent"></a>📚 Scenario 2: Research Agent</h3><p>Autonomous research and synthesis:</p>
+<pre><code>User: Research AI Agent trends in 2025
+
+Agent execution:
+┌─────────────────────────────────────────────────────┐
+│ 1. 🔍 Search &quot;AI Agent 2025 trends&quot;                  │
+│ 2. 📄 Read multiple sources                          │
+│ 3. 📊 Extract key data &amp; insights                    │
+│ 4. 📝 Synthesize structured report                   │
+│ 5. ✅ Output with citations                          │
+└─────────────────────────────────────────────────────┘
+</code></pre>
+<hr>
+<h3 id="⚙️-Scenario-3-Automation-Agent"><a href="#⚙️-Scenario-3-Automation-Agent" class="headerlink" title="⚙️ Scenario 3: Automation Agent"></a>⚙️ Scenario 3: Automation Agent</h3><p>Connect tools and services:</p>
+<pre><code>User: Process today&#39;s emails
+
+Agent execution:
+┌─────────────────────────────────────────────────────┐
+│ 1. 📧 Fetch unread messages                          │
+│ 2. 🏷️ Classify: important/routine/spam              │
+│ 3. ✉️ Draft replies for routine emails               │
+│ 4. 📌 Create tasks for important ones               │
+│ 5. 🗑️ Archive spam                                   │
+│ 6. ✅ Report actions taken                           │
+└─────────────────────────────────────────────────────┘
+</code></pre>
+<hr>
+<h3 id="📊-Scenario-4-Data-Analysis-Agent"><a href="#📊-Scenario-4-Data-Analysis-Agent" class="headerlink" title="📊 Scenario 4: Data Analysis Agent"></a>📊 Scenario 4: Data Analysis Agent</h3><p>End-to-end analysis pipeline:</p>
+<pre><code>User: Find growth opportunities in this sales data
+
+Agent execution:
+┌─────────────────────────────────────────────────────┐
+│ 1. 📂 Load data files                                │
+│ 2. 🧹 Clean and preprocess                           │
+│ 3. 📊 Run statistical analysis                       │
+│ 4. 📈 Generate visualizations                        │
+│ 5. 💡 Extract insights &amp; recommendations              │
+│ 6. 📝 Output analysis report                         │
+└─────────────────────────────────────────────────────┘
+</code></pre>
+<hr>
+<h2 id="4-Agent-Design-Best-Practices"><a href="#4-Agent-Design-Best-Practices" class="headerlink" title="4. Agent Design Best Practices"></a>4. Agent Design Best Practices</h2><h3 id="✅-Design-Principles"><a href="#✅-Design-Principles" class="headerlink" title="✅ Design Principles"></a>✅ Design Principles</h3><table>
+<thead>
+<tr>
+<th align="left">Principle</th>
+<th align="left">Description</th>
+<th align="left">Example</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><strong>Clear boundaries</strong></td>
+<td align="left">Define scope explicitly</td>
+<td align="left">Data agent only analyzes data</td>
+</tr>
+<tr>
+<td align="left"><strong>Single-purpose tools</strong></td>
+<td align="left">Each tool does one thing</td>
+<td align="left"><code>search_web(query)</code> only searches</td>
+</tr>
+<tr>
+<td align="left"><strong>Graceful failure</strong></td>
+<td align="left">Handle errors elegantly</td>
+<td align="left">Max 3 retries</td>
+</tr>
+<tr>
+<td align="left"><strong>Human-in-loop</strong></td>
+<td align="left">Confirm critical decisions</td>
+<td align="left">Ask before deleting files</td>
+</tr>
+</tbody></table>
+<h3 id="⚠️-Common-Pitfalls"><a href="#⚠️-Common-Pitfalls" class="headerlink" title="⚠️ Common Pitfalls"></a>⚠️ Common Pitfalls</h3><table>
+<thead>
+<tr>
+<th align="left">Pitfall</th>
+<th align="left">Consequence</th>
+<th align="left">Mitigation</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">Over-permissioned</td>
+<td align="left">Dangerous operations</td>
+<td align="left">Sandbox + permission scoping</td>
+</tr>
+<tr>
+<td align="left">Infinite loops</td>
+<td align="left">Resource exhaustion</td>
+<td align="left">Step count limit</td>
+</tr>
+<tr>
+<td align="left">Hallucinated actions</td>
+<td align="left">Claims false completion</td>
+<td align="left">Verify execution results</td>
+</tr>
+<tr>
+<td align="left">Cost runaway</td>
+<td align="left">Unexpected bills</td>
+<td align="left">Budget caps</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="5-Challenges-Risks"><a href="#5-Challenges-Risks" class="headerlink" title="5. Challenges &amp; Risks"></a>5. Challenges &amp; Risks</h2><h3 id="🚧-Technical-Challenges"><a href="#🚧-Technical-Challenges" class="headerlink" title="🚧 Technical Challenges"></a>🚧 Technical Challenges</h3><pre><code>┌─────────────────────────────────────────────────────┐
+│  ⚠️ Hallucination                                   │
+│  Agent makes decisions on wrong information          │
+│  Fix: Verification steps, cross-check sources        │
+├─────────────────────────────────────────────────────┤
+│  ⚠️ Loop Risk                                       │
+│  May get stuck in infinite retry loops               │
+│  Fix: Max steps, timeout mechanisms                  │
+├─────────────────────────────────────────────────────┤
+│  ⚠️ Cost Control                                    │
+│  Multi-turn calls get expensive                      │
+│  Fix: Use cheaper models for simple steps             │
+└─────────────────────────────────────────────────────┘
+</code></pre>
+<h3 id="🔒-Security-Risks"><a href="#🔒-Security-Risks" class="headerlink" title="🔒 Security Risks"></a>🔒 Security Risks</h3><table>
+<thead>
+<tr>
+<th align="left">Risk</th>
+<th align="left">Description</th>
+<th align="left">Mitigation</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">Permission abuse</td>
+<td align="left">Execute dangerous actions</td>
+<td align="left">Minimal privilege principle</td>
+</tr>
+<tr>
+<td align="left">Data leakage</td>
+<td align="left">Auto-process sensitive info</td>
+<td align="left">Data sanitization</td>
+</tr>
+<tr>
+<td align="left">Opacity</td>
+<td align="left">Can&#39;t explain decisions</td>
+<td align="left">Comprehensive logging</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="6-What-s-Next"><a href="#6-What-s-Next" class="headerlink" title="6. What&#39;s Next"></a>6. What&#39;s Next</h2><blockquote>
+<p><strong>🔮 Agent evolution in H2 2025</strong></p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th align="left">Trend</th>
+<th align="left">Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><strong>🧠 Better reasoning</strong></td>
+<td align="left">o-series, Claude extended thinking make agents smarter</td>
+</tr>
+<tr>
+<td align="left"><strong>👁️ Multimodal agents</strong></td>
+<td align="left">See, hear, speak — unified interface</td>
+</tr>
+<tr>
+<td align="left"><strong>👥 Agent orchestration</strong></td>
+<td align="left">Teams of specialized agents</td>
+</tr>
+<tr>
+<td align="left"><strong>📱 On-device agents</strong></td>
+<td align="left">Privacy-first, run locally</td>
+</tr>
+<tr>
+<td align="left"><strong>🏥 Domain agents</strong></td>
+<td align="left">Medical, legal, finance specialists</td>
+</tr>
+</tbody></table>
+<hr>
+<p>Agents are evolving from &quot;can chat&quot; to &quot;can ship.&quot; This isn&#39;t just a capability upgrade — it&#39;s a <strong>paradigm shift</strong> in how we work with AI. Are you ready?</p>
+<hr>
+<blockquote>
+<p><strong>Bottom line:</strong> AI Agents are the 2025 story. Master agent development, master the future of AI applications. Start with LangChain, go deep with LangGraph.</p>
+</blockquote>
+<hr>
+<p><strong>Related:</strong></p>
+<ul>
+<li><a href="/2025/04/22/2025-%E6%90%AD%E5%BB%BA%E4%B8%AA%E4%BA%BAAI%E5%B7%A5%E4%BD%9C%E6%B5%81/">Build Your AI Workflow →</a></li>
+<li><a href="/2025/04/22/2025-RAG%E6%A3%80%E7%B4%A2%E5%A2%9E%E5%BC%BA%E7%94%9F%E6%88%90%E6%8C%87%E5%8D%97/">RAG Complete Guide →</a></li>
+</ul>
+
+    </div>
+    
+    
+    
+    
+    
+    
+    
+</div>
+
+            <footer id="footer">
+    <div id="footer-wrap">
+        <div>
+            &copy;
+            2025 - 2026 NeuralFlow
+            <span id="footer-icon">
+                <i class="fa-solid fa-font-awesome fa-fw"></i>
+            </span>
+            &commat;Chao
+        </div>
+        <div>
+            Based on the <a target="_blank" rel="noopener" href="https://hexo.io">Hexo Engine</a> &amp;
+            <a target="_blank" rel="noopener" href="https://github.com/theme-particlex/hexo-theme-particlex">ParticleX Theme</a>
+        </div>
+        
+    </div>
+</footer>
+
+        </div>
+        
+        <transition name="fade">
+            <div id="preview" ref="preview" v-show="previewShow">
+                <img id="preview-content" ref="previewContent" />
+            </div>
+        </transition>
+        
+    </div>
+    <script src="../../../../js/main.js"></script>
+    
+    
+
+
+
+
+    
+</body>
+</html>

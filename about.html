@@ -1,0 +1,295 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>ABOUT | NeuralFlow</title>
+    <meta name="author" content="Chao" />
+    <meta name="description" content="AI Engineer | Full-Stack Developer | Open Source Enthusiast" />
+    <meta name="keywords" content="AI,Machine Learning,LLM,Claude,GPT,Programming,Tech Blog" />
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"
+    />
+    <link rel="icon" href="/images/avatar.jpg" />
+    <link rel="preconnect" href="https://s4.zstatic.net" />
+<script src="https://s4.zstatic.net/ajax/libs/vue/3.3.7/vue.global.prod.min.js"></script>
+<link rel="stylesheet" href="https://s4.zstatic.net/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
+<link rel="preconnect" href="https://fonts.googleapis.cn" />
+<link rel="preconnect" href="https://fonts.gstatic.cn" crossorigin />
+<link
+    rel="stylesheet"
+    href="https://fonts.googleapis.cn/css2?family=Fira+Code:wght@400;500;600;700&family=Lexend:wght@400;500;600;700;800;900&family=Noto+Sans+SC:wght@400;500;600;700;800;900&display=swap"
+/>
+<script> const mixins = {}; </script>
+
+<script src="https://polyfill.alicdn.com/v3/polyfill.min.js?features=default"></script>
+
+
+<script src="https://s4.zstatic.net/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://s4.zstatic.net/ajax/libs/highlightjs-line-numbers.js/2.8.0/highlightjs-line-numbers.min.js"></script>
+<link
+    rel="stylesheet"
+    href="https://s4.zstatic.net/ajax/libs/highlight.js/11.9.0/styles/github.min.css"
+/>
+<script src="/js/lib/highlight.js"></script>
+
+
+
+<script src="/js/lib/preview.js"></script>
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/css/main.css" />
+
+<meta name="generator" content="Hexo 7.3.0"><link rel="alternate" href="atom.xml" title="NeuralFlow" type="application/atom+xml">
+</head>
+<body>
+    <div id="layout">
+        <transition name="fade">
+            <div id="loading" v-show="loading">
+                <div id="loading-circle">
+                    <h2>LOADING</h2>
+                    <p>加载过慢请开启缓存 浏览器默认开启</p>
+                    <img src="/images/loading.gif" />
+                </div>
+            </div>
+        </transition>
+        <div id="menu" :class="{ hidden: hiddenMenu, 'menu-color': menuColor}">
+    <nav id="desktop-menu">
+        <a class="title" href="/">
+            <span>NEURALFLOW</span>
+        </a>
+        
+        <a href="index.html">
+            <i class="fa-solid fa-house fa-fw"></i>
+            <span>&ensp;Home</span>
+        </a>
+        
+        <a href="/about">
+            <i class="fa-solid fa-id-card fa-fw"></i>
+            <span>&ensp;About</span>
+        </a>
+        
+        <a href="/archives">
+            <i class="fa-solid fa-box-archive fa-fw"></i>
+            <span>&ensp;Archives</span>
+        </a>
+        
+        <a href="/categories">
+            <i class="fa-solid fa-bookmark fa-fw"></i>
+            <span>&ensp;Categories</span>
+        </a>
+        
+        <a href="/tags">
+            <i class="fa-solid fa-tags fa-fw"></i>
+            <span>&ensp;Tags</span>
+        </a>
+        
+        <a href="/friends">
+            <i class="fa-solid fa-link fa-fw"></i>
+            <span>&ensp;Friends</span>
+        </a>
+        
+    </nav>
+    <nav id="mobile-menu">
+        <div class="title" @click="showMenuItems = !showMenuItems">
+            <i class="fa-solid fa-bars fa-fw"></i>
+            <span>&emsp;NEURALFLOW</span>
+        </div>
+        <transition name="slide">
+            <div class="items" v-show="showMenuItems">
+                
+                <a href="index.html">
+                    <div class="item">
+                        <div style="min-width: 20px; max-width: 50px; width: 10%">
+                            <i class="fa-solid fa-house fa-fw"></i>
+                        </div>
+                        <div style="min-width: 100px; max-width: 150%; width: 20%">Home</div>
+                    </div>
+                </a>
+                
+                <a href="/about">
+                    <div class="item">
+                        <div style="min-width: 20px; max-width: 50px; width: 10%">
+                            <i class="fa-solid fa-id-card fa-fw"></i>
+                        </div>
+                        <div style="min-width: 100px; max-width: 150%; width: 20%">About</div>
+                    </div>
+                </a>
+                
+                <a href="/archives">
+                    <div class="item">
+                        <div style="min-width: 20px; max-width: 50px; width: 10%">
+                            <i class="fa-solid fa-box-archive fa-fw"></i>
+                        </div>
+                        <div style="min-width: 100px; max-width: 150%; width: 20%">Archives</div>
+                    </div>
+                </a>
+                
+                <a href="/categories">
+                    <div class="item">
+                        <div style="min-width: 20px; max-width: 50px; width: 10%">
+                            <i class="fa-solid fa-bookmark fa-fw"></i>
+                        </div>
+                        <div style="min-width: 100px; max-width: 150%; width: 20%">Categories</div>
+                    </div>
+                </a>
+                
+                <a href="/tags">
+                    <div class="item">
+                        <div style="min-width: 20px; max-width: 50px; width: 10%">
+                            <i class="fa-solid fa-tags fa-fw"></i>
+                        </div>
+                        <div style="min-width: 100px; max-width: 150%; width: 20%">Tags</div>
+                    </div>
+                </a>
+                
+                <a href="/friends">
+                    <div class="item">
+                        <div style="min-width: 20px; max-width: 50px; width: 10%">
+                            <i class="fa-solid fa-link fa-fw"></i>
+                        </div>
+                        <div style="min-width: 100px; max-width: 150%; width: 20%">Friends</div>
+                    </div>
+                </a>
+                
+            </div>
+        </transition>
+    </nav>
+</div>
+<transition name="fade">
+    <div id="menu-curtain" @click="showMenuItems = !showMenuItems" v-show="showMenuItems"></div>
+</transition>
+
+        <div id="main" :class="loading ? 'into-enter-from': 'into-enter-active'">
+            <div class="article">
+    <div>
+        <h1>ABOUT</h1>
+    </div>
+    <div class="info">
+        <span class="date">
+            <span class="icon">
+                <i class="fa-solid fa-calendar fa-fw"></i>
+            </span>
+            2025/4/22
+        </span>
+        
+        
+    </div>
+    
+    <div class="content" v-pre>
+        <h2 id="Hey-I-m-Chao-👋"><a href="#Hey-I-m-Chao-👋" class="headerlink" title="Hey, I&#39;m Chao 👋"></a>Hey, I&#39;m Chao 👋</h2><blockquote>
+<p><strong><code>console.log(&quot;Hello, World! I build things with AI.&quot;)</code></strong></p>
+</blockquote>
+<p>I&#39;m an AI Engineer &amp; Full-Stack Developer who&#39;s obsessed with pushing the boundaries of what&#39;s possible with artificial intelligence. This blog is my digital lab — where I document experiments, share insights, and explore the bleeding edge of tech.</p>
+<hr>
+<h3 id="🧠-What-I-Do"><a href="#🧠-What-I-Do" class="headerlink" title="🧠 What I Do"></a>🧠 What I Do</h3><pre><code class="highlight plaintext">┌─────────────────────────────────────────────────────┐
+│  SKILL_STACK                                         │
+│  ├── 🤖 AI/ML        → LLM · RAG · Agent · Prompt   │
+│  ├── 💻 Full-Stack    → React · Node · Python · Go   │
+│  ├── 🔧 DevOps       → Docker · K8s · CI/CD · Cloud  │
+│  └── 🎯 Focus        → AI-Native Development         │
+└─────────────────────────────────────────────────────┘</code></pre>
+
+<h3 id="📡-What-You-ll-Find-Here"><a href="#📡-What-You-ll-Find-Here" class="headerlink" title="📡 What You&#39;ll Find Here"></a>📡 What You&#39;ll Find Here</h3><table>
+<thead>
+<tr>
+<th align="center">Category</th>
+<th align="left">Content</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center"><strong>AI Tools</strong></td>
+<td align="left">Deep dives into Claude Code, Cursor, Copilot, and emerging tools</td>
+</tr>
+<tr>
+<td align="center"><strong>LLM Analysis</strong></td>
+<td align="left">Benchmarks, comparisons, and real-world testing of GPT, Claude, Gemini, Llama</td>
+</tr>
+<tr>
+<td align="center"><strong>AI Engineering</strong></td>
+<td align="left">RAG, Fine-tuning, Agent frameworks, Production ML</td>
+</tr>
+<tr>
+<td align="center"><strong>Tech Trends</strong></td>
+<td align="left">What&#39;s next in AI, dev tools, and the future of software</td>
+</tr>
+</tbody></table>
+<h3 id="🛠️-Tech-Arsenal"><a href="#🛠️-Tech-Arsenal" class="headerlink" title="🛠️ Tech Arsenal"></a>🛠️ Tech Arsenal</h3><pre><code class="highlight yaml"><span class="attr">daily_driver:</span>
+  <span class="attr">ide:</span> <span class="string">Cursor</span> <span class="string">+</span> <span class="string">Claude</span> <span class="string">Code</span>
+  <span class="attr">terminal:</span> <span class="string">zsh</span> <span class="string">+</span> <span class="string">tmux</span>
+  <span class="attr">ai_models:</span> [<span class="string">Claude</span> <span class="string">Sonnet</span> <span class="number">4</span>, <span class="string">GPT-4o</span>, <span class="string">Gemini</span> <span class="number">2.5</span> <span class="string">Pro</span>]
+  <span class="attr">languages:</span> [<span class="string">TypeScript</span>, <span class="string">Python</span>, <span class="string">Go</span>, <span class="string">Rust</span>]
+
+<span class="attr">currently_exploring:</span>
+  <span class="bullet">-</span> <span class="string">AI</span> <span class="string">Agent</span> <span class="string">orchestration</span>
+  <span class="bullet">-</span> <span class="string">On-device</span> <span class="string">LLM</span> <span class="string">deployment</span>
+  <span class="bullet">-</span> <span class="string">Multi-modal</span> <span class="string">AI</span> <span class="string">applications</span></code></pre>
+
+<h3 id="📫-Connect"><a href="#📫-Connect" class="headerlink" title="📫 Connect"></a>📫 Connect</h3><pre><code class="highlight bash"><span class="comment"># Find me on the internet</span>
+curl -s https://github.com/DoChaoing | jq <span class="string">&#x27;.projects[]&#x27;</span>
+
+<span class="comment"># Or just say hi</span>
+open https://dochaoing.github.io</code></pre>
+
+<hr>
+<blockquote>
+<p><em>&quot;The best way to predict the future is to invent it.&quot;</em> — Alan Kay</p>
+</blockquote>
+<hr>
+<p><strong>Tech Stack of This Blog:</strong> <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a> + <a target="_blank" rel="noopener" href="https://github.com/ceeyu/hexo-theme-cyberpunk2077">Cyberpunk2077 Theme</a> + <a target="_blank" rel="noopener" href="https://giscus.app/">Giscus</a> · Hosted on GitHub Pages</p>
+
+    </div>
+    
+    
+    
+    
+    
+    
+    
+</div>
+
+            <footer id="footer">
+    <div id="footer-wrap">
+        <div>
+            &copy;
+            2025 - 2026 NeuralFlow
+            <span id="footer-icon">
+                <i class="fa-solid fa-font-awesome fa-fw"></i>
+            </span>
+            &commat;Chao
+        </div>
+        <div>
+            Based on the <a target="_blank" rel="noopener" href="https://hexo.io">Hexo Engine</a> &amp;
+            <a target="_blank" rel="noopener" href="https://github.com/theme-particlex/hexo-theme-particlex">ParticleX Theme</a>
+        </div>
+        
+    </div>
+</footer>
+
+        </div>
+        
+        <transition name="fade">
+            <div id="preview" ref="preview" v-show="previewShow">
+                <img id="preview-content" ref="previewContent" />
+            </div>
+        </transition>
+        
+    </div>
+    <script src="/js/main.js"></script>
+    
+    
+
+
+
+
+    
+</body>
+</html>
