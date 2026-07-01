@@ -52,35 +52,6 @@ html[data-theme="dark"] {
   z-index: 1;
 }
 
-.nf-hero-chip {
-  position: relative;
-  z-index: 1;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  max-width: min(92vw, 620px);
-  margin-top: 14px;
-  padding: 8px 14px;
-  border: 1px solid var(--nf-line);
-  border-radius: 999px;
-  color: #fff;
-  background: rgba(5, 12, 26, 0.34);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
-  backdrop-filter: blur(12px);
-  font-size: 13px;
-  line-height: 1.45;
-}
-
-.nf-hero-chip::before {
-  content: "";
-  width: 8px;
-  height: 8px;
-  flex: 0 0 auto;
-  border-radius: 50%;
-  background: var(--nf-accent);
-  box-shadow: 0 0 0 6px rgba(23, 184, 166, 0.16), 0 0 18px rgba(23, 184, 166, 0.8);
-}
-
 .kratos-hentry,
 .widget {
   transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
@@ -218,11 +189,6 @@ html[data-theme="dark"] .widget:hover {
 }
 
 @media (max-width: 767px) {
-  .nf-hero-chip {
-    padding: 7px 12px;
-    font-size: 12px;
-  }
-
   .nf-toast {
     right: 16px;
     bottom: 82px;

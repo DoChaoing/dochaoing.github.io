@@ -33,16 +33,6 @@
     window.addEventListener("resize", update);
   }
 
-  function ensureHeroChip() {
-    var cover = document.querySelector(".kratos-cover-2 .container, .kratos-cover-2");
-    if (!cover || cover.querySelector(".nf-hero-chip")) return;
-
-    var chip = document.createElement("div");
-    chip.className = "nf-hero-chip";
-    chip.textContent = "AI workflow lab online";
-    cover.appendChild(chip);
-  }
-
   function ensureSignalWidget() {
     var sidebar = document.querySelector("#kratos-widget-area .sticky-area, #kratos-widget-area");
     if (!sidebar || sidebar.querySelector(".nf-signal-widget")) return;
@@ -181,14 +171,12 @@
 
   ready(function () {
     ensureProgress();
-    ensureHeroChip();
     ensureSignalWidget();
     ensureStarfield();
     bindInspiration();
   });
 
   document.addEventListener("pjax:complete", function () {
-    ensureHeroChip();
     ensureSignalWidget();
   });
 })();
