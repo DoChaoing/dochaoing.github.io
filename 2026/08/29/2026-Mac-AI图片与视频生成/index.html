@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mac AI 图片与视频生成：用 ComfyUI 跑通第一个完整工作流 | Chao Blog</title>
+  
+  <!-- SEO -->
+  <meta name="description" content="在 Apple 芯片 Mac 上安装 ComfyUI，先生成一张赛博朋克图片，再把它制作成短视频，并讲清模型、工作流、参数和内存优化。">
+  <meta name="keywords" content="Mac,ComfyUI,AI 绘画,视频生成,提示词">
+  
+  <!-- Google Fonts - 字體 -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <!-- 霞鹜文楷简体中文字体 -->
+  <link href="https://fonts.googleapis.com/css2?family=LXGW+WenKai:wght@300;400;700&display=swap" rel="stylesheet">
+  <!-- Inter - 英文字體 -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- JetBrains Mono - 程式碼字體 -->
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <!-- Orbitron - 賽博龐克風格字體 -->
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <!-- Audiowide - Cyberpunk 風格字體 -->
+  <link href="https://fonts.googleapis.com/css2?family=Audiowide&display=swap" rel="stylesheet">
+  <!-- Teko - 斜體科幻風格 -->
+  <link href="https://fonts.googleapis.com/css2?family=Teko:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Russo One - 粗體科幻風格 -->
+  <link href="https://fonts.googleapis.com/css2?family=Russo+One&display=swap" rel="stylesheet">
+  
+  <!-- Critical CSS 內聯 -->
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'LXGW WenKai','Inter',-apple-system,BlinkMacSystemFont,sans-serif;line-height:1.8;color:#1e293b;background:#f8fafc}
+    .container{max-width:900px;margin:0 auto;padding:20px}
+    a{color:#6366f1;text-decoration:none}
+  </style>
+  
+  <!-- Prism.js 程式碼高亮 - Tomorrow Night 主題 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+  
+  <!-- 完整樣式表 -->
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/gsap-styles.css">
+  <link rel="stylesheet" href="/css/embeds.css">
+  <link rel="stylesheet" href="/css/cyberpunk.css">
+<meta name="generator" content="Hexo 7.3.0"><link rel="alternate" href="/atom.xml" title="Chao Blog" type="application/atom+xml">
+</head>
+
+<body class="post-page">
+  <header class="site-header cyber-header">
+  <div class="container">
+    <div class="header-content">
+      <a href="/" class="site-logo">
+        <span class="logo-bracket">[</span>
+        <span class="logo-text">Chao Blog</span>
+        <span class="logo-bracket">]</span>
+      </a>
+      <nav class="site-nav">
+        
+          <a href="/" class="nav-link">
+            <span class="nav-text">首页</span>
+            <span class="nav-line"></span>
+          </a>
+        
+          <a href="/ai-learning/" class="nav-link">
+            <span class="nav-text">AI 学习</span>
+            <span class="nav-line"></span>
+          </a>
+        
+          <a href="/projects/" class="nav-link">
+            <span class="nav-text">项目实战</span>
+            <span class="nav-line"></span>
+          </a>
+        
+          <a href="/interview/" class="nav-link">
+            <span class="nav-text">AI 面试</span>
+            <span class="nav-line"></span>
+          </a>
+        
+          <a href="/archives/" class="nav-link">
+            <span class="nav-text">归档</span>
+            <span class="nav-line"></span>
+          </a>
+        
+          <a href="/about.html" class="nav-link">
+            <span class="nav-text">关于</span>
+            <span class="nav-line"></span>
+          </a>
+        
+      </nav>
+    </div>
+  </div>
+  <div class="header-line"></div>
+</header>
+
+  
+  <main class="site-main">
+    <div class="container">
+      <article class="post hover-lift">
+  <header class="post-header">
+    <h2 class="post-title">
+      
+        <a href="/2026/08/29/2026-Mac-AI%E5%9B%BE%E7%89%87%E4%B8%8E%E8%A7%86%E9%A2%91%E7%94%9F%E6%88%90/">Mac AI 图片与视频生成：用 ComfyUI 跑通第一个完整工作流</a>
+      
+    </h2>
+    <div class="post-meta">
+      <time datetime="2026-08-29T01:00:00.000Z">
+        2026-08-29
+      </time>
+      
+        <span class="separator">•</span>
+        
+          <a href="/categories/AI-%E5%BA%94%E7%94%A8%E5%AE%9E%E6%88%98/">AI 应用实战</a>
+        
+      
+    </div>
+  </header>
+  
+  <div class="post-content">
+    
+      <p>文本大模型输出的是 Token，图片模型输出像素，视频模型则要生成一串在时间上连续的画面。三者的操作界面不同，但工程方法一致：<strong>先跑通最小案例，再固定输入做参数对比，最后才追求分辨率和复杂效果。</strong></p>
+<p>本文在 Apple 芯片 Mac 上完成一个具体项目：</p>
+<pre><code class="highlight text">文字提示词
+  → 生成一张“赛博朋克终端桌面”图片
+  → 把图片作为视频第一帧
+  → 生成 3～5 秒的缓慢运镜视频
+  → 导出 MP4 并检查画面稳定性</code></pre>
+
+<p>主工具选择 ComfyUI Desktop。它把模型推理拆成可视化节点，图片和视频可以共用同一套模型管理与工作流机制。</p>
+<h2 id="一、先判断本地生成是否适合你的-Mac"><a href="#一、先判断本地生成是否适合你的-Mac" class="headerlink" title="一、先判断本地生成是否适合你的 Mac"></a>一、先判断本地生成是否适合你的 Mac</h2><p>ComfyUI Desktop for macOS 目前只支持 Apple Silicon，并推荐使用 MPS，让 PyTorch 通过 Metal 使用 Apple GPU。</p>
+<p>可以按照统一内存选择目标：</p>
+<table>
+<thead>
+<tr>
+<th align="right">统一内存</th>
+<th>建议目标</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="right">8 GB</td>
+<td>先做 512×512 图片；视频优先使用云端</td>
+</tr>
+<tr>
+<td align="right">16 GB</td>
+<td>适合轻量图片模型；短视频需要低分辨率、少帧数</td>
+</tr>
+<tr>
+<td align="right">24～32 GB</td>
+<td>可以尝试轻量 2B 视频模型和图片转视频</td>
+</tr>
+<tr>
+<td align="right">48 GB 以上</td>
+<td>可尝试更大模型，但仍要控制分辨率和帧数</td>
+</tr>
+</tbody></table>
+<p>这只是保守起点，不是兼容性保证。视频模型会同时处理多帧，内存和耗时通常远高于单张图片。活动监视器出现黄色或红色内存压力、交换空间持续增长时，应立即降低规模。</p>
+<h2 id="二、安装-ComfyUI-Desktop"><a href="#二、安装-ComfyUI-Desktop" class="headerlink" title="二、安装 ComfyUI Desktop"></a>二、安装 ComfyUI Desktop</h2><p>最简单的方法是使用 Homebrew：</p>
+<pre><code class="highlight bash">brew install comfyui</code></pre>
+
+<p>也可以从 <a target="_blank" rel="noopener" href="https://docs.comfy.org/installation/desktop/macos">ComfyUI Desktop macOS 页面</a> 下载应用。第一次启动时：</p>
+<ol>
+<li>计算设备选择 <strong>MPS</strong>；</li>
+<li>选择一个空间充足的独立目录；</li>
+<li>等待 Python 环境和依赖初始化；</li>
+<li>不要修改应用内部的 <code>resource/ComfyUI</code> 目录。</li>
+</ol>
+<p>模型通常比程序本身大得多。建议至少预留几十 GB 空间；计划尝试多个视频模型时，需要预留更多。</p>
+<p>进入界面后先认识四个位置：</p>
+<ul>
+<li>左侧或菜单中的 <strong>Workflow Templates</strong>：加载官方工作流；</li>
+<li><strong>Load Checkpoint</strong>：选择图片模型；</li>
+<li><strong>CLIP Text Encode</strong>：填写正向或负向提示词；</li>
+<li><strong>Run &#x2F; Queue</strong>：执行工作流，快捷键通常是 <code>Cmd + Enter</code>。</li>
+</ul>
+<h2 id="三、第一部分：生成一张图片"><a href="#三、第一部分：生成一张图片" class="headerlink" title="三、第一部分：生成一张图片"></a>三、第一部分：生成一张图片</h2><p>为了先理解流程，使用官方入门工作流和 SD 1.5。它不是最新、质量最高的模型，但体积和资源要求相对较低，适合验证 Mac、MPS、模型目录和保存流程是否都正常。</p>
+<h3 id="第-1-步：加载模板和模型"><a href="#第-1-步：加载模板和模型" class="headerlink" title="第 1 步：加载模板和模型"></a>第 1 步：加载模板和模型</h3><p>在 ComfyUI 中打开：</p>
+<pre><code class="highlight text">Workflow → Browse Workflow Templates → Image Generation</code></pre>
+
+<p>如果缺少 <code>v1-5-pruned-emaonly-fp16.safetensors</code>，界面会显示 Missing Models。Desktop 版可以点击下载，模型会被放入 <code>models/checkpoints</code>。</p>
+<p>如果需要手动确认模型目录：</p>
+<pre><code class="highlight text">左上角 ComfyUI 标志 → Help → Open folder → Open models folder</code></pre>
+
+<p>模型加入后按 <code>R</code> 刷新节点，再在 <code>Load Checkpoint</code> 中选中它。</p>
+<h3 id="第-2-步：设置第一组提示词"><a href="#第-2-步：设置第一组提示词" class="headerlink" title="第 2 步：设置第一组提示词"></a>第 2 步：设置第一组提示词</h3><p>正向提示词不要只写关键词列表。按照“主体、环境、构图、光线、材质、风格”的顺序描述：</p>
+<pre><code class="highlight text">a futuristic programmer desk inside a dark cyberpunk room,
+a vintage terminal monitor displaying green command line text,
+mechanical keyboard, subtle neon cyan and magenta lights,
+rain on the window, cinematic wide shot, realistic materials,
+high contrast lighting, detailed, no person</code></pre>
+
+<p>负向提示词用于排除常见问题：</p>
+<pre><code class="highlight text">blurry, low quality, distorted monitor, unreadable layout,
+extra keyboards, duplicate objects, watermark, logo, person</code></pre>
+
+<p>图片模型经常无法稳定生成正确文字，所以重点应是“终端视觉氛围”，不要期待屏幕命令完全正确。准确文字更适合在后期设计工具中添加。</p>
+<h3 id="第-3-步：使用一组可复现参数"><a href="#第-3-步：使用一组可复现参数" class="headerlink" title="第 3 步：使用一组可复现参数"></a>第 3 步：使用一组可复现参数</h3><p>在工作流节点中设置：</p>
+<pre><code class="highlight text">宽度：512
+高度：512
+Batch size：1
+Steps：20
+CFG：7
+Seed：20260829</code></pre>
+
+<p>不同模板的采样器默认值可能不同，第一轮保持模板默认即可。点击 Run 或按 <code>Cmd + Enter</code>。生成结果会出现在 Save Image 节点，并保存到 ComfyUI 的 <code>output</code> 目录。</p>
+<p>验收第一张图：</p>
+<ul>
+<li>能否成功生成，没有 MPS 或内存错误；</li>
+<li>主体是否明确是终端桌面；</li>
+<li>构图是否适合后续做运镜；</li>
+<li>是否存在重复键盘、扭曲屏幕等明显错误；</li>
+<li>保存的图片能否重新拖入 ComfyUI 恢复工作流。</li>
+</ul>
+<p>最后一点很实用：ComfyUI 生成的 PNG 通常带有工作流元数据，拖回界面就能继续修改。</p>
+<h2 id="四、不要盲调：完成三轮图片实验"><a href="#四、不要盲调：完成三轮图片实验" class="headerlink" title="四、不要盲调：完成三轮图片实验"></a>四、不要盲调：完成三轮图片实验</h2><p>固定 Seed，一次只改一个变量：</p>
+<table>
+<thead>
+<tr>
+<th>实验</th>
+<th>改动</th>
+<th>观察点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>A</td>
+<td>Steps 20 → 30</td>
+<td>细节是否改善，耗时增加多少</td>
+</tr>
+<tr>
+<td>B</td>
+<td>CFG 7 → 5</td>
+<td>构图是否更自然，提示词遵循是否下降</td>
+</tr>
+<tr>
+<td>C</td>
+<td>512² → 768²</td>
+<td>细节、耗时和内存压力变化</td>
+</tr>
+</tbody></table>
+<p>Seed 固定后，噪声起点基本一致，更容易看出参数的影响。如果每次同时换 Seed、尺寸、提示词和采样器，就无法知道改进来自哪里。</p>
+<p>Mac 上优先遵循以下顺序：</p>
+<pre><code class="highlight text">先优化提示词和构图
+→ 再尝试少量增加 Steps
+→ 最后提高分辨率或做后期放大</code></pre>
+
+<p>直接用大分辨率生成，通常比低分辨率出图后放大更容易造成高内存压力。</p>
+<h2 id="五、第二部分：把图片生成短视频"><a href="#五、第二部分：把图片生成短视频" class="headerlink" title="五、第二部分：把图片生成短视频"></a>五、第二部分：把图片生成短视频</h2><p>视频入门建议选择<strong>图片转视频（Image-to-Video）</strong>，而不是直接文字转视频。首帧已经确定了主体、颜色和构图，视频模型只需要解决运动，结果通常更可控。</p>
+<p>这里使用 ComfyUI 官方的 LTX-Video 轻量工作流思路。官方 LTX 0.9.5 示例提供 2B 模型和 Image-to-Video 模板，更适合本地学习。最新 LTX-2.x 模型规模明显更大，低内存 Mac 应优先考虑 Comfy Cloud 或其他云端 GPU。</p>
+<h3 id="第-1-步：加载-Image-to-Video-模板"><a href="#第-1-步：加载-Image-to-Video-模板" class="headerlink" title="第 1 步：加载 Image-to-Video 模板"></a>第 1 步：加载 Image-to-Video 模板</h3><p>先更新 ComfyUI，然后打开模板库：</p>
+<pre><code class="highlight text">Workflow Templates → Video → LTX Video → Image to Video</code></pre>
+
+<p>模板名称会随 ComfyUI 版本变化。如果找不到，参考 <a target="_blank" rel="noopener" href="https://docs.comfy.org/tutorials/video/ltxv">ComfyUI LTX 工作流示例</a> 下载官方工作流；Desktop 稳定版有时会晚于最新文档。</p>
+<p>模板加载后，根据 Missing Models 提示下载模型。官方轻量示例使用的文件包括：</p>
+<pre><code class="highlight text">models/checkpoints/ltx-video-2b-v0.9.5.safetensors
+models/text_encoders/t5xxl_fp16.safetensors</code></pre>
+
+<p>视频模型和文本编码器都很大，下载前再次检查磁盘空间。不要从来源不明的网站下载可执行文件或自定义节点。</p>
+<h3 id="第-2-步：载入刚才生成的图片"><a href="#第-2-步：载入刚才生成的图片" class="headerlink" title="第 2 步：载入刚才生成的图片"></a>第 2 步：载入刚才生成的图片</h3><p>在 <code>Load Image</code> 节点中选择赛博朋克终端图片。第一次实验使用横向尺寸，并避免过高分辨率：</p>
+<pre><code class="highlight text">宽度：768（如果内存不足则 512）
+高度：512
+帧数：先使用模板的较小默认值
+Batch：1
+Seed：20260829</code></pre>
+
+<p>具体宽高需要符合工作流节点的倍数约束。如果报尺寸错误，使用模板默认尺寸，而不是随意输入任意像素。</p>
+<h3 id="第-3-步：写“运动提示词”"><a href="#第-3-步：写“运动提示词”" class="headerlink" title="第 3 步：写“运动提示词”"></a>第 3 步：写“运动提示词”</h3><p>图片提示词描述画面里有什么；视频提示词还要描述谁在动、如何动、镜头如何动，以及哪些东西必须保持稳定。</p>
+<pre><code class="highlight text">Slow cinematic camera push-in toward the terminal monitor.
+Green terminal cursor blinks softly, subtle code lines scroll upward.
+Neon cyan and magenta reflections move gently across the desk.
+Rain slides down the window in the background.
+The monitor, keyboard and desk remain structurally stable.
+No scene change, no new objects, no people.</code></pre>
+
+<p>第一条视频不要写爆炸、快速旋转、人物走动和大幅镜头切换。运动越多，短视频越容易出现物体变形和闪烁。</p>
+<h3 id="第-4-步：生成并导出"><a href="#第-4-步：生成并导出" class="headerlink" title="第 4 步：生成并导出"></a>第 4 步：生成并导出</h3><p>点击 Run。视频生成可能比图片慢得多，期间观察活动监视器，不要同时启动其他大模型。</p>
+<p>完成后，视频通常由保存节点写入：</p>
+<pre><code class="highlight text">ComfyUI/output/</code></pre>
+
+<p>部分工作流会放入 <code>output/video</code> 子目录。最终格式取决于保存节点，常见为 MP4 或 WebM。</p>
+<p>验收视频时不要只看第一帧：</p>
+<ul>
+<li>终端、键盘和桌子结构是否稳定；</li>
+<li>是否出现突然增加或消失的物体；</li>
+<li>光线变化是否连续；</li>
+<li>首尾是否有跳变；</li>
+<li>是否存在大面积闪烁、融化或拉伸；</li>
+<li>实际时长和画幅是否适合发布平台。</li>
+</ul>
+<h2 id="六、视频失败时怎么调"><a href="#六、视频失败时怎么调" class="headerlink" title="六、视频失败时怎么调"></a>六、视频失败时怎么调</h2><h3 id="画面严重变形"><a href="#画面严重变形" class="headerlink" title="画面严重变形"></a>画面严重变形</h3><p>减少运动数量，把提示词从“镜头旋转、屏幕变化、雨水、人物进入”缩减为一个主运动，例如只保留缓慢推进。图片转视频的第一帧也要构图清晰，避免过多细碎物体。</p>
+<h3 id="视频像静态图片"><a href="#视频像静态图片" class="headerlink" title="视频像静态图片"></a>视频像静态图片</h3><p>把运动写成明确动词：<code>camera slowly pushes in</code>、<code>cursor blinks</code>、<code>rain slides down</code>。不要只重复图片的风格词。可以小幅提高运动相关参数，但每次只改一项。</p>
+<h3 id="闪烁严重"><a href="#闪烁严重" class="headerlink" title="闪烁严重"></a>闪烁严重</h3><p>减少生成尺寸和运动幅度，缩短视频，避免提示词要求连续出现精确文字。先生成稳定的短片，再考虑插帧和放大。</p>
+<h3 id="Mac-内存不足或系统卡死"><a href="#Mac-内存不足或系统卡死" class="headerlink" title="Mac 内存不足或系统卡死"></a>Mac 内存不足或系统卡死</h3><p>按顺序处理：</p>
+<ol>
+<li>Batch 固定为 1；</li>
+<li>降低宽高；</li>
+<li>减少帧数；</li>
+<li>关闭 Ollama、浏览器大标签页和其他高内存应用；</li>
+<li>换轻量模型；</li>
+<li>改用云端 GPU。</li>
+</ol>
+<p>不要同时提高分辨率、帧数和 Batch。视频总像素量大致随“宽 × 高 × 帧数”增长，三个参数一起增加会迅速放大资源需求。</p>
+<h2 id="七、图片与视频提示词模板"><a href="#七、图片与视频提示词模板" class="headerlink" title="七、图片与视频提示词模板"></a>七、图片与视频提示词模板</h2><p>图片提示词：</p>
+<pre><code class="highlight text">[主体]，位于[环境]，[构图/视角]，[光线]，[材质与细节]，
+[视觉风格]，[色彩]，[画面中不要出现什么]</code></pre>
+
+<p>视频提示词：</p>
+<pre><code class="highlight text">[主体]执行[一个主要动作]，[镜头运动]，[背景中的次要运动]，
+[光线如何变化]，[必须保持稳定的对象]，
+no scene change, no new objects, continuous motion</code></pre>
+
+<p>提示词不必无限加长。真正有效的是明确主体、空间关系和运动，而不是堆满“8K、masterpiece、best quality”等宽泛词。</p>
+<h2 id="八、什么时候该用本地，什么时候用云端"><a href="#八、什么时候该用本地，什么时候用云端" class="headerlink" title="八、什么时候该用本地，什么时候用云端"></a>八、什么时候该用本地，什么时候用云端</h2><table>
+<thead>
+<tr>
+<th>场景</th>
+<th>本地 Mac</th>
+<th>云端生成服务</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>学习工作流</td>
+<td>非常适合</td>
+<td>可以，但不利于理解节点</td>
+</tr>
+<tr>
+<td>隐私图片</td>
+<td>适合，注意模型许可证</td>
+<td>需要确认数据政策</td>
+</tr>
+<tr>
+<td>512～768 图片</td>
+<td>适合</td>
+<td>更快但可能按量付费</td>
+</tr>
+<tr>
+<td>高质量长视频</td>
+<td>通常较吃力</td>
+<td>更适合</td>
+</tr>
+<tr>
+<td>大规模批量生产</td>
+<td>不推荐个人 Mac</td>
+<td>更容易扩容</td>
+</tr>
+<tr>
+<td>最新超大模型</td>
+<td>经常受内存限制</td>
+<td>通常先在云端可用</td>
+</tr>
+</tbody></table>
+<p>比较成本时，不要只看一次生成价格。本地还有下载空间、等待时间、电量和电脑被占用的成本；云端则有费用、隐私和平台依赖。</p>
+<h2 id="九、发布前的版权与安全检查"><a href="#九、发布前的版权与安全检查" class="headerlink" title="九、发布前的版权与安全检查"></a>九、发布前的版权与安全检查</h2><ul>
+<li>确认基础模型、LoRA 和素材允许你的使用方式；</li>
+<li>不用真实人物照片制作误导性内容；</li>
+<li>不模仿在世艺术家的独特风格进行商业冒充；</li>
+<li>检查图片和视频中的错误文字、商标和水印；</li>
+<li>保存模型版本、工作流、Seed 和提示词；</li>
+<li>对外发布时根据平台要求说明 AI 生成或 AI 辅助；</li>
+<li>涉及客户或公司资料时，不上传到未经批准的云端服务。</li>
+</ul>
+<h2 id="十、下一步怎么练"><a href="#十、下一步怎么练" class="headerlink" title="十、下一步怎么练"></a>十、下一步怎么练</h2><p>完成本文后，可以按这个顺序继续：</p>
+<ol>
+<li>同一 Seed 比较三种提示词；</li>
+<li>学习 Image-to-Image，保持构图改变风格；</li>
+<li>使用 ControlNet 控制边缘、深度或人物姿态；</li>
+<li>使用 LoRA 固定视觉风格；</li>
+<li>对视频进行插帧、放大和剪辑；</li>
+<li>把工作流导出为 JSON，记录每次实验结果。</li>
+</ol>
+<p>最值得保留的成果不是某一张“抽卡成功”的图片，而是一份别人可以重新运行的工作流。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>Mac 上生成图片和视频的可靠路线是：</p>
+<pre><code class="highlight text">安装 ComfyUI Desktop（MPS）
+→ 用 SD 1.5 跑通第一张 512×512 图片
+→ 固定 Seed 比较参数
+→ 选择稳定图片作为首帧
+→ 用轻量 LTX Image-to-Video 生成短片
+→ 从低分辨率、少帧数、单运动开始调优</code></pre>
+
+<p>先得到一个稳定、可复现的小结果，再逐步增加模型、尺寸和运动复杂度。对 Mac 来说，这比一开始挑战最新最大的视频模型更容易真正学会生成工作流。</p>
+<h2 id="官方资料"><a href="#官方资料" class="headerlink" title="官方资料"></a>官方资料</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://docs.comfy.org/installation/desktop/macos">ComfyUI：macOS Desktop 安装</a></li>
+<li><a target="_blank" rel="noopener" href="https://docs.comfy.org/get_started/first_generation">ComfyUI：第一次图片生成</a></li>
+<li><a target="_blank" rel="noopener" href="https://docs.comfy.org/tutorials/basic/text-to-image">ComfyUI：Text-to-Image 工作流</a></li>
+<li><a target="_blank" rel="noopener" href="https://docs.comfy.org/interface/features/template">ComfyUI：工作流模板</a></li>
+<li><a target="_blank" rel="noopener" href="https://docs.comfy.org/tutorials/video/ltxv">ComfyUI：LTX-Video 示例</a></li>
+<li><a target="_blank" rel="noopener" href="https://huggingface.co/docs/diffusers/main/optimization/mps">Hugging Face Diffusers：Apple Silicon MPS</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/Lightricks/LTX-Video">Lightricks：LTX-Video</a></li>
+</ul>
+
+    
+  </div>
+  
+  
+  <footer class="post-footer">
+    <div class="post-tags">
+      
+        <a href="/tags/Mac/">#Mac</a>
+      
+        <a href="/tags/ComfyUI/">#ComfyUI</a>
+      
+        <a href="/tags/AI-%E7%BB%98%E7%94%BB/">#AI 绘画</a>
+      
+        <a href="/tags/%E8%A7%86%E9%A2%91%E7%94%9F%E6%88%90/">#视频生成</a>
+      
+        <a href="/tags/%E6%8F%90%E7%A4%BA%E8%AF%8D/">#提示词</a>
+      
+    </div>
+  </footer>
+  
+</article>
+
+      
+      <!-- 上一篇/下一篇導航 -->
+      <nav class="post-nav">
+        
+        
+          <a href="/2026/08/28/2026-%E5%A4%A7%E6%A8%A1%E5%9E%8B%E9%83%A8%E7%BD%B2%E4%B8%8E%E6%80%A7%E8%83%BD%E8%B0%83%E4%BC%98/" class="next">
+            Mac 本地部署大模型：从 Ollama 安装到性能调优 →
+          </a>
+        
+      </nav>
+    </div>
+  </main>
+  
+  <footer class="site-footer">
+  <div class="container">
+    <p>&copy; 2026 Chao</p>
+    <p>
+      Powered by <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a> 
+      | Theme: <a href="https://github.com/ceeyu/hexo-theme-cyberpunk2077" target="_blank" rel="noopener">Cyberpunk 2077</a>
+    </p>
+    
+    <div class="social-links">
+      
+        <a href="https://github.com/dochaoing" target="_blank" rel="noopener">GitHub</a>
+      
+    </div>
+    
+  </div>
+</footer>
+
+<!-- Prism.js 程式碼高亮 -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<!-- 預載入常用語言 -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-c.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-cpp.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-java.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-css.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-markup.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-dart.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-yaml.min.js"></script>
+
+<!-- GSAP 動畫庫 -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
+<!-- 自定義腳本 -->
+<script defer src="/js/main.js"></script>
+<script defer src="/js/gsap-animations.js"></script>
+<script defer src="/js/cyberpunk.js"></script>
+
+<!-- 初始化程式碼高亮 -->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // 统一 Hexo 输出与 Prism 的语言类，避免重复包装和重复行号。
+    document.querySelectorAll('.post-content pre > code, .page-body pre > code').forEach(function(block) {
+      const content = block.textContent;
+      let lang = 'plaintext';
+      const languageClass = Array.from(block.classList).find(function(name) {
+        return name.startsWith('language-');
+      });
+      const hexoClass = Array.from(block.classList).find(function(name) {
+        return name !== 'highlight' && name !== 'hljs';
+      });
+
+      if (languageClass) {
+        lang = languageClass.replace('language-', '');
+      } else if (hexoClass) {
+        lang = hexoClass;
+      } else if (content.includes('#include') || content.includes('int main')) {
+        lang = 'cpp';
+      } else if (content.includes('def ') || content.includes('import ')) {
+        lang = 'python';
+      } else if (content.includes('function') || content.includes('const ')) {
+        lang = 'javascript';
+      }
+
+      block.className = 'language-' + lang;
+      block.parentElement.className = 'language-' + lang;
+      block.parentElement.dataset.language = lang.toUpperCase();
+
+      if (typeof Prism !== 'undefined' && Prism.languages[lang]) {
+        Prism.highlightElement(block);
+      }
+    });
+  });
+</script>
+
+</body>
+</html>

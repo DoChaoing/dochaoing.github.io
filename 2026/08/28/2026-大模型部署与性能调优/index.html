@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mac 本地部署大模型：从 Ollama 安装到性能调优 | Chao Blog</title>
+  
+  <!-- SEO -->
+  <meta name="description" content="在 Apple 芯片 Mac 上安装并运行本地大模型，再从模型大小、量化、上下文、并发和提示词五个方向完成一次可复现的调优。">
+  <meta name="keywords" content="Mac,Ollama,MLX,性能调优,量化">
+  
+  <!-- Google Fonts - 字體 -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <!-- 霞鹜文楷简体中文字体 -->
+  <link href="https://fonts.googleapis.com/css2?family=LXGW+WenKai:wght@300;400;700&display=swap" rel="stylesheet">
+  <!-- Inter - 英文字體 -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- JetBrains Mono - 程式碼字體 -->
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <!-- Orbitron - 賽博龐克風格字體 -->
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <!-- Audiowide - Cyberpunk 風格字體 -->
+  <link href="https://fonts.googleapis.com/css2?family=Audiowide&display=swap" rel="stylesheet">
+  <!-- Teko - 斜體科幻風格 -->
+  <link href="https://fonts.googleapis.com/css2?family=Teko:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Russo One - 粗體科幻風格 -->
+  <link href="https://fonts.googleapis.com/css2?family=Russo+One&display=swap" rel="stylesheet">
+  
+  <!-- Critical CSS 內聯 -->
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'LXGW WenKai','Inter',-apple-system,BlinkMacSystemFont,sans-serif;line-height:1.8;color:#1e293b;background:#f8fafc}
+    .container{max-width:900px;margin:0 auto;padding:20px}
+    a{color:#6366f1;text-decoration:none}
+  </style>
+  
+  <!-- Prism.js 程式碼高亮 - Tomorrow Night 主題 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+  
+  <!-- 完整樣式表 -->
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/gsap-styles.css">
+  <link rel="stylesheet" href="/css/embeds.css">
+  <link rel="stylesheet" href="/css/cyberpunk.css">
+<meta name="generator" content="Hexo 7.3.0"><link rel="alternate" href="/atom.xml" title="Chao Blog" type="application/atom+xml">
+</head>
+
+<body class="post-page">
+  <header class="site-header cyber-header">
+  <div class="container">
+    <div class="header-content">
+      <a href="/" class="site-logo">
+        <span class="logo-bracket">[</span>
+        <span class="logo-text">Chao Blog</span>
+        <span class="logo-bracket">]</span>
+      </a>
+      <nav class="site-nav">
+        
+          <a href="/" class="nav-link">
+            <span class="nav-text">首页</span>
+            <span class="nav-line"></span>
+          </a>
+        
+          <a href="/ai-learning/" class="nav-link">
+            <span class="nav-text">AI 学习</span>
+            <span class="nav-line"></span>
+          </a>
+        
+          <a href="/projects/" class="nav-link">
+            <span class="nav-text">项目实战</span>
+            <span class="nav-line"></span>
+          </a>
+        
+          <a href="/interview/" class="nav-link">
+            <span class="nav-text">AI 面试</span>
+            <span class="nav-line"></span>
+          </a>
+        
+          <a href="/archives/" class="nav-link">
+            <span class="nav-text">归档</span>
+            <span class="nav-line"></span>
+          </a>
+        
+          <a href="/about.html" class="nav-link">
+            <span class="nav-text">关于</span>
+            <span class="nav-line"></span>
+          </a>
+        
+      </nav>
+    </div>
+  </div>
+  <div class="header-line"></div>
+</header>
+
+  
+  <main class="site-main">
+    <div class="container">
+      <article class="post hover-lift">
+  <header class="post-header">
+    <h2 class="post-title">
+      
+        <a href="/2026/08/28/2026-%E5%A4%A7%E6%A8%A1%E5%9E%8B%E9%83%A8%E7%BD%B2%E4%B8%8E%E6%80%A7%E8%83%BD%E8%B0%83%E4%BC%98/">Mac 本地部署大模型：从 Ollama 安装到性能调优</a>
+      
+    </h2>
+    <div class="post-meta">
+      <time datetime="2026-08-28T06:30:00.000Z">
+        2026-08-28
+      </time>
+      
+        <span class="separator">•</span>
+        
+          <a href="/categories/AI-%E5%BA%94%E7%94%A8%E5%AE%9E%E6%88%98/">AI 应用实战</a>
+        
+      
+    </div>
+  </header>
+  
+  <div class="post-content">
+    
+      <p>Mac 的 CPU 和 GPU 共享统一内存，因此很适合在个人电脑上学习大模型部署：不需要安装 CUDA，也能使用 Apple GPU 加速推理。但“模型可以启动”和“模型运行得好”是两回事。</p>
+<p>本文使用 <strong>Ollama 作为部署主线</strong>。它安装简单、提供本地 API，并在 Apple 芯片上内置 Metal 支持。最后再介绍什么时候值得换用 Apple 的 MLX LM。</p>
+<blockquote>
+<p>本文讨论的是本地推理优化，不是训练基础大模型。下载前应检查模型许可证和磁盘空间。</p>
+</blockquote>
+<h2 id="一、确认-Mac-能跑多大的模型"><a href="#一、确认-Mac-能跑多大的模型" class="headerlink" title="一、确认 Mac 能跑多大的模型"></a>一、确认 Mac 能跑多大的模型</h2><p>先查看芯片、统一内存和系统版本：</p>
+<pre><code class="highlight bash">system_profiler SPHardwareDataType
+sw_vers</code></pre>
+
+<p>Ollama 当前要求 macOS 14 或更新版本。Apple M 系列支持 CPU 和 GPU，Intel Mac 只能使用 CPU，后者不适合运行较大的模型。</p>
+<p>Mac 上最重要的不是“显存是多少”，而是<strong>统一内存有多少</strong>。模型权重、KV Cache、系统和其他应用共享这块内存。可用下面的经验值做第一轮选择：</p>
+<table>
+<thead>
+<tr>
+<th align="right">统一内存</th>
+<th>建议起步</th>
+<th>适合任务</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="right">8 GB</td>
+<td>1B～3B 的 4-bit 模型</td>
+<td>摘要、改写、简单问答</td>
+</tr>
+<tr>
+<td align="right">16 GB</td>
+<td>3B～8B 的 4-bit 模型</td>
+<td>中文问答、轻量代码辅助</td>
+</tr>
+<tr>
+<td align="right">24～32 GB</td>
+<td>7B～14B 的 4-bit 模型</td>
+<td>RAG、代码和复杂推理</td>
+</tr>
+<tr>
+<td align="right">48 GB 以上</td>
+<td>更大模型或更长上下文</td>
+<td>本地实验、低并发服务</td>
+</tr>
+</tbody></table>
+<p>这不是硬性边界。同为 8B 模型，量化格式、上下文和并发不同，内存占用也不同。务必给 macOS 留出余量；出现明显卡顿或大量交换空间时，应该换小模型。</p>
+<h2 id="二、安装-Ollama"><a href="#二、安装-Ollama" class="headerlink" title="二、安装 Ollama"></a>二、安装 Ollama</h2><p>从 <a target="_blank" rel="noopener" href="https://ollama.com/download/mac">Ollama 官网</a> 下载 DMG，将应用拖入“应用程序”后启动。首次运行会检查终端中的 <code>ollama</code> 命令。</p>
+<pre><code class="highlight bash">ollama --version
+ollama list
+<span class="built_in">df</span> -h /</code></pre>
+
+<p>模型可能占用数 GB 到数十 GB，默认数据位于 <code>~/.ollama</code>，所以下载前要检查磁盘空间。</p>
+<h2 id="三、完整实验：安装-Qwen3-5-4B"><a href="#三、完整实验：安装-Qwen3-5-4B" class="headerlink" title="三、完整实验：安装 Qwen3.5 4B"></a>三、完整实验：安装 Qwen3.5 4B</h2><p>下面不再使用占位符，直接用 <code>qwen3.5:4b</code> 完成一次实验。它体积较小、支持中文，适合 Apple 芯片 Mac 入门。如果当前 Ollama 版本不能识别它，请先升级 Ollama；也可以把全文模型名替换为 <code>qwen3:4b</code>。</p>
+<h3 id="第-1-步：确认-Ollama-服务正常"><a href="#第-1-步：确认-Ollama-服务正常" class="headerlink" title="第 1 步：确认 Ollama 服务正常"></a>第 1 步：确认 Ollama 服务正常</h3><p>打开 Ollama 应用，然后在终端执行：</p>
+<pre><code class="highlight bash">curl http://127.0.0.1:11434/api/tags</code></pre>
+
+<p>看到 JSON 说明服务已经启动。若连接失败，先确认菜单栏里有 Ollama 图标，或者手动运行：</p>
+<pre><code class="highlight bash">ollama serve</code></pre>
+
+<p>如果提示端口已经被占用，通常表示应用版服务已经在运行，不需要再启动一个。</p>
+<h3 id="第-2-步：下载模型"><a href="#第-2-步：下载模型" class="headerlink" title="第 2 步：下载模型"></a>第 2 步：下载模型</h3><pre><code class="highlight bash">ollama pull qwen3.5:4b</code></pre>
+
+<p>下载完成后确认模型存在：</p>
+<pre><code class="highlight bash">ollama list
+ollama show qwen3.5:4b</code></pre>
+
+<p><code>show</code> 的结果会包含模型家族、参数规模、量化信息和上下文能力。模型库中的具体文件可能随发布更新，因此不要在文章里假定固定文件大小。</p>
+<h3 id="第-3-步：在终端完成第一次对话"><a href="#第-3-步：在终端完成第一次对话" class="headerlink" title="第 3 步：在终端完成第一次对话"></a>第 3 步：在终端完成第一次对话</h3><pre><code class="highlight bash">ollama run qwen3.5:4b</code></pre>
+
+<p>依次输入下面三个问题：</p>
+<pre><code class="highlight text">你是谁？请用一句中文回答。
+
+把“本地模型不会把请求发送给远程 API”改写成更严谨的说法。
+
+写一个 Python 函数，输入字符串列表，返回长度最长的字符串，并给出两个测试用例。</code></pre>
+
+<p>这一轮分别检查中文能力、事实表达和代码能力。不要只问“你好”，那无法判断模型是否适合实际任务。输入 <code>/bye</code> 结束对话。</p>
+<h3 id="第-4-步：检查是否使用-GPU"><a href="#第-4-步：检查是否使用-GPU" class="headerlink" title="第 4 步：检查是否使用 GPU"></a>第 4 步：检查是否使用 GPU</h3><p>让模型保持加载状态，然后另开一个终端：</p>
+<pre><code class="highlight bash">ollama ps</code></pre>
+
+<p>重点看三列：</p>
+<ul>
+<li><code>PROCESSOR</code>：是否为 <code>100% GPU</code>；</li>
+<li><code>CONTEXT</code>：实际分配的上下文长度；</li>
+<li><code>UNTIL</code>：模型还会在内存中保留多久。</li>
+</ul>
+<p>如果主要在 CPU 上运行，先关闭占用内存较大的应用，再降低上下文；仍然无法完全放入 GPU 时，换成 <code>qwen3.5:2b</code>：</p>
+<pre><code class="highlight bash">ollama pull qwen3.5:2b
+ollama run qwen3.5:2b</code></pre>
+
+<h2 id="四、把本地模型变成一个摘要工具"><a href="#四、把本地模型变成一个摘要工具" class="headerlink" title="四、把本地模型变成一个摘要工具"></a>四、把本地模型变成一个摘要工具</h2><p>终端聊天只是验证模型能运行。接下来做一个真正可用的小程序：输入一段技术笔记，让本地模型返回标题、摘要和关键词。</p>
+<h3 id="第-1-步：创建-Python-环境"><a href="#第-1-步：创建-Python-环境" class="headerlink" title="第 1 步：创建 Python 环境"></a>第 1 步：创建 Python 环境</h3><pre><code class="highlight bash"><span class="built_in">mkdir</span> ollama-mac-demo
+<span class="built_in">cd</span> ollama-mac-demo
+python3 -m venv .venv
+<span class="built_in">source</span> .venv/bin/activate
+pip install ollama</code></pre>
+
+<p>创建 <code>app.py</code>：</p>
+<pre><code class="highlight python"><span class="keyword">import</span> json
+<span class="keyword">from</span> ollama <span class="keyword">import</span> chat
+
+article = <span class="string">&quot;&quot;&quot;</span>
+<span class="string">KV Cache 保存大模型生成过程中已经计算过的 Key 和 Value。</span>
+<span class="string">这样模型生成下一个 Token 时，不必重新计算全部历史内容。</span>
+<span class="string">它能减少重复计算，但占用会随着上下文长度和并发量增加。</span>
+<span class="string">&quot;&quot;&quot;</span>
+
+response = chat(
+    model=<span class="string">&quot;qwen3.5:4b&quot;</span>,
+    messages=[
+        &#123;
+            <span class="string">&quot;role&quot;</span>: <span class="string">&quot;system&quot;</span>,
+            <span class="string">&quot;content&quot;</span>: (
+                <span class="string">&quot;你是技术编辑。只能依据用户提供的原文回答，&quot;</span>
+                <span class="string">&quot;不得补充原文不存在的事实。&quot;</span>
+            ),
+        &#125;,
+        &#123;
+            <span class="string">&quot;role&quot;</span>: <span class="string">&quot;user&quot;</span>,
+            <span class="string">&quot;content&quot;</span>: <span class="string">f&quot;&quot;&quot;请整理下面的笔记：</span>
+<span class="string"></span>
+<span class="string"><span class="subst">&#123;article&#125;</span></span>
+<span class="string"></span>
+<span class="string">返回 JSON，字段为 title、summary、keywords。</span>
+<span class="string">keywords 必须是 3 个中文字符串组成的数组。&quot;&quot;&quot;</span>,
+        &#125;,
+    ],
+    <span class="built_in">format</span>=&#123;
+        <span class="string">&quot;type&quot;</span>: <span class="string">&quot;object&quot;</span>,
+        <span class="string">&quot;properties&quot;</span>: &#123;
+            <span class="string">&quot;title&quot;</span>: &#123;<span class="string">&quot;type&quot;</span>: <span class="string">&quot;string&quot;</span>&#125;,
+            <span class="string">&quot;summary&quot;</span>: &#123;<span class="string">&quot;type&quot;</span>: <span class="string">&quot;string&quot;</span>&#125;,
+            <span class="string">&quot;keywords&quot;</span>: &#123;
+                <span class="string">&quot;type&quot;</span>: <span class="string">&quot;array&quot;</span>,
+                <span class="string">&quot;items&quot;</span>: &#123;<span class="string">&quot;type&quot;</span>: <span class="string">&quot;string&quot;</span>&#125;,
+                <span class="string">&quot;minItems&quot;</span>: <span class="number">3</span>,
+                <span class="string">&quot;maxItems&quot;</span>: <span class="number">3</span>,
+            &#125;,
+        &#125;,
+        <span class="string">&quot;required&quot;</span>: [<span class="string">&quot;title&quot;</span>, <span class="string">&quot;summary&quot;</span>, <span class="string">&quot;keywords&quot;</span>],
+    &#125;,
+    options=&#123;
+        <span class="string">&quot;temperature&quot;</span>: <span class="number">0</span>,
+        <span class="string">&quot;num_ctx&quot;</span>: <span class="number">4096</span>,
+        <span class="string">&quot;seed&quot;</span>: <span class="number">42</span>,
+    &#125;,
+)
+
+result = json.loads(response.message.content)
+<span class="built_in">print</span>(json.dumps(result, ensure_ascii=<span class="literal">False</span>, indent=<span class="number">2</span>))</code></pre>
+
+<p>运行：</p>
+<pre><code class="highlight bash">python app.py</code></pre>
+
+<p>预期看到类似结构，而不是要求字句完全一致：</p>
+<pre><code class="highlight json"><span class="punctuation">&#123;</span>
+  <span class="attr">&quot;title&quot;</span><span class="punctuation">:</span> <span class="string">&quot;KV Cache 的作用与代价&quot;</span><span class="punctuation">,</span>
+  <span class="attr">&quot;summary&quot;</span><span class="punctuation">:</span> <span class="string">&quot;KV Cache 通过保存已计算的 Key 和 Value 减少重复计算，但会随上下文和并发增长而占用更多内存。&quot;</span><span class="punctuation">,</span>
+  <span class="attr">&quot;keywords&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="string">&quot;KV Cache&quot;</span><span class="punctuation">,</span> <span class="string">&quot;重复计算&quot;</span><span class="punctuation">,</span> <span class="string">&quot;内存占用&quot;</span><span class="punctuation">]</span>
+<span class="punctuation">&#125;</span></code></pre>
+
+<p>如果能够稳定解析 JSON，这个最小应用才算通过。实际项目还需要捕获连接失败、超时、空输出和 JSON 解析错误。</p>
+<h2 id="五、实际跑一次性能基线"><a href="#五、实际跑一次性能基线" class="headerlink" title="五、实际跑一次性能基线"></a>五、实际跑一次性能基线</h2><p>先用 API 做一次非流式测试。非流式响应会返回完整性能指标：</p>
+<pre><code class="highlight bash">curl http://127.0.0.1:11434/api/generate -d <span class="string">&#x27;&#123;</span>
+<span class="string">  &quot;model&quot;: &quot;qwen3.5:4b&quot;,</span>
+<span class="string">  &quot;prompt&quot;: &quot;用三点解释什么是 KV Cache，每点不超过 30 字。&quot;,</span>
+<span class="string">  &quot;stream&quot;: false,</span>
+<span class="string">  &quot;keep_alive&quot;: &quot;10m&quot;,</span>
+<span class="string">  &quot;options&quot;: &#123;</span>
+<span class="string">    &quot;temperature&quot;: 0,</span>
+<span class="string">    &quot;num_predict&quot;: 128,</span>
+<span class="string">    &quot;num_ctx&quot;: 4096,</span>
+<span class="string">    &quot;seed&quot;: 42</span>
+<span class="string">  &#125;</span>
+<span class="string">&#125;&#x27;</span></code></pre>
+
+<p>响应末尾包含：</p>
+<ul>
+<li><code>load_duration</code>：模型加载耗时；</li>
+<li><code>prompt_eval_count</code> &#x2F; <code>prompt_eval_duration</code>：输入处理量和耗时；</li>
+<li><code>eval_count</code> &#x2F; <code>eval_duration</code>：输出生成量和耗时；</li>
+<li><code>total_duration</code>：整个请求耗时。</li>
+</ul>
+<p>输出速度的计算方式是：</p>
+<pre><code class="highlight text">输出 tokens/s = eval_count ÷ (eval_duration ÷ 1,000,000,000)</code></pre>
+
+<p>首次调用包含冷启动成本。<code>keep_alive</code> 让模型暂时留在内存中，便于继续测预热后的速度。</p>
+<h3 id="自动比较-2K-与-8K-上下文"><a href="#自动比较-2K-与-8K-上下文" class="headerlink" title="自动比较 2K 与 8K 上下文"></a>自动比较 2K 与 8K 上下文</h3><p>创建 <code>benchmark.py</code>：</p>
+<pre><code class="highlight python"><span class="keyword">import</span> statistics
+<span class="keyword">import</span> time
+<span class="keyword">import</span> ollama
+
+MODEL = <span class="string">&quot;qwen3.5:4b&quot;</span>
+PROMPT = <span class="string">&quot;用三点解释什么是 KV Cache，每点不超过 30 字。&quot;</span>
+
+
+<span class="keyword">def</span> <span class="title function_">run_once</span>(<span class="params">num_ctx: <span class="built_in">int</span></span>) -&gt; <span class="built_in">dict</span>:
+    started = time.perf_counter()
+    result = ollama.generate(
+        model=MODEL,
+        prompt=PROMPT,
+        stream=<span class="literal">False</span>,
+        keep_alive=<span class="string">&quot;10m&quot;</span>,
+        options=&#123;
+            <span class="string">&quot;temperature&quot;</span>: <span class="number">0</span>,
+            <span class="string">&quot;seed&quot;</span>: <span class="number">42</span>,
+            <span class="string">&quot;num_predict&quot;</span>: <span class="number">128</span>,
+            <span class="string">&quot;num_ctx&quot;</span>: num_ctx,
+        &#125;,
+    )
+    elapsed = time.perf_counter() - started
+    output_tps = result[<span class="string">&quot;eval_count&quot;</span>] / (result[<span class="string">&quot;eval_duration&quot;</span>] / <span class="number">1e9</span>)
+    <span class="keyword">return</span> &#123;<span class="string">&quot;seconds&quot;</span>: elapsed, <span class="string">&quot;output_tps&quot;</span>: output_tps&#125;
+
+
+<span class="keyword">for</span> context <span class="keyword">in</span> (<span class="number">2048</span>, <span class="number">8192</span>):
+    run_once(context)  <span class="comment"># 预热，不计入结果</span>
+    rows = [run_once(context) <span class="keyword">for</span> _ <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">5</span>)]
+    <span class="built_in">print</span>(
+        <span class="string">f&quot;ctx=<span class="subst">&#123;context:&lt;<span class="number">5</span>&#125;</span> &quot;</span>
+        <span class="string">f&quot;平均总耗时=<span class="subst">&#123;statistics.mean(r[<span class="string">&#x27;seconds&#x27;</span>] <span class="keyword">for</span> r <span class="keyword">in</span> rows):<span class="number">.2</span>f&#125;</span>s &quot;</span>
+        <span class="string">f&quot;平均输出速度=<span class="subst">&#123;statistics.mean(r[<span class="string">&#x27;output_tps&#x27;</span>] <span class="keyword">for</span> r <span class="keyword">in</span> rows):<span class="number">.2</span>f&#125;</span> tok/s&quot;</span>
+    )</code></pre>
+
+<pre><code class="highlight bash">python benchmark.py</code></pre>
+
+<p>不要在文章里伪造一组“标准成绩”。芯片、内存带宽、温度、后台程序和 Ollama 版本都会影响结果。读者应该把自己实际输出的两行数据保存下来，并回答：</p>
+<ol>
+<li>8K 上下文是否明显增加内存压力？</li>
+<li>这个任务实际上是否需要 8K？</li>
+<li>两种配置的答案质量是否一致？</li>
+<li>活动监视器是否出现黄色或红色内存压力？</li>
+</ol>
+<p>如果短摘要任务在 2K 下已经完成，8K 没有带来质量提升，那么 2K 就是更合理的设置。这就是一次最小的、有数据支撑的调优，而不是凭感觉修改参数。</p>
+<h2 id="六、建立一份公平的测试基线"><a href="#六、建立一份公平的测试基线" class="headerlink" title="六、建立一份公平的测试基线"></a>六、建立一份公平的测试基线</h2><p>准备 10～30 个固定问题，覆盖真实需求：中文摘要、JSON 抽取、代码解释、基于资料回答、生成可执行单元测试等。</p>
+<p>比较模型或参数时固定 Prompt、<code>seed</code>、温度、上下文和最大输出长度，并记录：</p>
+<table>
+<thead>
+<tr>
+<th>指标</th>
+<th>回答的问题</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>任务成功率</td>
+<td>回答是否真的可用</td>
+</tr>
+<tr>
+<td>首次&#x2F;预热后总耗时</td>
+<td>慢在加载还是推理</td>
+</tr>
+<tr>
+<td>输入 tokens&#x2F;s</td>
+<td>长文档处理是否够快</td>
+</tr>
+<tr>
+<td>输出 tokens&#x2F;s</td>
+<td>回答生成是否流畅</td>
+</tr>
+<tr>
+<td>内存压力</td>
+<td>是否影响整台 Mac</td>
+</tr>
+</tbody></table>
+<p>同时打开“活动监视器”的“内存”窗口，关注<strong>内存压力</strong>和<strong>交换使用量</strong>。速度不错但系统持续变黄、变红，不是稳定配置。</p>
+<h2 id="七、Mac-上最有效的五个调优方向"><a href="#七、Mac-上最有效的五个调优方向" class="headerlink" title="七、Mac 上最有效的五个调优方向"></a>七、Mac 上最有效的五个调优方向</h2><h3 id="1-先换合适的模型大小"><a href="#1-先换合适的模型大小" class="headerlink" title="1. 先换合适的模型大小"></a>1. 先换合适的模型大小</h3><p>模型大小通常比微调参数更影响速度和内存。如果 14B 只能勉强运行，换成优秀的 7B&#x2F;8B 往往更流畅。</p>
+<p>采用“两阶段选择法”：先用固定题集淘汰质量不达标的模型，再在合格模型中选择速度最快、内存最稳的一个。参数更多不等于你的任务一定更好，摘要、分类和格式抽取常常不需要大模型。</p>
+<h3 id="2-比较量化，而不是只追求最低位数"><a href="#2-比较量化，而不是只追求最低位数" class="headerlink" title="2. 比较量化，而不是只追求最低位数"></a>2. 比较量化，而不是只追求最低位数</h3><p>Ollama 模型通常使用 GGUF 量化。4-bit 能显著降低权重占用，适合作为 Mac 的起点；但量化越激进，质量下降风险越高。</p>
+<p>比较量化版本时保持题集和生成参数一致，观察输出速度、内存压力，以及代码、JSON、中文和长文本质量。如果 4-bit 已经完全驻留 GPU，继续压低位数未必值得。</p>
+<h3 id="3-控制上下文长度"><a href="#3-控制上下文长度" class="headerlink" title="3. 控制上下文长度"></a>3. 控制上下文长度</h3><p>上下文越长，KV Cache 占用越大。普通问答先用 4096 或 8192，不要直接打开最大窗口。API 中可按请求设置：</p>
+<pre><code class="highlight json"><span class="punctuation">&#123;</span>
+  <span class="attr">&quot;options&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span> <span class="attr">&quot;num_ctx&quot;</span><span class="punctuation">:</span> <span class="number">4096</span> <span class="punctuation">&#125;</span>
+<span class="punctuation">&#125;</span></code></pre>
+
+<p>也可以新建 <code>Modelfile</code> 固化配置：</p>
+<pre><code class="highlight dockerfile"><span class="keyword">FROM</span> &lt;模型名&gt;
+PARAMETER num_ctx <span class="number">4096</span>
+PARAMETER temperature <span class="number">0.2</span>
+PARAMETER num_predict <span class="number">512</span></code></pre>
+
+<pre><code class="highlight bash">ollama create mac-ai-balanced -f Modelfile
+ollama run mac-ai-balanced</code></pre>
+
+<p>RAG 不要把整个资料库塞进上下文。先检索，再只放最相关片段，通常比盲目增加窗口更快、更准确。</p>
+<h3 id="4-限制并发和已加载模型"><a href="#4-限制并发和已加载模型" class="headerlink" title="4. 限制并发和已加载模型"></a>4. 限制并发和已加载模型</h3><p>个人 Mac 更适合单用户或低并发服务。并行请求会增加上下文所需内存；并发和上下文同时扩大，很容易造成内存压力。</p>
+<p>关闭 Ollama 应用内的服务后，可以用保守配置启动：</p>
+<pre><code class="highlight bash">OLLAMA_NUM_PARALLEL=1 \
+OLLAMA_MAX_LOADED_MODELS=1 \
+OLLAMA_MAX_QUEUE=32 \
+OLLAMA_CONTEXT_LENGTH=4096 \
+ollama serve</code></pre>
+
+<p>确认单并发稳定后，再尝试把 <code>OLLAMA_NUM_PARALLEL</code> 调到 2。每次只改一个参数并重复压测。Mac 不适合作为裸露公网的高并发服务器，公网服务仍需要鉴权、TLS、限流和监控。</p>
+<h3 id="5-优化输入和输出长度"><a href="#5-优化输入和输出长度" class="headerlink" title="5. 优化输入和输出长度"></a>5. 优化输入和输出长度</h3><p>最便宜的优化往往在请求本身：</p>
+<ul>
+<li>删除重复系统提示词和无关历史；</li>
+<li>RAG 文档先去重、切分和重排；</li>
+<li>明确要求回答长度；</li>
+<li>设置合理的 <code>num_predict</code>；</li>
+<li>摘要和分类使用低温度；</li>
+<li>结构化任务提供明确字段或 JSON Schema。</li>
+</ul>
+<p>输入越长，等待首字通常越久；输出越长，占用设备的时间也越长。</p>
+<h2 id="八、一张可复现的调优实验表"><a href="#八、一张可复现的调优实验表" class="headerlink" title="八、一张可复现的调优实验表"></a>八、一张可复现的调优实验表</h2><p>一次只改变一个主要变量：</p>
+<table>
+<thead>
+<tr>
+<th>实验</th>
+<th>模型</th>
+<th>量化</th>
+<th align="right">上下文</th>
+<th align="right">并发</th>
+<th>目的</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>A</td>
+<td>3B</td>
+<td>4-bit</td>
+<td align="right">4096</td>
+<td align="right">1</td>
+<td>最小速度基线</td>
+</tr>
+<tr>
+<td>B</td>
+<td>8B</td>
+<td>4-bit</td>
+<td align="right">4096</td>
+<td align="right">1</td>
+<td>比较质量收益</td>
+</tr>
+<tr>
+<td>C</td>
+<td>8B</td>
+<td>4-bit</td>
+<td align="right">8192</td>
+<td align="right">1</td>
+<td>测试长上下文成本</td>
+</tr>
+<tr>
+<td>D</td>
+<td>8B</td>
+<td>4-bit</td>
+<td align="right">4096</td>
+<td align="right">2</td>
+<td>测试并发与内存</td>
+</tr>
+<tr>
+<td>E</td>
+<td>最优模型</td>
+<td>另一量化</td>
+<td align="right">4096</td>
+<td align="right">1</td>
+<td>比较量化质量</td>
+</tr>
+</tbody></table>
+<p>最终选择不应该是单项冠军，而是同时满足：</p>
+<pre><code class="highlight text">质量达标 + 内存压力稳定 + 生成速度可接受 + 不影响日常工作</code></pre>
+
+<h2 id="九、什么时候使用-MLX-LM"><a href="#九、什么时候使用-MLX-LM" class="headerlink" title="九、什么时候使用 MLX LM"></a>九、什么时候使用 MLX LM</h2><p>如果只是聊天、RAG 或给程序提供本地 API，Ollama 已经足够方便。如果想深入 Apple 芯片模型开发、自己量化或进行 LoRA 微调，可以尝试 Apple 开源的 MLX LM：</p>
+<pre><code class="highlight bash">python3 -m venv .venv
+<span class="built_in">source</span> .venv/bin/activate
+pip install mlx-lm
+
+mlx_lm.generate \
+  --model mlx-community/Llama-3.2-3B-Instruct-4bit \
+  --prompt <span class="string">&quot;解释统一内存为什么适合本地大模型&quot;</span></code></pre>
+
+<p>MLX LM 可以加载 Hugging Face 上的 MLX 模型，也支持量化、低秩微调、KV Cache 量化和推测解码。它更偏实验与开发，具体参数应以当前版本的命令帮助和官方文档为准。</p>
+<h2 id="十、常见问题"><a href="#十、常见问题" class="headerlink" title="十、常见问题"></a>十、常见问题</h2><h3 id="模型一运行，整台电脑就卡"><a href="#模型一运行，整台电脑就卡" class="headerlink" title="模型一运行，整台电脑就卡"></a>模型一运行，整台电脑就卡</h3><p>说明统一内存余量不足。关闭高内存应用，降低上下文，确保只加载一个模型；仍不稳定就换更小模型或更高压缩率的量化版本。</p>
+<h3 id="第一次回答特别慢"><a href="#第一次回答特别慢" class="headerlink" title="第一次回答特别慢"></a>第一次回答特别慢</h3><p>先查看 <code>load_duration</code>。模型从磁盘载入内存会产生冷启动时间，预热后的请求才适合衡量推理速度。</p>
+<h3 id="同一个问题每次结果差很多"><a href="#同一个问题每次结果差很多" class="headerlink" title="同一个问题每次结果差很多"></a>同一个问题每次结果差很多</h3><p>降低 <code>temperature</code> 并固定 <code>seed</code>。性能和质量对比时要减少随机性。</p>
+<h3 id="模型支持-128K，为什么不直接启用"><a href="#模型支持-128K，为什么不直接启用" class="headerlink" title="模型支持 128K，为什么不直接启用"></a>模型支持 128K，为什么不直接启用</h3><p>最大能力不等于免费能力。更大的上下文增加内存占用和输入处理时间，应按真实任务设置。</p>
+<h3 id="能不能让同一-Wi-Fi-下的设备访问"><a href="#能不能让同一-Wi-Fi-下的设备访问" class="headerlink" title="能不能让同一 Wi-Fi 下的设备访问"></a>能不能让同一 Wi-Fi 下的设备访问</h3><p>技术上可以修改监听地址，但这会扩大安全边界。至少应通过带认证和 TLS 的代理访问，并设置防火墙、限流和输入长度限制；不要把裸 Ollama 端口映射到公网。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>在 Mac 上部署和调优大模型，可以遵循这条路线：</p>
+<pre><code class="highlight text">确认统一内存 → 安装 Ollama → 选择小模型建立基线
+→ 检查 GPU 驻留 → 比较模型与量化 → 控制上下文和并发
+→ 用真实题集验证质量 → 固化稳定配置</code></pre>
+
+<p>Mac 调优最重要的原则不是把模型做得尽可能大，而是让<strong>模型、上下文和并发共同适配统一内存</strong>。保留可复现的题集和数据，才能让每次优化成为清晰的工程决策。</p>
+<h2 id="官方资料"><a href="#官方资料" class="headerlink" title="官方资料"></a>官方资料</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://ollama.com/library/qwen3.5:4b">Ollama 模型库：Qwen3.5 4B</a></li>
+<li><a target="_blank" rel="noopener" href="https://docs.ollama.com/macos">Ollama：macOS 安装与系统要求</a></li>
+<li><a target="_blank" rel="noopener" href="https://docs.ollama.com/context-length">Ollama：Context length</a></li>
+<li><a target="_blank" rel="noopener" href="https://docs.ollama.com/api/usage">Ollama：API usage metrics</a></li>
+<li><a target="_blank" rel="noopener" href="https://docs.ollama.com/modelfile">Ollama：Modelfile reference</a></li>
+<li><a target="_blank" rel="noopener" href="https://docs.ollama.com/faq">Ollama：FAQ 与并发配置</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/ml-explore/mlx-lm">Apple MLX LM</a></li>
+<li><a target="_blank" rel="noopener" href="https://developer.apple.com/metal/">Apple：Metal</a></li>
+</ul>
+
+    
+  </div>
+  
+  
+  <footer class="post-footer">
+    <div class="post-tags">
+      
+        <a href="/tags/Mac/">#Mac</a>
+      
+        <a href="/tags/Ollama/">#Ollama</a>
+      
+        <a href="/tags/MLX/">#MLX</a>
+      
+        <a href="/tags/%E6%80%A7%E8%83%BD%E8%B0%83%E4%BC%98/">#性能调优</a>
+      
+        <a href="/tags/%E9%87%8F%E5%8C%96/">#量化</a>
+      
+    </div>
+  </footer>
+  
+</article>
+
+      
+      <!-- 上一篇/下一篇導航 -->
+      <nav class="post-nav">
+        
+          <a href="/2026/08/29/2026-Mac-AI%E5%9B%BE%E7%89%87%E4%B8%8E%E8%A7%86%E9%A2%91%E7%94%9F%E6%88%90/" class="prev">
+            ← Mac AI 图片与视频生成：用 ComfyUI 跑通第一个完整工作流
+          </a>
+        
+        
+          <a href="/2026/08/23/2026-AI%E9%9D%A2%E8%AF%95-%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/" class="next">
+            AI 系统设计面试：如何设计一个可上线的知识库问答服务 →
+          </a>
+        
+      </nav>
+    </div>
+  </main>
+  
+  <footer class="site-footer">
+  <div class="container">
+    <p>&copy; 2026 Chao</p>
+    <p>
+      Powered by <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a> 
+      | Theme: <a href="https://github.com/ceeyu/hexo-theme-cyberpunk2077" target="_blank" rel="noopener">Cyberpunk 2077</a>
+    </p>
+    
+    <div class="social-links">
+      
+        <a href="https://github.com/dochaoing" target="_blank" rel="noopener">GitHub</a>
+      
+    </div>
+    
+  </div>
+</footer>
+
+<!-- Prism.js 程式碼高亮 -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<!-- 預載入常用語言 -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-c.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-cpp.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-java.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-css.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-markup.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-dart.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-yaml.min.js"></script>
+
+<!-- GSAP 動畫庫 -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
+<!-- 自定義腳本 -->
+<script defer src="/js/main.js"></script>
+<script defer src="/js/gsap-animations.js"></script>
+<script defer src="/js/cyberpunk.js"></script>
+
+<!-- 初始化程式碼高亮 -->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // 统一 Hexo 输出与 Prism 的语言类，避免重复包装和重复行号。
+    document.querySelectorAll('.post-content pre > code, .page-body pre > code').forEach(function(block) {
+      const content = block.textContent;
+      let lang = 'plaintext';
+      const languageClass = Array.from(block.classList).find(function(name) {
+        return name.startsWith('language-');
+      });
+      const hexoClass = Array.from(block.classList).find(function(name) {
+        return name !== 'highlight' && name !== 'hljs';
+      });
+
+      if (languageClass) {
+        lang = languageClass.replace('language-', '');
+      } else if (hexoClass) {
+        lang = hexoClass;
+      } else if (content.includes('#include') || content.includes('int main')) {
+        lang = 'cpp';
+      } else if (content.includes('def ') || content.includes('import ')) {
+        lang = 'python';
+      } else if (content.includes('function') || content.includes('const ')) {
+        lang = 'javascript';
+      }
+
+      block.className = 'language-' + lang;
+      block.parentElement.className = 'language-' + lang;
+      block.parentElement.dataset.language = lang.toUpperCase();
+
+      if (typeof Prism !== 'undefined' && Prism.languages[lang]) {
+        Prism.highlightElement(block);
+      }
+    });
+  });
+</script>
+
+</body>
+</html>
