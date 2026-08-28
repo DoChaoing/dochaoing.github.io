@@ -3,17 +3,17 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>从 0 到 1 的大模型学习路线 | Chao Blog</title>
+  <title>AI 学习 | Chao Blog</title>
   
   <!-- SEO -->
-  <meta name="description" content="AI Engineer | Full-Stack Developer | Open Source Enthusiast">
+  <meta name="description" content="从零基础、大模型原理到 AI 应用、RAG、Agent 和推理部署的学习入口。">
   <meta name="keywords" content="">
   
   <!-- Google Fonts - 字體 -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <!-- LXGW WenKai TC (霞鶩文楷) - 優雅手寫風格中文字體 -->
-  <link href="https://fonts.googleapis.com/css2?family=LXGW+WenKai+TC:wght@300;400;700&display=swap" rel="stylesheet">
+  <!-- 霞鹜文楷简体中文字体 -->
+  <link href="https://fonts.googleapis.com/css2?family=LXGW+WenKai:wght@300;400;700&display=swap" rel="stylesheet">
   <!-- Inter - 英文字體 -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <!-- JetBrains Mono - 程式碼字體 -->
@@ -30,14 +30,13 @@
   <!-- Critical CSS 內聯 -->
   <style>
     *{margin:0;padding:0;box-sizing:border-box}
-    body{font-family:'LXGW WenKai TC','Inter',-apple-system,BlinkMacSystemFont,sans-serif;line-height:1.8;color:#1e293b;background:#f8fafc}
+    body{font-family:'LXGW WenKai','Inter',-apple-system,BlinkMacSystemFont,sans-serif;line-height:1.8;color:#1e293b;background:#f8fafc}
     .container{max-width:900px;margin:0 auto;padding:20px}
     a{color:#6366f1;text-decoration:none}
   </style>
   
   <!-- Prism.js 程式碼高亮 - Tomorrow Night 主題 -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css">
   
   <!-- 完整樣式表 -->
   <link rel="stylesheet" href="/css/style.css">
@@ -59,37 +58,7 @@
       <nav class="site-nav">
         
           <a href="/" class="nav-link">
-            <span class="nav-text">首頁</span>
-            <span class="nav-line"></span>
-          </a>
-        
-          <a href="/archives" class="nav-link">
-            <span class="nav-text">文章總覽</span>
-            <span class="nav-line"></span>
-          </a>
-        
-          <a href="/about" class="nav-link">
-            <span class="nav-text">關於</span>
-            <span class="nav-line"></span>
-          </a>
-        
-          <a href="/" class="nav-link">
             <span class="nav-text">首页</span>
-            <span class="nav-line"></span>
-          </a>
-        
-          <a href="/archives/" class="nav-link">
-            <span class="nav-text">归档</span>
-            <span class="nav-line"></span>
-          </a>
-        
-          <a href="/categories/" class="nav-link">
-            <span class="nav-text">分类</span>
-            <span class="nav-line"></span>
-          </a>
-        
-          <a href="/tags/" class="nav-link">
-            <span class="nav-text">标签</span>
             <span class="nav-line"></span>
           </a>
         
@@ -98,13 +67,23 @@
             <span class="nav-line"></span>
           </a>
         
-          <a href="/about.html" class="nav-link">
-            <span class="nav-text">关于</span>
+          <a href="/projects/" class="nav-link">
+            <span class="nav-text">项目实战</span>
             <span class="nav-line"></span>
           </a>
         
-          <a href="/friends.html" class="nav-link">
-            <span class="nav-text">友链</span>
+          <a href="/interview/" class="nav-link">
+            <span class="nav-text">AI 面试</span>
+            <span class="nav-line"></span>
+          </a>
+        
+          <a href="/archives/" class="nav-link">
+            <span class="nav-text">归档</span>
+            <span class="nav-line"></span>
+          </a>
+        
+          <a href="/about.html" class="nav-link">
+            <span class="nav-text">关于</span>
             <span class="nav-line"></span>
           </a>
         
@@ -118,26 +97,67 @@
   <main class="site-main">
     <div class="container">
       <article class="page-content">
-        <h1 class="page-title">从 0 到 1 的大模型学习路线</h1>
+        <h1 class="page-title">AI 学习</h1>
         <div class="page-body">
-          <blockquote>
-<p>这不是“AI 名词大全”。路线从能看懂模型、能完成小实验开始，逐步走向应用、Agent 与推理部署。每一步都有代码、数据、评测或压测作为产出。</p>
-</blockquote>
-<h2 id="从哪里开始"><a href="#从哪里开始" class="headerlink" title="从哪里开始"></a>从哪里开始</h2><p>先读：<a href="/2026/08/10/2026-%E4%BB%8E0%E5%88%B01%E5%AD%A6%E4%B9%A0%E5%A4%A7%E6%A8%A1%E5%9E%8B-%E5%BC%80%E6%BA%90%E8%B7%AF%E7%BA%BF%E5%9B%BE/">从 0 到 1 学大模型：别从 Agent 开始，先完成这四个开源项目</a></p>
-<p>资料筛选与难度说明见：<a href="/2026/08/10/2026-%E5%A4%A7%E6%A8%A1%E5%9E%8B%E4%BC%98%E8%B4%A8%E5%AD%A6%E4%B9%A0%E8%B5%84%E6%96%99%E5%BA%93/">大模型优质学习资料库</a>。</p>
-<p>如果你希望从 Python 实战开始，接着读：<a href="/2026/08/11/2026-Python%E6%96%B0%E6%89%8B%E5%8F%AF%E4%B8%8A%E6%89%8B%E7%9A%84%E5%BC%80%E6%BA%90AI%E9%A1%B9%E7%9B%AE/">Python 新手可上手的 7 个开源 AI 项目</a>。</p>
-<p>文章提供了按难度分层的项目、开源仓库、八周节奏和每阶段的完成标准。开始前只需要选清楚自己的目标：做 AI 应用、理解模型训练，还是做推理与部署。</p>
-<h2 id="推荐顺序"><a href="#推荐顺序" class="headerlink" title="推荐顺序"></a>推荐顺序</h2><pre><code class="highlight text">tokenizer / attention 小实验
-  -&gt; 小 GPT 训练与评测记录
-  -&gt; 结构化输出的小应用
-  -&gt; RAG 与受限工具调用
-  -&gt; 推理服务与压测</code></pre>
-
-<h2 id="资料原则"><a href="#资料原则" class="headerlink" title="资料原则"></a>资料原则</h2><ul>
-<li>优先官方课程、论文作者的代码仓库和活跃的开源项目；</li>
-<li>每次学习都留下可运行代码或实验记录；</li>
-<li>遇到“最新技术”先写出要验证的收益，再决定是否投入；</li>
-<li>不以模型参数量、框架数量或截图数量作为学习成果。</li>
+          <p>这里不是 AI 名词大全，而是一张按目标组织的学习地图。先完成一个能运行、能解释、能验证的小成果，再进入更复杂的 RAG、Agent 和部署系统。</p>
+<h2 id="第一步：选择你的目标"><a href="#第一步：选择你的目标" class="headerlink" title="第一步：选择你的目标"></a>第一步：选择你的目标</h2><ul>
+<li><strong>想快速做出 AI 应用</strong>：从 <a href="/2026/08/11/2026-Python%E6%96%B0%E6%89%8B%E5%8F%AF%E4%B8%8A%E6%89%8B%E7%9A%84%E5%BC%80%E6%BA%90AI%E9%A1%B9%E7%9B%AE/">Python 新手学 AI：7 个两天内能做完的开源项目</a> 开始；</li>
+<li><strong>想系统理解大模型</strong>：阅读 <a href="/2026/08/10/2026-%E4%BB%8E0%E5%88%B01%E5%AD%A6%E4%B9%A0%E5%A4%A7%E6%A8%A1%E5%9E%8B-%E5%BC%80%E6%BA%90%E8%B7%AF%E7%BA%BF%E5%9B%BE/">零基础学大模型：8 周开源项目路线</a>；</li>
+<li><strong>想筛选可靠资料</strong>：查看 <a href="/2026/08/10/2026-%E5%A4%A7%E6%A8%A1%E5%9E%8B%E4%BC%98%E8%B4%A8%E5%AD%A6%E4%B9%A0%E8%B5%84%E6%96%99%E5%BA%93/">大模型学习资料推荐：从入门、RAG 到推理部署</a>；</li>
+<li><strong>目标是求职或转岗</strong>：进入 <a href="/interview/">AI 面试准备</a>。</li>
+</ul>
+<h2 id="第二步：按照能力递进"><a href="#第二步：按照能力递进" class="headerlink" title="第二步：按照能力递进"></a>第二步：按照能力递进</h2><table>
+<thead>
+<tr>
+<th align="left">阶段</th>
+<th align="left">学习重点</th>
+<th align="left">应留下的成果</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">AI 入门</td>
+<td align="left">模型调用、Prompt、结构化输出</td>
+<td align="left">一个有错误处理的小工具</td>
+</tr>
+<tr>
+<td align="left">应用工程</td>
+<td align="left">Gradio、FastAPI、日志与测试</td>
+<td align="left">一个可调用、可测试的 API</td>
+</tr>
+<tr>
+<td align="left">RAG</td>
+<td align="left">切分、检索、重排序、引用与评测</td>
+<td align="left">一组问题集和可溯源回答</td>
+</tr>
+<tr>
+<td align="left">Agent</td>
+<td align="left">工具调用、权限、超时与状态</td>
+<td align="left">一份完整可审计的执行记录</td>
+</tr>
+<tr>
+<td align="left">推理部署</td>
+<td align="left">延迟、吞吐、显存、量化与并发</td>
+<td align="left">可复现的压测报告</td>
+</tr>
+</tbody></table>
+<h2 id="本站-AI-内容分类"><a href="#本站-AI-内容分类" class="headerlink" title="本站 AI 内容分类"></a>本站 AI 内容分类</h2><ul>
+<li><a href="/categories/AI-%E5%AD%A6%E4%B9%A0%E8%B7%AF%E7%BA%BF/">AI 学习路线</a>：学习顺序、资料选择和阶段目标；</li>
+<li><a href="/categories/AI-%E5%BA%94%E7%94%A8%E5%AE%9E%E6%88%98/">AI 应用实战</a>：Python、API、RAG 和 Agent 项目；</li>
+<li><a href="/series/">专题路线</a>：未来持续建设的 RAG、Agent 与推理部署系列；</li>
+<li><a href="/projects/">项目实战</a>：已发布成果、当前项目与验证标准。</li>
+</ul>
+<h2 id="AI-学习路线：5-篇核心文章"><a href="#AI-学习路线：5-篇核心文章" class="headerlink" title="AI 学习路线：5 篇核心文章"></a>AI 学习路线：5 篇核心文章</h2><ol>
+<li><a href="/2026/08/12/2026-AI%E5%85%A5%E9%97%A8-Token%E5%88%B0%E6%96%87%E6%9C%AC%E7%94%9F%E6%88%90/">AI 入门第一课：Token、Embedding 和文本生成到底是什么</a></li>
+<li><a href="/2026/08/13/2026-Transformer%E5%85%A5%E9%97%A8-%E4%B8%80%E6%AC%A1%E7%94%9F%E6%88%90%E6%B5%81%E7%A8%8B/">Transformer 入门：一次文本生成经历了什么</a></li>
+<li><a href="/2026/08/14/2026-%E5%BC%80%E6%BA%90%E5%A4%A7%E6%A8%A1%E5%9E%8B%E9%80%89%E6%8B%A9%E6%8C%87%E5%8D%97/">开源大模型怎么选：参数、量化、上下文和硬件指南</a></li>
+<li><a href="/2026/08/10/2026-%E4%BB%8E0%E5%88%B01%E5%AD%A6%E4%B9%A0%E5%A4%A7%E6%A8%A1%E5%9E%8B-%E5%BC%80%E6%BA%90%E8%B7%AF%E7%BA%BF%E5%9B%BE/">零基础学大模型：一条能真正执行的 8 周开源项目路线</a></li>
+<li><a href="/2026/08/10/2026-%E5%A4%A7%E6%A8%A1%E5%9E%8B%E4%BC%98%E8%B4%A8%E5%AD%A6%E4%B9%A0%E8%B5%84%E6%96%99%E5%BA%93/">大模型学习资料推荐：从入门、RAG 到推理部署</a></li>
+</ol>
+<h2 id="学习原则"><a href="#学习原则" class="headerlink" title="学习原则"></a>学习原则</h2><ul>
+<li>优先阅读官方文档、论文作者代码和活跃开源项目；</li>
+<li>每次学习都留下运行命令、输入输出和失败记录；</li>
+<li>遇到新框架，先写出希望验证的收益；</li>
+<li>不以安装数量、模型参数量或成功截图作为成果。</li>
 </ul>
 
         </div>
@@ -150,14 +170,12 @@
     <p>&copy; 2026 Chao</p>
     <p>
       Powered by <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a> 
-      | Theme: Fast Theme
+      | Theme: <a href="https://github.com/ceeyu/hexo-theme-cyberpunk2077" target="_blank" rel="noopener">Cyberpunk 2077</a>
     </p>
     
     <div class="social-links">
       
         <a href="https://github.com/dochaoing" target="_blank" rel="noopener">GitHub</a>
-      
-        <a href="https://ithelp.ithome.com.tw/users/20151593" target="_blank" rel="noopener">iThome</a>
       
     </div>
     
@@ -178,7 +196,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-dart.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-yaml.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
 
 <!-- GSAP 動畫庫 -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
@@ -192,84 +209,37 @@
 <!-- 初始化程式碼高亮 -->
 <script>
   document.addEventListener('DOMContentLoaded', function() {
-    // Hexo 使用 figure.highlight 結構，需要轉換為 Prism 可識別的格式
-    document.querySelectorAll('figure.highlight').forEach(function(figure) {
-      const codeTable = figure.querySelector('table');
-      if (!codeTable) return;
-      
-      const codeCell = codeTable.querySelector('td.code pre');
-      if (!codeCell) return;
-      
-      // 獲取程式碼內容
-      const lines = codeCell.querySelectorAll('.line');
-      let codeContent = '';
-      lines.forEach(function(line) {
-        codeContent += line.textContent + '\n';
-      });
-      
-      // 檢測語言
-      let lang = 'plaintext';
-      const figureClass = figure.className;
-      
-      // 從 figure class 獲取語言
-      const langMatch = figureClass.match(/highlight\s+(\w+)/);
-      if (langMatch && langMatch[1] !== 'plaintext') {
-        lang = langMatch[1];
-      }
-      
-      // 如果是 plaintext，嘗試自動檢測
-      if (lang === 'plaintext') {
-        if (codeContent.includes('#include') || codeContent.includes('int main') || 
-            codeContent.includes('cout') || codeContent.includes('cin') ||
-            codeContent.includes('iostream') || codeContent.includes('using namespace')) {
-          lang = 'cpp';
-        } else if (codeContent.includes('def ') || codeContent.includes('import ') || codeContent.includes('print(')) {
-          lang = 'python';
-        } else if (codeContent.includes('function') || codeContent.includes('const ') || 
-                   codeContent.includes('let ') || codeContent.includes('=>')) {
-          lang = 'javascript';
-        } else if (codeContent.includes('public class') || codeContent.includes('public static void')) {
-          lang = 'java';
-        } else if (codeContent.includes('Widget') || codeContent.includes('Flutter') || codeContent.includes('@override')) {
-          lang = 'dart';
-        }
-      }
-      
-      // 創建新的 pre > code 結構
-      const pre = document.createElement('pre');
-      pre.className = 'line-numbers language-' + lang;
-      
-      const code = document.createElement('code');
-      code.className = 'language-' + lang;
-      code.textContent = codeContent.trim();
-      
-      pre.appendChild(code);
-      
-      // 替換原本的 figure
-      figure.parentNode.replaceChild(pre, figure);
-    });
-    
-    // 也處理標準的 pre > code
-    document.querySelectorAll('pre code:not([class*="language-"])').forEach(function(block) {
+    // 统一 Hexo 输出与 Prism 的语言类，避免重复包装和重复行号。
+    document.querySelectorAll('.post-content pre > code, .page-body pre > code').forEach(function(block) {
       const content = block.textContent;
       let lang = 'plaintext';
-      
-      if (content.includes('#include') || content.includes('int main')) {
+      const languageClass = Array.from(block.classList).find(function(name) {
+        return name.startsWith('language-');
+      });
+      const hexoClass = Array.from(block.classList).find(function(name) {
+        return name !== 'highlight' && name !== 'hljs';
+      });
+
+      if (languageClass) {
+        lang = languageClass.replace('language-', '');
+      } else if (hexoClass) {
+        lang = hexoClass;
+      } else if (content.includes('#include') || content.includes('int main')) {
         lang = 'cpp';
       } else if (content.includes('def ') || content.includes('import ')) {
         lang = 'python';
       } else if (content.includes('function') || content.includes('const ')) {
         lang = 'javascript';
       }
-      
-      block.classList.add('language-' + lang);
-      block.parentElement.classList.add('language-' + lang, 'line-numbers');
+
+      block.className = 'language-' + lang;
+      block.parentElement.className = 'language-' + lang;
+      block.parentElement.dataset.language = lang.toUpperCase();
+
+      if (typeof Prism !== 'undefined' && Prism.languages[lang]) {
+        Prism.highlightElement(block);
+      }
     });
-    
-    // 執行 Prism 高亮
-    if (typeof Prism !== 'undefined') {
-      Prism.highlightAll();
-    }
   });
 </script>
 

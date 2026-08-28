@@ -4,16 +4,219 @@
   
     
     <entry>
-      <title>Python 新手可上手的 7 个开源 AI 项目：每个只做一个能验收的功能</title>
-      <link href="/2026/08/11/2026-Python%E6%96%B0%E6%89%8B%E5%8F%AF%E4%B8%8A%E6%89%8B%E7%9A%84%E5%BC%80%E6%BA%90AI%E9%A1%B9%E7%9B%AE/"/>
-      <url>/2026/08/11/2026-Python%E6%96%B0%E6%89%8B%E5%8F%AF%E4%B8%8A%E6%89%8B%E7%9A%84%E5%BC%80%E6%BA%90AI%E9%A1%B9%E7%9B%AE/</url>
+      <title>AI 系统设计面试：如何设计一个可上线的知识库问答服务</title>
+      <link href="/2026/08/23/2026-AI%E9%9D%A2%E8%AF%95-%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/"/>
+      <url>/2026/08/23/2026-AI%E9%9D%A2%E8%AF%95-%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/</url>
       
-        <content type="html"><![CDATA[<p>新手学 AI 最容易做错的一件事，是一上来就克隆一个“全栈 Agent 平台”。装好二十个依赖、填完三个 API Key，页面能聊天，却不知道模型、检索、工具和服务各自做了什么。</p><p>更好的开始方式是：一次只引入一个新变量，并留下一个能验证的结果。下面七个项目不是“必装工具”，而是一条由浅到深的 Python 练习阶梯。</p><p><img src="/images/ai-learning/python-ai-project-ladder.svg" alt="Python 开源 AI 项目学习阶梯"></p><p>这张图有一个刻意的设计：它不是“工具排行榜”。前四步在回答“模型能力如何被人和程序使用”，后面三步才分别处理资料、工具和原理。每完成一个项目，先把它的输入、输出和失败情况说清楚，再进入下一步。</p><h2 id="先准备什么"><a href="#先准备什么" class="headerlink" title="先准备什么"></a>先准备什么</h2><p>会写函数、读 JSON、创建虚拟环境就够开始。建议使用 Python 3.10+；把每个练习放进独立目录，保存 <code>requirements.txt</code> 或 <code>pyproject.toml</code>、运行命令和一组测试输入。</p><p>不需要一开始有 GPU。前四个练习可以使用小模型、已有 API 或本地 CPU；需要下载模型时，先看模型大小和许可，不要把“能拉下来”误认为“自己的电脑跑得动”。</p><h2 id="选项目的标准"><a href="#选项目的标准" class="headerlink" title="选项目的标准"></a>选项目的标准</h2><table><thead><tr><th align="left">项目</th><th align="left">你会学到什么</th><th align="left">最小成果</th><th align="left">不适合拿来做什么</th></tr></thead><tbody><tr><td align="left">Transformers</td><td align="left">调用预训练模型</td><td align="left">一个文本&#x2F;图片&#x2F;音频推理脚本</td><td align="left">第一次就训练大模型</td></tr><tr><td align="left">Ollama Python</td><td align="left">本地模型请求与流式输出</td><td align="left">本地问答命令行工具</td><td align="left">绕开模型体积和硬件限制</td></tr><tr><td align="left">Gradio</td><td align="left">把 Python 函数做成界面</td><td align="left">一个可上传文件的 demo</td><td align="left">复杂业务后台</td></tr><tr><td align="left">FastAPI</td><td align="left">类型化 API、错误处理、文档</td><td align="left">一个带 <code>/health</code> 的 AI 接口</td><td align="left">把业务逻辑全塞进路由函数</td></tr><tr><td align="left">Qdrant Client</td><td align="left">本地向量检索</td><td align="left">一个能返回来源的迷你检索器</td><td align="left">直接宣称“企业知识库”</td></tr><tr><td align="left">smolagents</td><td align="left">受限工具调用</td><td align="left">只读两工具 Agent</td><td align="left">未经确认的写操作</td></tr><tr><td align="left">Tiny-Universe</td><td align="left">从原理手写 LLM 组件</td><td align="left">跑通一个 Tiny 模块</td><td align="left">把它当作生产框架</td></tr></tbody></table><h2 id="先建立一张心智地图：AI-应用不是一个聊天框"><a href="#先建立一张心智地图：AI-应用不是一个聊天框" class="headerlink" title="先建立一张心智地图：AI 应用不是一个聊天框"></a>先建立一张心智地图：AI 应用不是一个聊天框</h2><p>一段能调用模型的 Python 代码，只解决了最内层的问题。真正面向使用者的 AI 功能，还要处理输入是否合法、模型挂了怎么办、资料从哪里来、模型能调用哪些工具，以及出了问题如何追踪。</p><p><img src="/images/ai-learning/from-script-to-ai-app.svg" alt="从 Python 脚本到可靠 AI 应用"></p><p>所以这篇文章的顺序不是随意排列：先用 <code>Transformers</code> 或 Ollama 验证“模型能做什么”，再用 Gradio&#x2F;FastAPI 把它包成可用能力；确认检索本身可靠后才接 RAG；最后才尝试 Agent。<strong>Agent 不是起点，而是把已经验证过的能力组织起来。</strong></p><h2 id="1-Transformers：先让一个预训练模型完成单一任务"><a href="#1-Transformers：先让一个预训练模型完成单一任务" class="headerlink" title="1. Transformers：先让一个预训练模型完成单一任务"></a>1. Transformers：先让一个预训练模型完成单一任务</h2><p><a href="https://github.com/huggingface/transformers">Hugging Face Transformers</a> 的 <code>pipeline</code> 是很好的第一站：同一套 Python 接口可以尝试文本生成、分类、语音识别和图像分类。</p><p>第一天只选一个任务。例如做“评论情感分析”：读入十条自己写的文本，输出标签与置信度，并把结果保存为 JSON。然后故意加入反讽、空字符串和中英混合文本，观察失败情况。</p><pre><code class="highlight python"><span class="keyword">from</span> transformers <span class="keyword">import</span> pipelineclassifier = pipeline(<span class="string">&quot;sentiment-analysis&quot;</span>)<span class="built_in">print</span>(classifier(<span class="string">&quot;This update is surprisingly useful.&quot;</span>))</code></pre><p>上面这段代码的价值不在于短，而在于它把边界暴露得很清楚：<strong>输入是字符串，输出是标签和分数，模型文件会首次下载到本地。</strong> 先打印十条结果，再决定要不要做界面。</p><p>这个练习的目标不是做一个漂亮聊天框，而是理解模型调用的输入、输出、模型下载和失败边界。模型输出是预测，不是事实；不要据此自动删除评论或给用户打标签。</p><blockquote><p><strong>验收问题：</strong>我能否举出两条模型判断不可靠的样本，并说明为什么不能把这个输出当作事实？</p></blockquote><h2 id="2-Ollama-Python：用本地模型做一个命令行小工具"><a href="#2-Ollama-Python：用本地模型做一个命令行小工具" class="headerlink" title="2. Ollama Python：用本地模型做一个命令行小工具"></a>2. Ollama Python：用本地模型做一个命令行小工具</h2><p><a href="https://github.com/ollama/ollama-python">ollama-python</a> 是官方 Python 客户端，适合把已运行的 Ollama 模型接进脚本。它支持普通和流式聊天，也有异步客户端。</p><p>一个足够好的练习是“本地文本改写器”：命令行读取一段 Markdown，要求模型给出标题、三条摘要和待核实问题；把请求、模型名和输出写到本地文件。不要让模型直接修改原文件。</p><p>先在一个小模型上跑通。若内存不足，缩短输入或换更小模型，而不是反复重试。这里学到的是本地服务、流式响应与可重放输入，不是比较哪个模型最强。</p><blockquote><p><strong>验收问题：</strong>关闭本地模型服务时，你的脚本能否给出“服务不可用”的提示，而不是一串难懂的异常？</p></blockquote><h2 id="3-Gradio：把函数变成可试用的-demo"><a href="#3-Gradio：把函数变成可试用的-demo" class="headerlink" title="3. Gradio：把函数变成可试用的 demo"></a>3. Gradio：把函数变成可试用的 demo</h2><p><a href="https://github.com/gradio-app/gradio">Gradio</a> 可以把任意 Python 函数包装成 Web 界面，适合检验功能是否真的可被人使用。</p><p>延续上一步，把文本改写器改成一个页面：左侧输入文本，右侧显示结构化结果；当输入为空、超过长度限制或模型不可用时，给出明确提示。只要一个 <code>Interface</code> 或很小的 <code>Blocks</code> 页面就够了。</p><p>验收方式很简单：让一位朋友不用解释就完成一次输入、看到失败提示、复制结果。能被使用比动画和渐变更重要。</p><p>这里要练的不是前端框架，而是产品的最小闭环：用户看到输入框，系统给出结果，失败时能知道下一步该做什么。</p><h2 id="4-FastAPI：把-demo-收敛成可测试的服务"><a href="#4-FastAPI：把-demo-收敛成可测试的服务" class="headerlink" title="4. FastAPI：把 demo 收敛成可测试的服务"></a>4. FastAPI：把 demo 收敛成可测试的服务</h2><p><a href="https://github.com/fastapi/fastapi">FastAPI</a> 适合作为 Python AI 功能的服务层：类型声明会生成交互文档，Pydantic 可校验请求和返回值。</p><p>不要直接做“聊天 API”。先写两个端点：<code>GET /health</code> 返回服务状态，<code>POST /summaries</code> 接收文本并返回一个固定 Schema。为超长文本、非法 JSON 和模型超时写测试。模型调用放在单独的 service 模块，路由只负责请求&#x2F;响应和 HTTP 错误。</p><p>完成后再让 Gradio 调用这个 API。这样你能清楚地区分界面、服务、模型和存储，而不是所有代码都挤在一个 <code>app.py</code>。</p><pre><code class="highlight python"><span class="meta">@app.get(<span class="params"><span class="string">&quot;/health&quot;</span></span>)</span><span class="keyword">def</span> <span class="title function_">health</span>():    <span class="keyword">return</span> &#123;<span class="string">&quot;status&quot;</span>: <span class="string">&quot;ok&quot;</span>&#125;<span class="meta">@app.post(<span class="params"><span class="string">&quot;/summaries&quot;</span></span>)</span><span class="keyword">def</span> <span class="title function_">summarize</span>(<span class="params">request: SummaryRequest</span>) -&gt; SummaryResponse:    <span class="keyword">return</span> summary_service.run(request)</code></pre><p>这两个接口分别回答两个不同的问题：服务是否活着？输入是否符合约定、输出是否符合约定？把模型调用藏在 <code>summary_service</code> 中，日后替换模型时就不会牵动 HTTP 层。</p><h2 id="5-Qdrant-Client：做一个带来源的迷你检索器"><a href="#5-Qdrant-Client：做一个带来源的迷你检索器" class="headerlink" title="5. Qdrant Client：做一个带来源的迷你检索器"></a>5. Qdrant Client：做一个带来源的迷你检索器</h2><p>很多 RAG 教程的第一步就让你装 Docker、向量库、框架和工作流。对新手来说，<a href="https://github.com/qdrant/qdrant-client">Qdrant Python Client</a> 的本地模式更合适：它可以在内存或本地路径运行，之后再切换到服务模式。</p><p>练习用 5 篇自己写的短 Markdown 文档完成：</p><ol><li>给每篇文档分配 ID、标题和路径；</li><li>生成向量并写入本地集合；</li><li>输入问题后返回最相关的三段文本和来源；</li><li>如果最高分不足阈值，返回“未找到足够资料”。</li></ol><p>先把检索结果打印出来，不要急着接模型生成答案。你能解释“为什么这段被找回”之后，再谈 RAG。</p><p>可以把一次查询想成下面这个小闭环：</p><p><code>问题 → 向量化 → Top-k 文档片段 → 分数阈值判断 → 文本 + 文件来源</code></p><p>最后一步很关键。如果没有达到阈值，就明确说“资料不足”；不要让模型凭空补一段看似流畅的答案。</p><h2 id="6-smolagents：只做一个受限的工具调用-Agent"><a href="#6-smolagents：只做一个受限的工具调用-Agent" class="headerlink" title="6. smolagents：只做一个受限的工具调用 Agent"></a>6. smolagents：只做一个受限的工具调用 Agent</h2><p><a href="https://github.com/huggingface/smolagents">smolagents</a> 提供了较小的 Agent 实现，既有生成 Python 调用的 <code>CodeAgent</code>，也有输出结构化工具调用的 <code>ToolCallingAgent</code>。它适合在已经完成 API 与检索练习后，学习“模型如何选择工具”。</p><p>第一版只给两个只读工具：<code>search_notes(query)</code> 和 <code>get_note(id)</code>。设置最多三步；工具返回空结果时必须结束；所有调用记录到日志。不要接文件删除、邮件发送、浏览器控制或任何带副作用的工具。</p><p>特别要注意：模型生成的 Python 代码不应默认在宿主机执行。工具的参数、权限和执行环境要由程序控制；Agent 是一个需要测试的流程，不是一句 Prompt。</p><p>把 Agent 的一次运行当成可审计的记录，而不是魔法：<code>用户问题 → 工具选择 → 工具参数 → 工具返回 → 最终回答</code>。当这个记录能完整保存下来时，你才有能力修复“它为什么答错”。</p><h2 id="7-Tiny-Universe：想知道原理时，再做白盒练习"><a href="#7-Tiny-Universe：想知道原理时，再做白盒练习" class="headerlink" title="7. Tiny-Universe：想知道原理时，再做白盒练习"></a>7. Tiny-Universe：想知道原理时，再做白盒练习</h2><p><a href="https://github.com/datawhalechina/tiny-universe">Datawhale Tiny-Universe</a> 覆盖手写 Transformer、Tiny LLM、RAG、Agent 和 Eval，目标是让学习者看见底层实现，而不是只调用封装框架。</p><p>它适合已经完成前面两三个小项目、并且愿意读 PyTorch 代码的人。推荐只选一个模块：例如 Tiny Transformer 或 Tiny RAG。给自己一个限制：读懂并改动一个函数，再写一条测试，而不是把整个仓库一次跑完。</p><h2 id="一个四周节奏"><a href="#一个四周节奏" class="headerlink" title="一个四周节奏"></a>一个四周节奏</h2><table><thead><tr><th align="left">周</th><th align="left">项目</th><th align="left">交付物</th></tr></thead><tbody><tr><td align="left">第 1 周</td><td align="left">Transformers + Ollama</td><td align="left">两个可重复运行的命令行脚本和十条样本</td></tr><tr><td align="left">第 2 周</td><td align="left">Gradio + FastAPI</td><td align="left">一个 demo、一个 API、基础测试与错误提示</td></tr><tr><td align="left">第 3 周</td><td align="left">Qdrant Client</td><td align="left">五篇文档的本地检索、来源列表和拒答阈值</td></tr><tr><td align="left">第 4 周</td><td align="left">smolagents 或 Tiny-Universe</td><td align="left">工具 trace，或一份带注释的原理实验</td></tr></tbody></table><p>完成四周后再选方向：想做产品，就加强评测、权限和部署；想理解模型，就继续 tokenizer、attention 和训练循环；想微调开源模型，再看 <a href="https://github.com/datawhalechina/self-llm">Self-LLM</a> 与 <a href="https://github.com/hiyouga/LLaMA-Factory">LLaMA-Factory</a>。</p><p>真正的作品集不需要七个仓库。一个有 README、样本、错误处理、测试和已知限制的小项目，比一串“已学过 LangChain、RAG、Agent”的截图更有说服力。</p>]]></content>
+        <content type="html"><![CDATA[<p>AI 系统设计面试不是画出“用户—大模型—数据库”三个框。一个可上线方案需要同时处理数据更新、权限、质量、延迟、成本和故障。</p><h2 id="第一步：澄清需求"><a href="#第一步：澄清需求" class="headerlink" title="第一步：澄清需求"></a>第一步：澄清需求</h2><p>先问：用户是谁、文档规模、更新频率、并发量、延迟目标、是否需要引用、是否允许外部模型、数据权限和不可接受的错误。</p><p>没有这些信息，就无法判断是否需要向量库、队列、缓存或本地部署。</p><h2 id="第二步：拆分离线与在线链路"><a href="#第二步：拆分离线与在线链路" class="headerlink" title="第二步：拆分离线与在线链路"></a>第二步：拆分离线与在线链路</h2><p>离线：文档接入、解析、清洗、切分、Embedding、索引、版本和权限元数据。</p><p>在线：认证、问题处理、权限过滤、检索、重排、上下文构造、模型生成、引用校验和日志。</p><p>分开后可以独立扩缩容，也更容易定位数据问题还是请求问题。</p><h2 id="第三步：权限必须进入检索"><a href="#第三步：权限必须进入检索" class="headerlink" title="第三步：权限必须进入检索"></a>第三步：权限必须进入检索</h2><p>不能先检索所有文档，再只在界面隐藏无权限结果。权限或租户字段应参与过滤，缓存键也必须包含用户权限范围，避免跨用户泄露。</p><p>模型上下文和日志同样需要数据最小化。</p><h2 id="第四步：设计降级路径"><a href="#第四步：设计降级路径" class="headerlink" title="第四步：设计降级路径"></a>第四步：设计降级路径</h2><ul><li>向量库不可用：返回暂时不可查询，而不是让模型自由回答；</li><li>Reranker 超时：降级到基础检索；</li><li>生成模型超时：返回已找到的相关文档；</li><li>没有高分证据：明确提示资料不足；</li><li>文档更新失败：保留上一版可用索引并告警。</li></ul><p>降级结果必须让用户知道能力发生变化。</p><h2 id="第五步：缓存哪些内容"><a href="#第五步：缓存哪些内容" class="headerlink" title="第五步：缓存哪些内容"></a>第五步：缓存哪些内容</h2><p>可以缓存 Embedding、稳定查询的检索结果、公共前缀和非敏感生成结果。缓存前先定义失效条件：文档版本、模型版本、Prompt 版本和权限范围变化都可能使缓存过期。</p><h2 id="第六步：如何扩展"><a href="#第六步：如何扩展" class="headerlink" title="第六步：如何扩展"></a>第六步：如何扩展</h2><p>无状态 API 可以水平扩容；模型服务按 GPU 资源与批处理能力扩容；文档处理通过任务队列异步执行；向量库根据数据量、查询量和可用性要求分片或复制。</p><p>不要一开始就设计成几十个服务。先识别真正需要独立扩展或隔离故障的部分。</p><h2 id="第七步：质量和运行指标"><a href="#第七步：质量和运行指标" class="headerlink" title="第七步：质量和运行指标"></a>第七步：质量和运行指标</h2><p>离线评测包括 Recall@k、引用正确性、答案正确性与拒答。线上关注 TTFT、P95 延迟、错误率、无答案率、每请求 token、工具或检索失败率和用户反馈。</p><p>索引、Embedding、Prompt 或模型变化时重新运行固定评测集。</p><h2 id="安全问题"><a href="#安全问题" class="headerlink" title="安全问题"></a>安全问题</h2><p>把文档内容视为不可信输入，防止其中的指令覆盖系统规则；限制工具权限；对输出做内容和数据泄露检查；日志与评测样本进行脱敏和访问控制。</p><h2 id="最终架构描述"><a href="#最终架构描述" class="headerlink" title="最终架构描述"></a>最终架构描述</h2><pre><code class="highlight text">用户 -&gt; API / 鉴权 -&gt; 检索编排                    -&gt; 权限过滤 -&gt; 混合检索 -&gt; 重排                    -&gt; 上下文构造 -&gt; 模型服务                    -&gt; 引用与响应文档 -&gt; 解析 / 切分 -&gt; Embedding -&gt; 带版本和权限的索引</code></pre><p>面试回答最后应主动说明容量假设、单点故障、成本最大的环节和下一阶段优化，而不是停在架构图。</p><h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul><li><a href="https://qdrant.tech/documentation/production-checklist/">Qdrant：Production Checklist</a></li><li><a href="https://qdrant.tech/documentation/improve-search/retrieval-relevance/">Qdrant：Retrieval Relevance</a></li><li><a href="https://fastapi.tiangolo.com/deployment/">FastAPI：Deployment</a></li></ul>]]></content>
       
       
       <categories>
           
-          <category> 大模型学习 </category>
+          <category> AI 面试 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> AI 面试 </tag>
+            
+            <tag> RAG </tag>
+            
+            <tag> 系统设计 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>大模型推理面试：首 Token 延迟、吞吐量和 KV Cache</title>
+      <link href="/2026/08/22/2026-AI%E9%9D%A2%E8%AF%95-%E6%8E%A8%E7%90%86%E6%80%A7%E8%83%BD/"/>
+      <url>/2026/08/22/2026-AI%E9%9D%A2%E8%AF%95-%E6%8E%A8%E7%90%86%E6%80%A7%E8%83%BD/</url>
+      
+        <content type="html"><![CDATA[<p>“这个模型每秒能生成多少 token”不能完整描述推理服务。交互体验、系统容量和硬件成本需要不同指标。</p><h2 id="TTFT：首-Token-延迟"><a href="#TTFT：首-Token-延迟" class="headerlink" title="TTFT：首 Token 延迟"></a>TTFT：首 Token 延迟</h2><p>Time to First Token 从请求进入到收到第一个输出 token。它受排队、Prompt 长度、Prefill、模型大小和调度影响。长文档请求通常比短问题有更高 TTFT。</p><h2 id="TPOT-与生成速度"><a href="#TPOT-与生成速度" class="headerlink" title="TPOT 与生成速度"></a>TPOT 与生成速度</h2><p>Time per Output Token 衡量 decode 阶段相邻输出 token 的时间。也常用每秒输出 token 表示。它更直接影响流式回答开始后的速度。</p><p>不要把输入 token 和输出 token 混在同一个吞吐量数字里。</p><h2 id="吞吐量与延迟的取舍"><a href="#吞吐量与延迟的取舍" class="headerlink" title="吞吐量与延迟的取舍"></a>吞吐量与延迟的取舍</h2><p>动态批处理可以让 GPU 同时服务多个请求，提高总吞吐量，但请求等待和竞争也可能增加单请求延迟。面试中应说明目标是交互式聊天、离线批处理还是高并发 API。</p><h2 id="KV-Cache-为什么占显存"><a href="#KV-Cache-为什么占显存" class="headerlink" title="KV Cache 为什么占显存"></a>KV Cache 为什么占显存</h2><p>自回归生成会重复使用历史 token 的 Key 和 Value。缓存它们避免每一步重算，但占用随层数、序列长度、并发和缓存精度增加。</p><p>因此长上下文和高并发会竞争同一块显存。模型权重能加载，不代表服务能承受目标并发。</p><h2 id="量化解决什么"><a href="#量化解决什么" class="headerlink" title="量化解决什么"></a>量化解决什么</h2><p>量化使用更低精度表示权重或激活，主要价值是降低内存和计算成本。Hugging Face 当前 Transformers 支持 bitsandbytes 的 8-bit&#x2F;4-bit，以及 AWQ、GPTQ 等方案。</p><p>量化不保证所有硬件上都更快。需要测试质量、首 token 延迟、生成速度和峰值内存。</p><h2 id="如何设计压测"><a href="#如何设计压测" class="headerlink" title="如何设计压测"></a>如何设计压测</h2><p>固定模型、量化、硬件和采样参数，构造不同输入&#x2F;输出长度与并发组合。至少报告：</p><ul><li>TTFT 的 P50、P95；</li><li>TPOT 或输出 token&#x2F;s；</li><li>请求吞吐量；</li><li>错误率与超时率；</li><li>GPU 利用率和峰值显存；</li><li>输入与输出长度分布。</li></ul><p>先预热模型，再运行足够时间。只测一次短请求不能代表线上能力。</p><h2 id="常见优化方向"><a href="#常见优化方向" class="headerlink" title="常见优化方向"></a>常见优化方向</h2><ul><li>Continuous batching：动态组合正在运行的请求；</li><li>Paged KV Cache：更灵活地管理缓存内存；</li><li>Quantization：降低权重或缓存占用；</li><li>Prefix caching：复用相同前缀；</li><li>Speculative decoding：使用草稿模型减少主模型解码步骤；</li><li>Tensor parallel：跨多卡切分模型。</li></ul><p>每项优化都有适用条件，应通过真实负载验证，而不是全部开启。</p><h2 id="面试回答结构"><a href="#面试回答结构" class="headerlink" title="面试回答结构"></a>面试回答结构</h2><p>先区分 Prefill 和 Decode，再分别解释 TTFT 与 TPOT，接着说明并发&#x2F;批处理的吞吐量取舍，最后给出压测设计和瓶颈定位方法。</p><h2 id="官方资料"><a href="#官方资料" class="headerlink" title="官方资料"></a>官方资料</h2><ul><li><a href="https://huggingface.co/docs/transformers/main/perf_infer_gpu_one">Hugging Face：GPU inference</a></li><li><a href="https://huggingface.co/docs/transformers/main/quantization/concept_guide">Hugging Face：Quantization concepts</a></li><li><a href="https://docs.vllm.ai/">vLLM 文档</a></li></ul>]]></content>
+      
+      
+      <categories>
+          
+          <category> AI 面试 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> AI 面试 </tag>
+            
+            <tag> 推理部署 </tag>
+            
+            <tag> KV Cache </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>Agent 面试高频问题：Tool Calling、工作流和安全边界</title>
+      <link href="/2026/08/21/2026-AI%E9%9D%A2%E8%AF%95-Agent/"/>
+      <url>/2026/08/21/2026-AI%E9%9D%A2%E8%AF%95-Agent/</url>
+      
+        <content type="html"><![CDATA[<p>Agent 面试不应只回答“模型可以自主调用工具”。更重要的是解释：模型负责做什么决定，程序控制什么边界，执行如何停止和恢复。</p><h2 id="Agent-和普通工作流有什么区别"><a href="#Agent-和普通工作流有什么区别" class="headerlink" title="Agent 和普通工作流有什么区别"></a>Agent 和普通工作流有什么区别</h2><p>固定工作流的步骤和分支由程序提前定义，适合规则稳定、风险较高的任务。Agent 让模型根据上下文选择工具或下一步，灵活但更难预测和测试。</p><p>如果流程已知，优先使用确定性工作流；只有步骤难以提前枚举时，才让模型参与决策。</p><h2 id="Tool-Calling-的执行主体是谁"><a href="#Tool-Calling-的执行主体是谁" class="headerlink" title="Tool Calling 的执行主体是谁"></a>Tool Calling 的执行主体是谁</h2><p>模型生成工具名和参数，应用程序验证并执行，再把结果返回模型。模型不会因为“调用了工具”就自动获得系统权限。</p><p>执行循环包括：模型响应、解析 tool calls、验证工具白名单与参数、授权、执行、记录 tool result、继续生成或结束。</p><h2 id="如何防止无限循环"><a href="#如何防止无限循环" class="headerlink" title="如何防止无限循环"></a>如何防止无限循环</h2><p>设置最大步骤、总超时、token 预算、重复调用检测和工具级超时。工具连续返回相同结果时可以提前终止。达到上限后返回明确状态，而不是默默截断。</p><h2 id="如何处理状态"><a href="#如何处理状态" class="headerlink" title="如何处理状态"></a>如何处理状态</h2><p>区分消息历史、业务状态和执行状态。消息历史用于模型上下文；业务状态存储真实订单或任务；执行状态记录当前节点、重试次数和工具结果。</p><p>不要只依赖一段越来越长的聊天记录恢复任务。</p><h2 id="如何控制权限"><a href="#如何控制权限" class="headerlink" title="如何控制权限"></a>如何控制权限</h2><p>工具注册表只是第一层。还需要校验参数、当前用户身份、资源权限和操作风险。写操作可以要求人工确认或使用两阶段执行。</p><p>Prompt 中写“不要删除文件”不是权限控制。</p><h2 id="并行工具调用有什么风险"><a href="#并行工具调用有什么风险" class="headerlink" title="并行工具调用有什么风险"></a>并行工具调用有什么风险</h2><p>只读、互不依赖的查询适合并行；存在顺序依赖或写冲突的操作需要串行或事务控制。并行数量还应受限，避免模型一次发起大量昂贵调用。</p><p>Ollama 当前官方文档分别展示了单工具、并行工具调用和多轮 Agent loop，这些能力仍需要应用侧执行和管理。</p><h2 id="如何评测-Agent"><a href="#如何评测-Agent" class="headerlink" title="如何评测 Agent"></a>如何评测 Agent</h2><p>不要只评最终答案。记录任务成功率、工具选择正确率、参数正确率、平均步骤、超时率、重复调用率、人工接管率和总成本。</p><p>建立包含正常、歧义、权限不足、工具失败和恶意输入的测试集。</p><h2 id="可观测性需要记录什么"><a href="#可观测性需要记录什么" class="headerlink" title="可观测性需要记录什么"></a>可观测性需要记录什么</h2><p>记录模型版本、提示版本、每一步工具、参数摘要、授权结果、耗时、返回摘要、重试和终止原因。敏感数据需要脱敏。</p><h2 id="一句话总结"><a href="#一句话总结" class="headerlink" title="一句话总结"></a>一句话总结</h2><p>Agent 是“模型参与决策的受控执行循环”，不是拥有无限权限的自动化脚本。面试回答应同时覆盖灵活性、状态、安全、终止和评测。</p><h2 id="官方资料"><a href="#官方资料" class="headerlink" title="官方资料"></a>官方资料</h2><ul><li><a href="https://docs.ollama.com/capabilities/tool-calling">Ollama：Tool calling</a></li><li><a href="https://platform.openai.com/docs/guides/function-calling">OpenAI API：Function calling</a></li></ul>]]></content>
+      
+      
+      <categories>
+          
+          <category> AI 面试 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> AI 面试 </tag>
+            
+            <tag> Agent </tag>
+            
+            <tag> Tool Calling </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>RAG 面试高频问题：切分、检索、重排和评测怎么回答</title>
+      <link href="/2026/08/20/2026-AI%E9%9D%A2%E8%AF%95-RAG/"/>
+      <url>/2026/08/20/2026-AI%E9%9D%A2%E8%AF%95-RAG/</url>
+      
+        <content type="html"><![CDATA[<p>RAG 面试最忌讳把答案缩成“文档向量化后放入向量数据库”。面试官通常会沿着数据进入、检索、生成和评测逐层追问。</p><h2 id="问题一：完整-RAG-链路是什么"><a href="#问题一：完整-RAG-链路是什么" class="headerlink" title="问题一：完整 RAG 链路是什么"></a>问题一：完整 RAG 链路是什么</h2><p>离线链路：解析文档、清洗、切分、生成向量、写入索引并保存来源元数据。</p><p>在线链路：理解问题、检索候选、过滤或重排、构造上下文、生成答案、返回引用并记录评测信号。</p><h2 id="问题二：Chunk-大小怎么选"><a href="#问题二：Chunk-大小怎么选" class="headerlink" title="问题二：Chunk 大小怎么选"></a>问题二：Chunk 大小怎么选</h2><p>没有通用数字。Chunk 过小会丢失上下文，过大则混入无关内容、增加 token 和降低检索粒度。选择时考虑文档结构、问题粒度和模型上下文。</p><p>回答中应提出实验：固定问题集，比较不同切分策略的 Recall@k、答案正确率和 token 成本。</p><h2 id="问题三：Dense、Sparse-和混合检索有什么区别"><a href="#问题三：Dense、Sparse-和混合检索有什么区别" class="headerlink" title="问题三：Dense、Sparse 和混合检索有什么区别"></a>问题三：Dense、Sparse 和混合检索有什么区别</h2><p>Dense 通过向量捕获语义相似，适合改写和同义表达；Sparse&#x2F;BM25 对产品编号、函数名、专有名词和精确关键词更敏感。</p><p>混合检索可以同时获得两类候选，再用 RRF、DBSF 等方式融合。Qdrant 当前文档还支持 weighted RRF，但权重应该在训练&#x2F;验证拆分的评测集上调整；没有评测集时，手调权重缺少依据。</p><h2 id="问题四：为什么需要-Reranker"><a href="#问题四：为什么需要-Reranker" class="headerlink" title="问题四：为什么需要 Reranker"></a>问题四：为什么需要 Reranker</h2><p>第一阶段检索追求较高召回率，Reranker 对较小候选集做更细致的 query-document 相关性判断，以提高排序精度。代价是额外延迟和计算，因此不对整个语料库运行。</p><h2 id="问题五：RAG-如何评测"><a href="#问题五：RAG-如何评测" class="headerlink" title="问题五：RAG 如何评测"></a>问题五：RAG 如何评测</h2><p>至少拆成两层：</p><ul><li>检索：Recall@k、MRR、NDCG@k；</li><li>生成：答案正确性、忠实度、引用正确性和拒答表现。</li></ul><p>Qdrant 当前检索评测建议：RAG 把 top-k 片段交给模型时优先关注 Recall@k；FAQ 只使用第一条结果时，MRR 或 Hits@1 更有意义。</p><h2 id="问题六：为什么有引用仍可能答错"><a href="#问题六：为什么有引用仍可能答错" class="headerlink" title="问题六：为什么有引用仍可能答错"></a>问题六：为什么有引用仍可能答错</h2><p>模型可能引用了不支持结论的片段，或把多个片段错误组合。必须分别检查“引用是否存在”和“引用是否蕴含答案”。</p><h2 id="问题七：线上效果下降怎么排查"><a href="#问题七：线上效果下降怎么排查" class="headerlink" title="问题七：线上效果下降怎么排查"></a>问题七：线上效果下降怎么排查</h2><p>按顺序检查：原文是否有答案、解析是否完整、切分是否破坏语义、过滤条件是否错误、相关片段是否进入 top-k、重排是否改变正确结果、Prompt 是否要求基于证据回答。</p><p>一次只隔离一层，比直接更换模型更快。</p><h2 id="一个合格回答模板"><a href="#一个合格回答模板" class="headerlink" title="一个合格回答模板"></a>一个合格回答模板</h2><p>先给定义，再说取舍，然后给评测方法，最后指出边界。例如回答混合检索时，不只说“效果更好”，还要说明它对精确词和语义查询的互补、额外成本，以及如何用自己的数据判断是否值得启用。</p><h2 id="官方资料"><a href="#官方资料" class="headerlink" title="官方资料"></a>官方资料</h2><ul><li><a href="https://qdrant.tech/documentation/improve-search/retrieval-relevance/">Qdrant：Measuring Retrieval Relevance</a></li><li><a href="https://qdrant.tech/documentation/search/hybrid-queries/">Qdrant：Hybrid Queries</a></li><li><a href="https://qdrant.tech/documentation/tutorials-basics/reranking-hybrid-search/">Qdrant：Reranking</a></li></ul>]]></content>
+      
+      
+      <categories>
+          
+          <category> AI 面试 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> AI 面试 </tag>
+            
+            <tag> RAG </tag>
+            
+            <tag> 向量检索 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>AI 项目面试怎么讲：用问题、取舍和证据替代框架清单</title>
+      <link href="/2026/08/19/2026-AI%E9%9D%A2%E8%AF%95-%E9%A1%B9%E7%9B%AE%E8%A1%A8%E8%BE%BE/"/>
+      <url>/2026/08/19/2026-AI%E9%9D%A2%E8%AF%95-%E9%A1%B9%E7%9B%AE%E8%A1%A8%E8%BE%BE/</url>
+      
+        <content type="html"><![CDATA[<p>“项目用了 LangChain、向量数据库和大模型 API”不是项目介绍，只是一份依赖清单。面试官真正想确认的是：你解决了什么问题，为什么这样设计，如何证明它有效，以及失败时你做了什么。</p><h2 id="用六段结构组织答案"><a href="#用六段结构组织答案" class="headerlink" title="用六段结构组织答案"></a>用六段结构组织答案</h2><pre><code class="highlight text">问题与约束  -&gt; 我的职责  -&gt; 方案与取舍  -&gt; 最难的问题  -&gt; 验证结果  -&gt; 失败与改进</code></pre><p>控制第一轮介绍在两到三分钟。每一段只留下一个可继续追问的重点。</p><h2 id="1-问题与约束"><a href="#1-问题与约束" class="headerlink" title="1. 问题与约束"></a>1. 问题与约束</h2><p>不要从“我做了一个 RAG”开始。说明谁在什么场景遇到了什么困难，以及限制条件。</p><p>例如：内部文档分散，客服需要快速找到政策依据；数据不能发送到外部服务；答案必须显示来源；高峰期有固定并发要求。</p><h2 id="2-明确你的职责"><a href="#2-明确你的职责" class="headerlink" title="2. 明确你的职责"></a>2. 明确你的职责</h2><p>团队项目中，要区分“团队实现”和“我负责”。可以说自己负责文档解析、检索评测和 API 服务，而前端由同事完成。夸大职责很容易在深入追问时暴露。</p><h2 id="3-解释技术取舍"><a href="#3-解释技术取舍" class="headerlink" title="3. 解释技术取舍"></a>3. 解释技术取舍</h2><p>使用一个方案时同时说出被放弃的方案：</p><ul><li>为什么先用 dense retrieval，而不是直接上混合检索；</li><li>为什么选小模型，而不是参数更大的模型；</li><li>为什么同步接口足够，暂时没有引入消息队列；</li><li>为什么使用 Schema 约束，而不是解析自由文本。</li></ul><p>好的取舍必须联系业务约束，而不是“网上都这么用”。</p><h2 id="4-讲一个真正困难的问题"><a href="#4-讲一个真正困难的问题" class="headerlink" title="4. 讲一个真正困难的问题"></a>4. 讲一个真正困难的问题</h2><p>选你亲自定位过的问题，例如长表格被错误切分导致检索失败。按照“现象—假设—实验—结论—修复”回答。</p><p>不要把“安装依赖很麻烦”当成核心技术难点，除非你能解释具体兼容问题和解决机制。</p><h2 id="5-用证据描述结果"><a href="#5-用证据描述结果" class="headerlink" title="5. 用证据描述结果"></a>5. 用证据描述结果</h2><p>结果可以是 Recall@5、结构校验通过率、P95 延迟、错误率或人工评测一致率。必须说明测试集、环境和对照方案。</p><p>“准确率提升 30%”如果没有指标定义、样本数量和基线，信息价值很低。</p><h2 id="6-主动讲失败和边界"><a href="#6-主动讲失败和边界" class="headerlink" title="6. 主动讲失败和边界"></a>6. 主动讲失败和边界</h2><p>指出系统在哪些查询上仍会失败，以及下一步优先解决什么。能够清楚描述边界，通常比声称“效果很好”更可信。</p><h2 id="高频追问清单"><a href="#高频追问清单" class="headerlink" title="高频追问清单"></a>高频追问清单</h2><ul><li>不使用这个框架能否实现？</li><li>数据更新后如何重建索引？</li><li>如何避免模型泄露敏感信息？</li><li>为什么选择这个 Embedding 或模型？</li><li>指标下降时先查哪一层？</li><li>如果并发扩大十倍，瓶颈在哪里？</li></ul><h2 id="面试前准备材料"><a href="#面试前准备材料" class="headerlink" title="面试前准备材料"></a>面试前准备材料</h2><p>准备一张架构图、一条完整请求链路、三项真实指标、两个失败案例和一个可以展示的代码片段。不要临场回忆所有细节。</p><p>项目表达的核心是证明你具备工程判断，而不是证明你安装过很多工具。</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> AI 面试 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> AI 面试 </tag>
+            
+            <tag> 项目复盘 </tag>
+            
+            <tag> AI 工程 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>Tool Calling Agent 实战：从工具调用到安全执行循环</title>
+      <link href="/2026/08/18/2026-ToolCalling-Agent%E5%AE%89%E5%85%A8%E5%BE%AA%E7%8E%AF/"/>
+      <url>/2026/08/18/2026-ToolCalling-Agent%E5%AE%89%E5%85%A8%E5%BE%AA%E7%8E%AF/</url>
+      
+        <content type="html"><![CDATA[<p>Tool Calling 不是模型直接执行函数。模型只生成“希望调用哪个工具、参数是什么”，真正执行工具的是你的程序。这条边界决定了 Agent 能否被控制和审计。</p><h2 id="最小工具集合"><a href="#最小工具集合" class="headerlink" title="最小工具集合"></a>最小工具集合</h2><p>第一版只提供两个只读工具：搜索笔记和读取单篇笔记。</p><pre><code class="highlight python"><span class="keyword">def</span> <span class="title function_">search_notes</span>(<span class="params">query: <span class="built_in">str</span></span>) -&gt; <span class="built_in">list</span>[<span class="built_in">dict</span>]:    <span class="string">&quot;&quot;&quot;Search note metadata by query.&quot;&quot;&quot;</span>    ...<span class="keyword">def</span> <span class="title function_">get_note</span>(<span class="params">note_id: <span class="built_in">str</span></span>) -&gt; <span class="built_in">dict</span>:    <span class="string">&quot;&quot;&quot;Read one note by its public identifier.&quot;&quot;&quot;</span>    ...</code></pre><p>不要一开始提供删除文件、发送邮件或执行任意命令。工具越少，越容易写清楚参数、权限和测试。</p><h2 id="一个完整执行循环"><a href="#一个完整执行循环" class="headerlink" title="一个完整执行循环"></a>一个完整执行循环</h2><pre><code class="highlight text">用户消息  -&gt; 模型选择工具  -&gt; 程序校验工具名与参数  -&gt; 执行工具  -&gt; 将结果作为 tool 消息加入历史  -&gt; 模型决定继续调用或给出答案</code></pre><p>Ollama 当前官方工具调用文档覆盖单工具、并行工具和多轮 Agent loop。无论使用哪个 SDK，程序都应维护明确的工具注册表。</p><pre><code class="highlight python">TOOLS = &#123;    <span class="string">&quot;search_notes&quot;</span>: search_notes,    <span class="string">&quot;get_note&quot;</span>: get_note,&#125;<span class="keyword">for</span> step <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">3</span>):    response = chat(model=MODEL, messages=messages, tools=<span class="built_in">list</span>(TOOLS.values()))    messages.append(response.message)    <span class="keyword">if</span> <span class="keyword">not</span> response.message.tool_calls:        <span class="keyword">return</span> response.message.content    <span class="keyword">for</span> call <span class="keyword">in</span> response.message.tool_calls:        function = TOOLS.get(call.function.name)        <span class="keyword">if</span> function <span class="keyword">is</span> <span class="literal">None</span>:            <span class="keyword">raise</span> UnknownTool(call.function.name)        result = function(**call.function.arguments)        messages.append(&#123;            <span class="string">&quot;role&quot;</span>: <span class="string">&quot;tool&quot;</span>,            <span class="string">&quot;tool_name&quot;</span>: call.function.name,            <span class="string">&quot;content&quot;</span>: json.dumps(result, ensure_ascii=<span class="literal">False</span>),        &#125;)<span class="keyword">raise</span> StepLimitExceeded(<span class="string">&quot;Agent 超过最大执行步数&quot;</span>)</code></pre><h2 id="参数必须由程序验证"><a href="#参数必须由程序验证" class="headerlink" title="参数必须由程序验证"></a>参数必须由程序验证</h2><p>工具描述不是安全边界。使用 Pydantic 或 JSON Schema 验证类型、长度、枚举和格式；再做业务授权，例如当前用户是否有权读取这个 <code>note_id</code>。</p><p>模型生成的路径、URL、SQL 和命令都应视为不可信输入。</p><h2 id="设置资源上限"><a href="#设置资源上限" class="headerlink" title="设置资源上限"></a>设置资源上限</h2><p>至少限制：</p><ul><li>最大循环步数；</li><li>单工具超时；</li><li>单次返回数据大小；</li><li>并行工具数量；</li><li>整个请求的 token 和时间预算。</li></ul><p>工具失败时返回结构化错误，让模型知道是“未找到、无权限、超时”还是“参数错误”。不要把内部堆栈直接交给模型或用户。</p><h2 id="保存可审计记录"><a href="#保存可审计记录" class="headerlink" title="保存可审计记录"></a>保存可审计记录</h2><p>一次执行应该能还原：用户请求、模型版本、工具名、参数摘要、授权结果、开始结束时间、工具返回摘要和最终状态。敏感字段需要脱敏。</p><p>有了完整记录，才能回答“为什么调用了这个工具”和“失败发生在哪一步”。</p><h2 id="测试场景"><a href="#测试场景" class="headerlink" title="测试场景"></a>测试场景</h2><ol><li>正常搜索后读取笔记；</li><li>模型请求不存在的工具；</li><li>参数类型错误；</li><li>工具超时；</li><li>连续重复同一个调用；</li><li>用户诱导读取无权限数据；</li><li>达到最大步骤后仍未结束。</li></ol><p>这些测试比展示一次成功对话更能说明 Agent 的工程质量。</p><h2 id="官方资料"><a href="#官方资料" class="headerlink" title="官方资料"></a>官方资料</h2><ul><li><a href="https://docs.ollama.com/capabilities/tool-calling">Ollama：Tool calling</a></li><li><a href="https://platform.openai.com/docs/guides/function-calling">OpenAI API：Function calling</a></li></ul><p>Agent 的核心不是“自主”，而是模型选择能力与程序控制边界之间的协议。</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> AI 应用实战 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> Agent </tag>
+            
+            <tag> Tool Calling </tag>
+            
+            <tag> Python </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>不用 LangChain，自己实现一个可评测的最小 RAG</title>
+      <link href="/2026/08/17/2026-%E4%B8%8D%E7%94%A8LangChain%E5%AE%9E%E7%8E%B0RAG/"/>
+      <url>/2026/08/17/2026-%E4%B8%8D%E7%94%A8LangChain%E5%AE%9E%E7%8E%B0RAG/</url>
+      
+        <content type="html"><![CDATA[<p>学习 RAG 时，最重要的不是先接聊天模型，而是先证明检索能找到正确资料。框架可以减少代码，但也容易把切分、索引和召回错误藏在链式调用后面。</p><h2 id="最小系统边界"><a href="#最小系统边界" class="headerlink" title="最小系统边界"></a>最小系统边界</h2><p>第一版只处理一组 Markdown 文档，并实现：</p><pre><code class="highlight text">文档 -&gt; 切分 -&gt; Embedding -&gt; 向量索引问题 -&gt; Embedding -&gt; Top-k 检索 -&gt; 返回片段和来源</code></pre><p>先不生成答案。检索结果稳定后，再把片段交给模型。</p><h2 id="文档切分要保存来源"><a href="#文档切分要保存来源" class="headerlink" title="文档切分要保存来源"></a>文档切分要保存来源</h2><p>每个 chunk 至少保存：</p><ul><li><code>chunk_id</code>；</li><li>文件路径；</li><li>标题或章节；</li><li>原始文本；</li><li>起止位置或页码；</li><li>文档版本。</li></ul><p>固定字符数切分可以作为基线，但标题、段落和代码块边界通常比任意位置更有意义。重叠能减少信息被边界切断的问题，也会增加重复召回和索引体积。</p><h2 id="检索接口应该足够简单"><a href="#检索接口应该足够简单" class="headerlink" title="检索接口应该足够简单"></a>检索接口应该足够简单</h2><pre><code class="highlight python"><span class="keyword">from</span> dataclasses <span class="keyword">import</span> dataclass<span class="meta">@dataclass</span><span class="keyword">class</span> <span class="title class_">SearchHit</span>:    chunk_id: <span class="built_in">str</span>    text: <span class="built_in">str</span>    source: <span class="built_in">str</span>    score: <span class="built_in">float</span><span class="keyword">def</span> <span class="title function_">search</span>(<span class="params">query: <span class="built_in">str</span>, top_k: <span class="built_in">int</span> = <span class="number">5</span></span>) -&gt; <span class="built_in">list</span>[SearchHit]:    query_vector = embedder.encode(query)    <span class="keyword">return</span> vector_store.search(query_vector, top_k=top_k)</code></pre><p>把 Embedding 和向量库放在接口后面，便于替换方案时保持评测流程不变。</p><h2 id="用问题集评测检索"><a href="#用问题集评测检索" class="headerlink" title="用问题集评测检索"></a>用问题集评测检索</h2><p>为每个问题标记至少一个相关 chunk，形成小型 golden set：</p><pre><code class="highlight json"><span class="punctuation">&#123;</span><span class="attr">&quot;query&quot;</span><span class="punctuation">:</span> <span class="string">&quot;如何设置模型超时？&quot;</span><span class="punctuation">,</span> <span class="attr">&quot;relevant&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="string">&quot;api-timeout-01&quot;</span><span class="punctuation">]</span><span class="punctuation">&#125;</span></code></pre><p>RAG 把多个片段交给模型时，Recall@k 是很实用的第一项指标：前 k 个结果中是否包含至少一个相关片段。Qdrant 当前检索评测文档还建议根据场景选择 MRR 或 NDCG@k；k 应与真实传给模型的片段数量一致。</p><h2 id="再加入答案生成"><a href="#再加入答案生成" class="headerlink" title="再加入答案生成"></a>再加入答案生成</h2><p>Prompt 明确要求：只能根据提供片段回答；证据不足就说明不知道；每个关键结论附来源 ID。返回结果包含：</p><pre><code class="highlight json"><span class="punctuation">&#123;</span>  <span class="attr">&quot;answer&quot;</span><span class="punctuation">:</span> <span class="string">&quot;...&quot;</span><span class="punctuation">,</span>  <span class="attr">&quot;citations&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="string">&quot;api-timeout-01&quot;</span><span class="punctuation">]</span><span class="punctuation">,</span>  <span class="attr">&quot;retrieved_chunks&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="string">&quot;...&quot;</span><span class="punctuation">]</span><span class="punctuation">&#125;</span></code></pre><p>引用存在不代表引用支持结论，还要检查 citation correctness。</p><h2 id="什么时候加入混合检索和重排"><a href="#什么时候加入混合检索和重排" class="headerlink" title="什么时候加入混合检索和重排"></a>什么时候加入混合检索和重排</h2><p>Dense 检索擅长语义相似，Sparse&#x2F;BM25 对产品编号、函数名和精确关键词更敏感。Qdrant 当前 Query API 支持 dense 与 sparse 的混合检索，并使用 RRF 或 DBSF 融合；在候选集合上再使用 reranker，可以提高精度，但会增加延迟与计算成本。</p><p>不要因为“混合检索更先进”就直接启用。先分别测 dense-only、sparse-only 和 hybrid，确认它在自己的问题集上确实改善指标。</p><h2 id="常见失败顺序"><a href="#常见失败顺序" class="headerlink" title="常见失败顺序"></a>常见失败顺序</h2><ol><li>文档根本没有答案；</li><li>切分破坏了关键信息；</li><li>Embedding 不适合语言或领域；</li><li>Top-k 太小或过滤条件错误；</li><li>检索正确，但生成忽略证据；</li><li>引用存在，但并不支持答案。</li></ol><p>按照链路定位问题，比不断修改 Prompt 更有效。</p><h2 id="官方资料"><a href="#官方资料" class="headerlink" title="官方资料"></a>官方资料</h2><ul><li><a href="https://qdrant.tech/documentation/improve-search/retrieval-relevance/">Qdrant：Measuring Retrieval Relevance</a></li><li><a href="https://qdrant.tech/documentation/search/hybrid-queries/">Qdrant：Hybrid Queries</a></li><li><a href="https://qdrant.tech/documentation/tutorials-basics/reranking-hybrid-search/">Qdrant：Hybrid Search with Reranking</a></li></ul>]]></content>
+      
+      
+      <categories>
+          
+          <category> AI 应用实战 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> RAG </tag>
+            
+            <tag> 向量检索 </tag>
+            
+            <tag> Python </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>FastAPI 构建 AI 服务：响应模型、超时、测试一次讲清</title>
+      <link href="/2026/08/16/2026-FastAPI-AI%E6%9C%8D%E5%8A%A1/"/>
+      <url>/2026/08/16/2026-FastAPI-AI%E6%9C%8D%E5%8A%A1/</url>
+      
+        <content type="html"><![CDATA[<p>AI Demo 常把模型调用直接写进路由：收到文本、调用模型、返回字符串。它能演示，却很难测试、替换模型或定位失败。一个最小但清晰的服务应该分开 HTTP、业务逻辑和模型适配器。</p><h2 id="目标接口"><a href="#目标接口" class="headerlink" title="目标接口"></a>目标接口</h2><p>实现两个端点：</p><ul><li><code>GET /health</code>：只检查服务进程是否可用；</li><li><code>POST /summaries</code>：接收文本并返回固定结构。</li></ul><p>不要让健康检查每次都生成文本，否则监控本身会消耗昂贵推理资源。</p><h2 id="定义请求和响应"><a href="#定义请求和响应" class="headerlink" title="定义请求和响应"></a>定义请求和响应</h2><pre><code class="highlight python"><span class="keyword">from</span> pydantic <span class="keyword">import</span> BaseModel, Field<span class="keyword">class</span> <span class="title class_">SummaryRequest</span>(<span class="title class_ inherited__">BaseModel</span>):    text: <span class="built_in">str</span> = Field(min_length=<span class="number">1</span>, max_length=<span class="number">20_000</span>)<span class="keyword">class</span> <span class="title class_">SummaryResponse</span>(<span class="title class_ inherited__">BaseModel</span>):    summary: <span class="built_in">str</span>    model: <span class="built_in">str</span>    input_chars: <span class="built_in">int</span></code></pre><p>FastAPI 的 <code>response_model</code> 不只是文档，它会校验和过滤返回数据，避免内部字段意外暴露。</p><h2 id="路由保持薄"><a href="#路由保持薄" class="headerlink" title="路由保持薄"></a>路由保持薄</h2><pre><code class="highlight python"><span class="keyword">from</span> fastapi <span class="keyword">import</span> FastAPI, HTTPExceptionapp = FastAPI()<span class="meta">@app.get(<span class="params"><span class="string">&quot;/health&quot;</span></span>)</span><span class="keyword">def</span> <span class="title function_">health</span>():    <span class="keyword">return</span> &#123;<span class="string">&quot;status&quot;</span>: <span class="string">&quot;ok&quot;</span>&#125;<span class="meta">@app.post(<span class="params"><span class="string">&quot;/summaries&quot;</span>, response_model=SummaryResponse</span>)</span><span class="keyword">def</span> <span class="title function_">summarize</span>(<span class="params">request: SummaryRequest</span>):    <span class="keyword">try</span>:        text = summary_service.run(request.text)    <span class="keyword">except</span> ModelTimeout <span class="keyword">as</span> exc:        <span class="keyword">raise</span> HTTPException(status_code=<span class="number">504</span>, detail=<span class="string">&quot;模型响应超时&quot;</span>) <span class="keyword">from</span> exc    <span class="keyword">except</span> ModelUnavailable <span class="keyword">as</span> exc:        <span class="keyword">raise</span> HTTPException(status_code=<span class="number">503</span>, detail=<span class="string">&quot;模型服务不可用&quot;</span>) <span class="keyword">from</span> exc    <span class="keyword">return</span> SummaryResponse(        summary=text,        model=summary_service.model_name,        input_chars=<span class="built_in">len</span>(request.text),    )</code></pre><p>路由负责协议：校验输入、映射 HTTP 状态和构造响应。Prompt、重试和模型选择放在 service 或 adapter 层。</p><h2 id="超时比重试更重要"><a href="#超时比重试更重要" class="headerlink" title="超时比重试更重要"></a>超时比重试更重要</h2><p>模型调用可能长时间占用连接。客户端和服务端都应设置超时。重试只适用于暂时性错误，并且应限制次数、增加退避；输入错误和 Schema 错误不应盲目重试。</p><p>还要考虑客户端断开后是否继续推理。长任务可以转为队列任务，但不要为了“架构完整”一开始就引入队列。</p><h2 id="使用-TestClient-测试协议"><a href="#使用-TestClient-测试协议" class="headerlink" title="使用 TestClient 测试协议"></a>使用 TestClient 测试协议</h2><p>FastAPI 官方测试文档使用 <code>TestClient</code> 编写普通 pytest 测试。</p><pre><code class="highlight python"><span class="keyword">from</span> fastapi.testclient <span class="keyword">import</span> TestClientclient = TestClient(app)<span class="keyword">def</span> <span class="title function_">test_empty_text_is_rejected</span>():    response = client.post(<span class="string">&quot;/summaries&quot;</span>, json=&#123;<span class="string">&quot;text&quot;</span>: <span class="string">&quot;&quot;</span>&#125;)    <span class="keyword">assert</span> response.status_code == <span class="number">422</span><span class="keyword">def</span> <span class="title function_">test_model_timeout</span>(<span class="params">monkeypatch</span>):    monkeypatch.<span class="built_in">setattr</span>(summary_service, <span class="string">&quot;run&quot;</span>, raise_timeout)    response = client.post(<span class="string">&quot;/summaries&quot;</span>, json=&#123;<span class="string">&quot;text&quot;</span>: <span class="string">&quot;hello&quot;</span>&#125;)    <span class="keyword">assert</span> response.status_code == <span class="number">504</span></code></pre><p>模型适配器用 mock 测试大部分错误路径，真实模型只保留少量集成测试。否则测试速度和稳定性都受模型影响。</p><h2 id="最低可观测性"><a href="#最低可观测性" class="headerlink" title="最低可观测性"></a>最低可观测性</h2><p>日志至少包含请求 ID、模型名、输入 token 数、输出 token 数、耗时、状态和错误类型。不要默认记录完整 Prompt、个人数据或密钥。</p><h2 id="上线前检查"><a href="#上线前检查" class="headerlink" title="上线前检查"></a>上线前检查</h2><ul><li>请求大小有限制；</li><li>超时和并发有上限；</li><li>错误不会泄露内部堆栈；</li><li>响应通过模型校验；</li><li>关键失败路径有测试；</li><li>日志不包含敏感原文。</li></ul><h2 id="官方资料"><a href="#官方资料" class="headerlink" title="官方资料"></a>官方资料</h2><ul><li><a href="https://fastapi.tiangolo.com/tutorial/response-model/">FastAPI：Response Model</a></li><li><a href="https://fastapi.tiangolo.com/tutorial/testing/">FastAPI：Testing</a></li><li><a href="https://fastapi.tiangolo.com/tutorial/handling-errors/">FastAPI：Handling Errors</a></li></ul>]]></content>
+      
+      
+      <categories>
+          
+          <category> AI 应用实战 </category>
           
       </categories>
       
@@ -22,13 +225,9 @@
             
             <tag> Python </tag>
             
-            <tag> 开源项目 </tag>
+            <tag> FastAPI </tag>
             
-            <tag> AI 入门 </tag>
-            
-            <tag> RAG </tag>
-            
-            <tag> Agent </tag>
+            <tag> AI 应用 </tag>
             
         </tags>
       
@@ -37,7 +236,156 @@
     
     
     <entry>
-      <title>大模型优质学习资料库</title>
+      <title>Ollama + Python 实战：让本地模型稳定返回结构化 JSON</title>
+      <link href="/2026/08/15/2026-Ollama-Python%E7%BB%93%E6%9E%84%E5%8C%96%E8%BE%93%E5%87%BA/"/>
+      <url>/2026/08/15/2026-Ollama-Python%E7%BB%93%E6%9E%84%E5%8C%96%E8%BE%93%E5%87%BA/</url>
+      
+        <content type="html"><![CDATA[<p>让模型输出一段 JSON 很容易，让程序长期收到符合约定的数据并不容易。正确做法不是在 Prompt 里反复强调“只输出 JSON”，而是用 Schema 约束输出，再用类型系统验证。</p><h2 id="项目目标"><a href="#项目目标" class="headerlink" title="项目目标"></a>项目目标</h2><p>输入一段会议记录，输出：标题、行动项、负责人和截止日期。验收标准：</p><ul><li>返回内容能被 Pydantic 解析；</li><li>缺少负责人或日期时允许为空，而不是编造；</li><li>模型服务不可用时给出明确错误；</li><li>保存原始输入、模型名和校验结果。</li></ul><h2 id="定义数据结构"><a href="#定义数据结构" class="headerlink" title="定义数据结构"></a>定义数据结构</h2><pre><code class="highlight python"><span class="keyword">from</span> pydantic <span class="keyword">import</span> BaseModel, Field<span class="keyword">class</span> <span class="title class_">ActionItem</span>(<span class="title class_ inherited__">BaseModel</span>):    task: <span class="built_in">str</span> = Field(min_length=<span class="number">1</span>)    owner: <span class="built_in">str</span> | <span class="literal">None</span> = <span class="literal">None</span>    due_date: <span class="built_in">str</span> | <span class="literal">None</span> = <span class="literal">None</span><span class="keyword">class</span> <span class="title class_">MeetingNotes</span>(<span class="title class_ inherited__">BaseModel</span>):    title: <span class="built_in">str</span>    actions: <span class="built_in">list</span>[ActionItem]</code></pre><p>字段是否允许为空必须根据业务定义。如果模型不知道负责人，把它设置为 <code>None</code> 比猜一个名字更可靠。</p><h2 id="调用-Ollama"><a href="#调用-Ollama" class="headerlink" title="调用 Ollama"></a>调用 Ollama</h2><p>Ollama 当前官方文档支持把 JSON Schema 传给 <code>format</code>，并建议使用 Pydantic 的 <code>model_json_schema()</code> 复用结构。</p><pre><code class="highlight python"><span class="keyword">from</span> ollama <span class="keyword">import</span> chat<span class="keyword">def</span> <span class="title function_">extract_notes</span>(<span class="params">text: <span class="built_in">str</span></span>) -&gt; MeetingNotes:    response = chat(        model=<span class="string">&quot;qwen3&quot;</span>,        messages=[&#123;            <span class="string">&quot;role&quot;</span>: <span class="string">&quot;user&quot;</span>,            <span class="string">&quot;content&quot;</span>: <span class="string">f&quot;提取会议行动项。未知字段保持为空。\n\n<span class="subst">&#123;text&#125;</span>&quot;</span>,        &#125;],        <span class="built_in">format</span>=MeetingNotes.model_json_schema(),        options=&#123;<span class="string">&quot;temperature&quot;</span>: <span class="number">0</span>&#125;,    )    <span class="keyword">return</span> MeetingNotes.model_validate_json(response.message.content)</code></pre><p>Schema 约束降低格式漂移，但不保证业务事实正确。类型通过只表示字段形状正确，不表示负责人、日期和任务来自原文。</p><h2 id="错误处理"><a href="#错误处理" class="headerlink" title="错误处理"></a>错误处理</h2><p>至少区分三类错误：</p><ol><li>连接错误：Ollama 未启动或端口不可达；</li><li>校验错误：模型返回不符合 Schema；</li><li>业务错误：结构正确，但结果与原文不一致。</li></ol><p>校验失败可以重试一次，并把错误信息作为修正上下文。不要无限重试；达到上限后保存原始输出，方便复盘。</p><h2 id="测试用例"><a href="#测试用例" class="headerlink" title="测试用例"></a>测试用例</h2><p>准备五类输入：正常会议、没有行动项、负责人未知、日期格式混乱、恶意要求忽略 Schema。断言不仅检查 HTTP 成功，还要检查字段是否来自原文。</p><pre><code class="highlight python"><span class="keyword">def</span> <span class="title function_">test_unknown_owner_stays_empty</span>():    result = extract_notes(<span class="string">&quot;下周完成检索评测，负责人待定。&quot;</span>)    <span class="keyword">assert</span> result.actions[<span class="number">0</span>].owner <span class="keyword">is</span> <span class="literal">None</span></code></pre><p>涉及模型的测试可能不稳定。工程中可以把 Ollama 客户端放在单独模块，单元测试使用固定响应，另外保留少量真实模型集成测试。</p><h2 id="何时使用结构化输出"><a href="#何时使用结构化输出" class="headerlink" title="何时使用结构化输出"></a>何时使用结构化输出</h2><p>适合信息抽取、分类、表单填充、API 参数和工作流状态；不适合把所有自然语言都塞进巨大 Schema。Schema 越复杂，越需要针对目标模型验证支持情况和错误率。</p><h2 id="官方资料"><a href="#官方资料" class="headerlink" title="官方资料"></a>官方资料</h2><ul><li><a href="https://docs.ollama.com/capabilities/structured-outputs">Ollama：Structured Outputs</a></li><li><a href="https://docs.pydantic.dev/latest/concepts/models/">Pydantic：Models</a></li></ul><p>下一步：把这个函数包装成一个带响应校验和测试的 FastAPI 服务。</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> AI 应用实战 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> Python </tag>
+            
+            <tag> Ollama </tag>
+            
+            <tag> 结构化输出 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>开源大模型怎么选：参数、量化、上下文和硬件指南</title>
+      <link href="/2026/08/14/2026-%E5%BC%80%E6%BA%90%E5%A4%A7%E6%A8%A1%E5%9E%8B%E9%80%89%E6%8B%A9%E6%8C%87%E5%8D%97/"/>
+      <url>/2026/08/14/2026-%E5%BC%80%E6%BA%90%E5%A4%A7%E6%A8%A1%E5%9E%8B%E9%80%89%E6%8B%A9%E6%8C%87%E5%8D%97/</url>
+      
+        <content type="html"><![CDATA[<p>“哪个模型最好”通常不是一个完整问题。模型是否适合，取决于任务、语言、延迟、硬件、许可和你愿意承担的评测成本。</p><h2 id="先写任务，不要先看排行榜"><a href="#先写任务，不要先看排行榜" class="headerlink" title="先写任务，不要先看排行榜"></a>先写任务，不要先看排行榜</h2><p>先明确输入与输出：</p><ul><li>中文知识问答还是代码补全？</li><li>输出自由文本还是固定 JSON？</li><li>单轮处理还是多轮对话？</li><li>是否需要工具调用、视觉或长文档？</li><li>本地单人使用还是多人并发服务？</li></ul><p>任务不明确时，模型越大只意味着下载、部署和测试成本更高。</p><h2 id="参数规模告诉你什么"><a href="#参数规模告诉你什么" class="headerlink" title="参数规模告诉你什么"></a>参数规模告诉你什么</h2><p>参数更多通常意味着更高的权重存储和推理成本，但不能直接等同于任务效果。训练数据、架构、后训练方法和语言覆盖都会改变实际表现。</p><p>粗略估算权重存储时，可以使用：</p><pre><code class="highlight text">权重内存 ≈ 参数量 × 每个参数字节数</code></pre><p>FP16&#x2F;BF16 约 2 字节，INT8 约 1 字节，4-bit 权重约 0.5 字节；实际运行还要加上量化元数据、运行时缓冲区、KV Cache 和框架开销。</p><h2 id="量化不是免费的压缩"><a href="#量化不是免费的压缩" class="headerlink" title="量化不是免费的压缩"></a>量化不是免费的压缩</h2><p>Hugging Face 当前文档区分训练后量化（PTQ）和量化感知训练（QAT），并集成 bitsandbytes、torchao、AWQ、GPTQ 等多种后端。不同方法支持的硬件、序列化和训练能力不相同。</p><p>选择量化模型时至少验证：</p><ol><li>目标硬件是否真正支持；</li><li>推理速度是否比高精度更快；</li><li>关键任务质量是否下降；</li><li>模型格式能否被部署框架加载；</li><li>上下文变长后显存是否仍可接受。</li></ol><p>低比特通常降低权重内存，但不保证端到端延迟一定下降。</p><h2 id="上下文长度要看有效性和成本"><a href="#上下文长度要看有效性和成本" class="headerlink" title="上下文长度要看有效性和成本"></a>上下文长度要看有效性和成本</h2><p>标称上下文表示模型或服务允许的最大 token 数，不代表在整个长度范围内都能稳定找到细节。长上下文还会增加 prefill 时间和 KV Cache 占用。</p><p>如果任务是知识库问答，先比较检索后提供少量相关片段，与直接塞入整份文档的质量、延迟和成本。</p><h2 id="模型许可必须检查"><a href="#模型许可必须检查" class="headerlink" title="模型许可必须检查"></a>模型许可必须检查</h2><p>“开放权重”不一定等于可以无限制商用。下载前检查模型卡和许可证：是否限制用途、用户规模、再分发、衍生模型或训练数据使用。</p><p>许可证不清楚时，不要只根据仓库标题推断。</p><h2 id="建立自己的最小评测集"><a href="#建立自己的最小评测集" class="headerlink" title="建立自己的最小评测集"></a>建立自己的最小评测集</h2><p>准备 20 至 50 个真实输入，覆盖：</p><ul><li>正常请求；</li><li>边界长度；</li><li>中英混合；</li><li>结构化输出；</li><li>不知道答案时是否拒答；</li><li>业务中的高风险错误。</li></ul><p>记录答案质量、格式通过率、首 token 延迟、生成速度、峰值内存和失败率。只有在同一环境、同一输入和同一参数下比较，结果才有意义。</p><h2 id="一个实用决策顺序"><a href="#一个实用决策顺序" class="headerlink" title="一个实用决策顺序"></a>一个实用决策顺序</h2><pre><code class="highlight text">任务与许可  -&gt; 能否在硬件上运行  -&gt; 最小模型是否达标  -&gt; 是否需要量化  -&gt; 长上下文是否真实需要  -&gt; 用自己的评测集比较</code></pre><p>先选择能达到质量底线的最小模型，再考虑更大模型。这样更容易获得稳定延迟、较高并发和可控成本。</p><h2 id="官方资料"><a href="#官方资料" class="headerlink" title="官方资料"></a>官方资料</h2><ul><li><a href="https://huggingface.co/docs/transformers/main/quantization/concept_guide">Hugging Face：Quantization concepts</a></li><li><a href="https://huggingface.co/docs/transformers/main_classes/quantization">Hugging Face：Quantization overview</a></li><li><a href="https://huggingface.co/docs/transformers/main/perf_infer_gpu_one">Hugging Face：GPU inference</a></li></ul>]]></content>
+      
+      
+      <categories>
+          
+          <category> AI 学习路线 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> 推理部署 </tag>
+            
+            <tag> 开源模型 </tag>
+            
+            <tag> 量化 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>Transformer 入门：一次文本生成经历了什么</title>
+      <link href="/2026/08/13/2026-Transformer%E5%85%A5%E9%97%A8-%E4%B8%80%E6%AC%A1%E7%94%9F%E6%88%90%E6%B5%81%E7%A8%8B/"/>
+      <url>/2026/08/13/2026-Transformer%E5%85%A5%E9%97%A8-%E4%B8%80%E6%AC%A1%E7%94%9F%E6%88%90%E6%B5%81%E7%A8%8B/</url>
+      
+        <content type="html"><![CDATA[<p>理解 Transformer 不需要一开始推完所有公式。先沿着一次请求走完数据流，再回头学习矩阵计算，会更容易知道每个模块解决什么问题。</p><h2 id="1-输入被整理成模型能接受的序列"><a href="#1-输入被整理成模型能接受的序列" class="headerlink" title="1. 输入被整理成模型能接受的序列"></a>1. 输入被整理成模型能接受的序列</h2><p>聊天应用通常会先用 chat template 把 system、user、assistant 消息转换为模型训练时熟悉的格式，然后由 tokenizer 生成 token ID。</p><p>不同模型的特殊标记和消息模板可能不同。直接拼字符串虽然有时能运行，却可能破坏角色边界或停止条件。使用模型仓库提供的 tokenizer 和 chat template 更可靠。</p><h2 id="2-Token-Embedding-加上位置信息"><a href="#2-Token-Embedding-加上位置信息" class="headerlink" title="2. Token Embedding 加上位置信息"></a>2. Token Embedding 加上位置信息</h2><p>每个 token ID 会被映射成向量。模型还必须知道顺序，否则“猫追狗”和“狗追猫”只包含相同 token。原始 Transformer 使用位置编码，现代模型也常使用旋转位置编码等方案。</p><p>位置信息不只是一个配置数字。扩大上下文长度可能涉及位置编码、训练分布、KV Cache 显存和注意力计算成本，不能只修改一个上限就假设效果保持不变。</p><h2 id="3-Masked-Self-Attention-只查看已经出现的内容"><a href="#3-Masked-Self-Attention-只查看已经出现的内容" class="headerlink" title="3. Masked Self-Attention 只查看已经出现的内容"></a>3. Masked Self-Attention 只查看已经出现的内容</h2><p>Decoder-only 模型在生成当前位置时不能偷看未来 token，因此使用 causal mask。每一层会根据 Query、Key、Value 计算信息应该如何混合。</p><p>可以把多头注意力理解为：多个并行的信息通道使用不同投影寻找关系，最后合并。它并不保证每个头都对应一个人类可命名的语法规则。</p><h2 id="4-前馈网络处理每个位置"><a href="#4-前馈网络处理每个位置" class="headerlink" title="4. 前馈网络处理每个位置"></a>4. 前馈网络处理每个位置</h2><p>Attention 主要在 token 之间传递信息，前馈网络则对每个位置的表示进行非线性变换。残差连接和归一化帮助深层网络稳定训练和传播信息。</p><p>一个 Transformer Block 大致重复：</p><pre><code class="highlight text">输入  -&gt; 归一化  -&gt; Self-Attention  -&gt; 残差连接  -&gt; 归一化  -&gt; 前馈网络  -&gt; 残差连接</code></pre><p>不同模型会调整归一化位置、激活函数、注意力结构和专家模块，但整体数据流仍可以从这个骨架理解。</p><h2 id="5-输出层预测下一个-Token"><a href="#5-输出层预测下一个-Token" class="headerlink" title="5. 输出层预测下一个 Token"></a>5. 输出层预测下一个 Token</h2><p>最后一层隐藏状态经过投影得到词表 logits，再由解码策略选出下一个 token。新 token 被接回序列，模型继续生成，直到遇到停止标记、达到长度限制或被应用主动终止。</p><h2 id="6-KV-Cache-为什么能加速生成"><a href="#6-KV-Cache-为什么能加速生成" class="headerlink" title="6. KV Cache 为什么能加速生成"></a>6. KV Cache 为什么能加速生成</h2><p>如果每生成一个 token 都重新计算全部历史 Key 和 Value，会产生大量重复工作。KV Cache 保存前面 token 在各层的 Key&#x2F;Value，后续步骤只计算新 token 对应部分。</p><p>代价是显存会随层数、序列长度、并发请求和缓存数据类型增长。长上下文服务经常不是模型权重放不下，而是并发时 KV Cache 成为瓶颈。</p><h2 id="Prefill-和-Decode-要分开看"><a href="#Prefill-和-Decode-要分开看" class="headerlink" title="Prefill 和 Decode 要分开看"></a>Prefill 和 Decode 要分开看</h2><ul><li>Prefill：一次处理完整输入，计算量通常较集中；</li><li>Decode：逐 token 生成，延迟更受内存带宽、缓存访问和调度影响。</li></ul><p>因此压测至少应分开记录首 token 延迟和后续生成速度。只报告“总共用了几秒”，很难判断系统到底慢在哪里。</p><h2 id="建议做的三个实验"><a href="#建议做的三个实验" class="headerlink" title="建议做的三个实验"></a>建议做的三个实验</h2><ol><li>固定输出长度，逐渐增加输入长度，记录首 token 延迟；</li><li>固定输入，增加输出长度，记录每秒输出 token；</li><li>固定请求内容，增加并发，记录吞吐量和 P95 延迟。</li></ol><p>每次只改变一个变量，并保存模型、量化、硬件、上下文和采样参数。</p><h2 id="面试时怎么解释"><a href="#面试时怎么解释" class="headerlink" title="面试时怎么解释"></a>面试时怎么解释</h2><p>用一句话概括：Decoder-only Transformer 把上下文编码成隐藏表示，通过多层因果自注意力和前馈网络预测下一个 token；推理时利用 KV Cache 避免重复计算历史状态。</p><p>如果继续追问，再分别展开 tokenizer、位置编码、Attention、解码和缓存，不要从公式背诵开始。</p><h2 id="原始资料"><a href="#原始资料" class="headerlink" title="原始资料"></a>原始资料</h2><ul><li><a href="https://arxiv.org/abs/1706.03762">Attention Is All You Need</a></li><li><a href="https://huggingface.co/docs/transformers/main/en/generation_strategies">Hugging Face：Generation strategies</a></li><li><a href="https://huggingface.co/docs/transformers/">Hugging Face Transformers 文档</a></li></ul>]]></content>
+      
+      
+      <categories>
+          
+          <category> AI 学习路线 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> LLM </tag>
+            
+            <tag> Transformer </tag>
+            
+            <tag> Attention </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>AI 入门第一课：Token、Embedding 和文本生成到底是什么</title>
+      <link href="/2026/08/12/2026-AI%E5%85%A5%E9%97%A8-Token%E5%88%B0%E6%96%87%E6%9C%AC%E7%94%9F%E6%88%90/"/>
+      <url>/2026/08/12/2026-AI%E5%85%A5%E9%97%A8-Token%E5%88%B0%E6%96%87%E6%9C%AC%E7%94%9F%E6%88%90/</url>
+      
+        <content type="html"><![CDATA[<p>刚接触大模型时，最容易把它理解成一个“会查资料的聊天程序”。更准确的起点是：语言模型接收一串 token，根据已有上下文计算下一个 token 的概率，再用某种解码策略选出结果。这个过程不断重复，最终形成文本。</p><h2 id="第一步：文本先变成-Token"><a href="#第一步：文本先变成-Token" class="headerlink" title="第一步：文本先变成 Token"></a>第一步：文本先变成 Token</h2><p>模型不直接读取汉字或单词。Tokenizer 会把文本拆成词、子词、字符或字节级单元，再映射成整数 ID。</p><pre><code class="highlight text">“学习大模型”  -&gt; [“学习”, “大”, “模型”]  -&gt; [3812, 317, 9281]</code></pre><p>这只是示意。不同模型使用不同词表，同一句话得到的 token 数量可能不同。Hugging Face 当前文档列出的常见子词算法包括 BPE、Unigram 和 WordPiece；SentencePiece 还能直接处理没有空格分词习惯的中文、日文等文本。</p><p>Token 数量会影响三件事：上下文占用、请求成本和推理时间。因此，看到“支持 128K 上下文”时，应理解为 token 上限，而不是汉字数或单词数。</p><h2 id="第二步：Token-ID-变成向量"><a href="#第二步：Token-ID-变成向量" class="headerlink" title="第二步：Token ID 变成向量"></a>第二步：Token ID 变成向量</h2><p>整数 ID 本身没有语义。Embedding 层会为每个 token 查找一个向量。训练过程中，模型逐渐把使用方式相近的 token 放到更有规律的向量空间中。</p><p>向量不是词典释义。“苹果”在水果、公司和品牌语境中的含义，需要结合前后文经过多层 Transformer 才能得到更适合当前位置的表示。</p><h2 id="第三步：Attention-组合上下文"><a href="#第三步：Attention-组合上下文" class="headerlink" title="第三步：Attention 组合上下文"></a>第三步：Attention 组合上下文</h2><p>Self-Attention 让当前位置根据其他位置的信息更新自己的表示。可以先记住一个简化问题：</p><blockquote><p>生成下一个 token 时，当前上下文中的哪些部分最值得参考？</p></blockquote><p>Attention 不是一个可直接等同于“模型思考过程”的解释器。它是信息混合机制的一部分；模型的行为还受到多层变换、训练数据、目标函数和解码策略影响。</p><h2 id="第四步：得到下一个-Token-的概率"><a href="#第四步：得到下一个-Token-的概率" class="headerlink" title="第四步：得到下一个 Token 的概率"></a>第四步：得到下一个 Token 的概率</h2><p>模型最后输出词表中每个 token 的分数，经过 softmax 转成概率分布。</p><pre><code class="highlight text">“今天适合去” -&gt;  公园  0.31  学校  0.18  跑步  0.09  ……</code></pre><p>概率最高并不代表事实正确，只表示在模型学到的模式和当前上下文下，这个 token 更可能出现。</p><h2 id="第五步：解码策略决定如何选择"><a href="#第五步：解码策略决定如何选择" class="headerlink" title="第五步：解码策略决定如何选择"></a>第五步：解码策略决定如何选择</h2><p>Hugging Face 的生成文档区分了几种基础方法：</p><ul><li>Greedy search：每一步选择概率最高的 token，稳定但长文本可能重复；</li><li>Sampling：按概率抽样，更有多样性，也更不稳定；</li><li>Beam search：同时保留多个候选序列，更适合翻译、语音识别等有明确输入约束的任务。</li></ul><p><code>temperature</code>、<code>top_p</code> 等参数改变的是选择方式，不会给模型增加它没学过的知识。需要确定结构时，应优先使用 JSON Schema、类型校验和业务规则，而不是只把 temperature 调低。</p><h2 id="一个最小验证实验"><a href="#一个最小验证实验" class="headerlink" title="一个最小验证实验"></a>一个最小验证实验</h2><p>选择同一个模型和提示词，分别使用确定性生成与采样，连续运行五次，保存每次输出。</p><p>记录：</p><ol><li>输入 token 数；</li><li>最大输出 token 数；</li><li>解码参数；</li><li>输出是否重复；</li><li>事实是否一致。</li></ol><p>完成这个实验后，你应该能解释：为什么同一个问题会得到不同回答，以及为什么“更随机”不等于“更聪明”。</p><h2 id="常见误区"><a href="#常见误区" class="headerlink" title="常见误区"></a>常见误区</h2><ul><li>Token 不是固定的汉字或单词；</li><li>Embedding 相似不等于事实关系成立；</li><li>上下文更长不保证答案更好；</li><li>模型生成的是概率序列，不是数据库查询结果；</li><li>调整 temperature 不能替代检索、验证和结构约束。</li></ul><h2 id="官方资料"><a href="#官方资料" class="headerlink" title="官方资料"></a>官方资料</h2><ul><li><a href="https://huggingface.co/docs/transformers/main/en/tokenizer_summary">Hugging Face：Tokenization algorithms</a></li><li><a href="https://huggingface.co/docs/transformers/main/en/generation_strategies">Hugging Face：Generation strategies</a></li><li><a href="https://arxiv.org/abs/1706.03762">Attention Is All You Need</a></li></ul><p>下一篇建议阅读：<a href="/2026/08/13/2026-Transformer%E5%85%A5%E9%97%A8-%E4%B8%80%E6%AC%A1%E7%94%9F%E6%88%90%E6%B5%81%E7%A8%8B/">Transformer 入门：一次文本生成经历了什么</a></p>]]></content>
+      
+      
+      <categories>
+          
+          <category> AI 学习路线 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> AI 入门 </tag>
+            
+            <tag> LLM </tag>
+            
+            <tag> Tokenizer </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>Python 新手学 AI：7 个两天内能做完的开源项目</title>
+      <link href="/2026/08/11/2026-Python%E6%96%B0%E6%89%8B%E5%8F%AF%E4%B8%8A%E6%89%8B%E7%9A%84%E5%BC%80%E6%BA%90AI%E9%A1%B9%E7%9B%AE/"/>
+      <url>/2026/08/11/2026-Python%E6%96%B0%E6%89%8B%E5%8F%AF%E4%B8%8A%E6%89%8B%E7%9A%84%E5%BC%80%E6%BA%90AI%E9%A1%B9%E7%9B%AE/</url>
+      
+        <content type="html"><![CDATA[<p>新手学 AI 最容易做错的一件事，是一上来就克隆一个“全栈 Agent 平台”。装好二十个依赖、填完三个 API Key，页面能聊天，却不知道模型、检索、工具和服务各自做了什么。</p><p>更好的开始方式是：一次只引入一个新变量，并留下一个能验证的结果。下面七个项目不是“必装工具”，而是一条由浅到深的 Python 练习阶梯。</p><p><img src="/images/ai-learning/python-ai-project-ladder.svg" alt="Python 开源 AI 项目学习阶梯"></p><p>这张图有一个刻意的设计：它不是“工具排行榜”。前四步在回答“模型能力如何被人和程序使用”，后面三步才分别处理资料、工具和原理。每完成一个项目，先把它的输入、输出和失败情况说清楚，再进入下一步。</p><h2 id="先准备什么"><a href="#先准备什么" class="headerlink" title="先准备什么"></a>先准备什么</h2><p>会写函数、读 JSON、创建虚拟环境就够开始。建议使用 Python 3.10+；把每个练习放进独立目录，保存 <code>requirements.txt</code> 或 <code>pyproject.toml</code>、运行命令和一组测试输入。</p><p>不需要一开始有 GPU。前四个练习可以使用小模型、已有 API 或本地 CPU；需要下载模型时，先看模型大小和许可，不要把“能拉下来”误认为“自己的电脑跑得动”。</p><h2 id="选项目的标准"><a href="#选项目的标准" class="headerlink" title="选项目的标准"></a>选项目的标准</h2><table><thead><tr><th align="left">项目</th><th align="left">你会学到什么</th><th align="left">最小成果</th><th align="left">不适合拿来做什么</th></tr></thead><tbody><tr><td align="left">Transformers</td><td align="left">调用预训练模型</td><td align="left">一个文本&#x2F;图片&#x2F;音频推理脚本</td><td align="left">第一次就训练大模型</td></tr><tr><td align="left">Ollama Python</td><td align="left">本地模型请求与流式输出</td><td align="left">本地问答命令行工具</td><td align="left">绕开模型体积和硬件限制</td></tr><tr><td align="left">Gradio</td><td align="left">把 Python 函数做成界面</td><td align="left">一个可上传文件的 demo</td><td align="left">复杂业务后台</td></tr><tr><td align="left">FastAPI</td><td align="left">类型化 API、错误处理、文档</td><td align="left">一个带 <code>/health</code> 的 AI 接口</td><td align="left">把业务逻辑全塞进路由函数</td></tr><tr><td align="left">Qdrant Client</td><td align="left">本地向量检索</td><td align="left">一个能返回来源的迷你检索器</td><td align="left">直接宣称“企业知识库”</td></tr><tr><td align="left">smolagents</td><td align="left">受限工具调用</td><td align="left">只读两工具 Agent</td><td align="left">未经确认的写操作</td></tr><tr><td align="left">Tiny-Universe</td><td align="left">从原理手写 LLM 组件</td><td align="left">跑通一个 Tiny 模块</td><td align="left">把它当作生产框架</td></tr></tbody></table><h2 id="先建立一张心智地图：AI-应用不是一个聊天框"><a href="#先建立一张心智地图：AI-应用不是一个聊天框" class="headerlink" title="先建立一张心智地图：AI 应用不是一个聊天框"></a>先建立一张心智地图：AI 应用不是一个聊天框</h2><p>一段能调用模型的 Python 代码，只解决了最内层的问题。真正面向使用者的 AI 功能，还要处理输入是否合法、模型挂了怎么办、资料从哪里来、模型能调用哪些工具，以及出了问题如何追踪。</p><p><img src="/images/ai-learning/from-script-to-ai-app.svg" alt="从 Python 脚本到可靠 AI 应用"></p><p>所以这篇文章的顺序不是随意排列：先用 <code>Transformers</code> 或 Ollama 验证“模型能做什么”，再用 Gradio&#x2F;FastAPI 把它包成可用能力；确认检索本身可靠后才接 RAG；最后才尝试 Agent。<strong>Agent 不是起点，而是把已经验证过的能力组织起来。</strong></p><h2 id="1-Transformers：先让一个预训练模型完成单一任务"><a href="#1-Transformers：先让一个预训练模型完成单一任务" class="headerlink" title="1. Transformers：先让一个预训练模型完成单一任务"></a>1. Transformers：先让一个预训练模型完成单一任务</h2><p><a href="https://github.com/huggingface/transformers">Hugging Face Transformers</a> 的 <code>pipeline</code> 是很好的第一站：同一套 Python 接口可以尝试文本生成、分类、语音识别和图像分类。</p><p>第一天只选一个任务。例如做“评论情感分析”：读入十条自己写的文本，输出标签与置信度，并把结果保存为 JSON。然后故意加入反讽、空字符串和中英混合文本，观察失败情况。</p><pre><code class="highlight python"><span class="keyword">from</span> transformers <span class="keyword">import</span> pipelineclassifier = pipeline(<span class="string">&quot;sentiment-analysis&quot;</span>)<span class="built_in">print</span>(classifier(<span class="string">&quot;This update is surprisingly useful.&quot;</span>))</code></pre><p>上面这段代码的价值不在于短，而在于它把边界暴露得很清楚：<strong>输入是字符串，输出是标签和分数，模型文件会首次下载到本地。</strong> 先打印十条结果，再决定要不要做界面。</p><p>这个练习的目标不是做一个漂亮聊天框，而是理解模型调用的输入、输出、模型下载和失败边界。模型输出是预测，不是事实；不要据此自动删除评论或给用户打标签。</p><blockquote><p><strong>验收问题：</strong>我能否举出两条模型判断不可靠的样本，并说明为什么不能把这个输出当作事实？</p></blockquote><h2 id="2-Ollama-Python：用本地模型做一个命令行小工具"><a href="#2-Ollama-Python：用本地模型做一个命令行小工具" class="headerlink" title="2. Ollama Python：用本地模型做一个命令行小工具"></a>2. Ollama Python：用本地模型做一个命令行小工具</h2><p><a href="https://github.com/ollama/ollama-python">ollama-python</a> 是官方 Python 客户端，适合把已运行的 Ollama 模型接进脚本。它支持普通和流式聊天，也有异步客户端。</p><p>一个足够好的练习是“本地文本改写器”：命令行读取一段 Markdown，要求模型给出标题、三条摘要和待核实问题；把请求、模型名和输出写到本地文件。不要让模型直接修改原文件。</p><p>先在一个小模型上跑通。若内存不足，缩短输入或换更小模型，而不是反复重试。这里学到的是本地服务、流式响应与可重放输入，不是比较哪个模型最强。</p><blockquote><p><strong>验收问题：</strong>关闭本地模型服务时，你的脚本能否给出“服务不可用”的提示，而不是一串难懂的异常？</p></blockquote><h2 id="3-Gradio：把函数变成可试用的-demo"><a href="#3-Gradio：把函数变成可试用的-demo" class="headerlink" title="3. Gradio：把函数变成可试用的 demo"></a>3. Gradio：把函数变成可试用的 demo</h2><p><a href="https://github.com/gradio-app/gradio">Gradio</a> 可以把任意 Python 函数包装成 Web 界面，适合检验功能是否真的可被人使用。</p><p>延续上一步，把文本改写器改成一个页面：左侧输入文本，右侧显示结构化结果；当输入为空、超过长度限制或模型不可用时，给出明确提示。只要一个 <code>Interface</code> 或很小的 <code>Blocks</code> 页面就够了。</p><p>验收方式很简单：让一位朋友不用解释就完成一次输入、看到失败提示、复制结果。能被使用比动画和渐变更重要。</p><p>这里要练的不是前端框架，而是产品的最小闭环：用户看到输入框，系统给出结果，失败时能知道下一步该做什么。</p><h2 id="4-FastAPI：把-demo-收敛成可测试的服务"><a href="#4-FastAPI：把-demo-收敛成可测试的服务" class="headerlink" title="4. FastAPI：把 demo 收敛成可测试的服务"></a>4. FastAPI：把 demo 收敛成可测试的服务</h2><p><a href="https://github.com/fastapi/fastapi">FastAPI</a> 适合作为 Python AI 功能的服务层：类型声明会生成交互文档，Pydantic 可校验请求和返回值。</p><p>不要直接做“聊天 API”。先写两个端点：<code>GET /health</code> 返回服务状态，<code>POST /summaries</code> 接收文本并返回一个固定 Schema。为超长文本、非法 JSON 和模型超时写测试。模型调用放在单独的 service 模块，路由只负责请求&#x2F;响应和 HTTP 错误。</p><p>完成后再让 Gradio 调用这个 API。这样你能清楚地区分界面、服务、模型和存储，而不是所有代码都挤在一个 <code>app.py</code>。</p><pre><code class="highlight python"><span class="meta">@app.get(<span class="params"><span class="string">&quot;/health&quot;</span></span>)</span><span class="keyword">def</span> <span class="title function_">health</span>():    <span class="keyword">return</span> &#123;<span class="string">&quot;status&quot;</span>: <span class="string">&quot;ok&quot;</span>&#125;<span class="meta">@app.post(<span class="params"><span class="string">&quot;/summaries&quot;</span></span>)</span><span class="keyword">def</span> <span class="title function_">summarize</span>(<span class="params">request: SummaryRequest</span>) -&gt; SummaryResponse:    <span class="keyword">return</span> summary_service.run(request)</code></pre><p>这两个接口分别回答两个不同的问题：服务是否活着？输入是否符合约定、输出是否符合约定？把模型调用藏在 <code>summary_service</code> 中，日后替换模型时就不会牵动 HTTP 层。</p><h2 id="5-Qdrant-Client：做一个带来源的迷你检索器"><a href="#5-Qdrant-Client：做一个带来源的迷你检索器" class="headerlink" title="5. Qdrant Client：做一个带来源的迷你检索器"></a>5. Qdrant Client：做一个带来源的迷你检索器</h2><p>很多 RAG 教程的第一步就让你装 Docker、向量库、框架和工作流。对新手来说，<a href="https://github.com/qdrant/qdrant-client">Qdrant Python Client</a> 的本地模式更合适：它可以在内存或本地路径运行，之后再切换到服务模式。</p><p>练习用 5 篇自己写的短 Markdown 文档完成：</p><ol><li>给每篇文档分配 ID、标题和路径；</li><li>生成向量并写入本地集合；</li><li>输入问题后返回最相关的三段文本和来源；</li><li>如果最高分不足阈值，返回“未找到足够资料”。</li></ol><p>先把检索结果打印出来，不要急着接模型生成答案。你能解释“为什么这段被找回”之后，再谈 RAG。</p><p>可以把一次查询想成下面这个小闭环：</p><p><code>问题 → 向量化 → Top-k 文档片段 → 分数阈值判断 → 文本 + 文件来源</code></p><p>最后一步很关键。如果没有达到阈值，就明确说“资料不足”；不要让模型凭空补一段看似流畅的答案。</p><h2 id="6-smolagents：只做一个受限的工具调用-Agent"><a href="#6-smolagents：只做一个受限的工具调用-Agent" class="headerlink" title="6. smolagents：只做一个受限的工具调用 Agent"></a>6. smolagents：只做一个受限的工具调用 Agent</h2><p><a href="https://github.com/huggingface/smolagents">smolagents</a> 提供了较小的 Agent 实现，既有生成 Python 调用的 <code>CodeAgent</code>，也有输出结构化工具调用的 <code>ToolCallingAgent</code>。它适合在已经完成 API 与检索练习后，学习“模型如何选择工具”。</p><p>第一版只给两个只读工具：<code>search_notes(query)</code> 和 <code>get_note(id)</code>。设置最多三步；工具返回空结果时必须结束；所有调用记录到日志。不要接文件删除、邮件发送、浏览器控制或任何带副作用的工具。</p><p>特别要注意：模型生成的 Python 代码不应默认在宿主机执行。工具的参数、权限和执行环境要由程序控制；Agent 是一个需要测试的流程，不是一句 Prompt。</p><p>把 Agent 的一次运行当成可审计的记录，而不是魔法：<code>用户问题 → 工具选择 → 工具参数 → 工具返回 → 最终回答</code>。当这个记录能完整保存下来时，你才有能力修复“它为什么答错”。</p><h2 id="7-Tiny-Universe：想知道原理时，再做白盒练习"><a href="#7-Tiny-Universe：想知道原理时，再做白盒练习" class="headerlink" title="7. Tiny-Universe：想知道原理时，再做白盒练习"></a>7. Tiny-Universe：想知道原理时，再做白盒练习</h2><p><a href="https://github.com/datawhalechina/tiny-universe">Datawhale Tiny-Universe</a> 覆盖手写 Transformer、Tiny LLM、RAG、Agent 和 Eval，目标是让学习者看见底层实现，而不是只调用封装框架。</p><p>它适合已经完成前面两三个小项目、并且愿意读 PyTorch 代码的人。推荐只选一个模块：例如 Tiny Transformer 或 Tiny RAG。给自己一个限制：读懂并改动一个函数，再写一条测试，而不是把整个仓库一次跑完。</p><h2 id="一个四周节奏"><a href="#一个四周节奏" class="headerlink" title="一个四周节奏"></a>一个四周节奏</h2><table><thead><tr><th align="left">周</th><th align="left">项目</th><th align="left">交付物</th></tr></thead><tbody><tr><td align="left">第 1 周</td><td align="left">Transformers + Ollama</td><td align="left">两个可重复运行的命令行脚本和十条样本</td></tr><tr><td align="left">第 2 周</td><td align="left">Gradio + FastAPI</td><td align="left">一个 demo、一个 API、基础测试与错误提示</td></tr><tr><td align="left">第 3 周</td><td align="left">Qdrant Client</td><td align="left">五篇文档的本地检索、来源列表和拒答阈值</td></tr><tr><td align="left">第 4 周</td><td align="left">smolagents 或 Tiny-Universe</td><td align="left">工具 trace，或一份带注释的原理实验</td></tr></tbody></table><p>完成四周后再选方向：想做产品，就加强评测、权限和部署；想理解模型，就继续 tokenizer、attention 和训练循环；想微调开源模型，再看 <a href="https://github.com/datawhalechina/self-llm">Self-LLM</a> 与 <a href="https://github.com/hiyouga/LLaMA-Factory">LLaMA-Factory</a>。</p><p>真正的作品集不需要七个仓库。一个有 README、样本、错误处理、测试和已知限制的小项目，比一串“已学过 LangChain、RAG、Agent”的截图更有说服力。</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> AI 应用实战 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> AI 入门 </tag>
+            
+            <tag> RAG </tag>
+            
+            <tag> Agent </tag>
+            
+            <tag> Python </tag>
+            
+            <tag> 开源项目 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>大模型学习资料推荐：从入门、RAG 到推理部署</title>
       <link href="/2026/08/10/2026-%E5%A4%A7%E6%A8%A1%E5%9E%8B%E4%BC%98%E8%B4%A8%E5%AD%A6%E4%B9%A0%E8%B5%84%E6%96%99%E5%BA%93/"/>
       <url>/2026/08/10/2026-%E5%A4%A7%E6%A8%A1%E5%9E%8B%E4%BC%98%E8%B4%A8%E5%AD%A6%E4%B9%A0%E8%B5%84%E6%96%99%E5%BA%93/</url>
       
@@ -46,24 +394,24 @@
       
       <categories>
           
-          <category> 大模型学习 </category>
+          <category> AI 学习路线 </category>
           
       </categories>
       
       
         <tags>
             
-            <tag> 开源项目 </tag>
+            <tag> LLM </tag>
             
             <tag> Agent </tag>
             
-            <tag> LLM </tag>
+            <tag> 推理部署 </tag>
+            
+            <tag> 开源项目 </tag>
             
             <tag> 学习路线 </tag>
             
             <tag> 模型训练 </tag>
-            
-            <tag> 推理部署 </tag>
             
         </tags>
       
@@ -72,7 +420,7 @@
     
     
     <entry>
-      <title>从 0 到 1 学大模型：别从 Agent 开始，先完成这四个开源项目</title>
+      <title>零基础学大模型：一条能真正执行的 8 周开源项目路线</title>
       <link href="/2026/08/10/2026-%E4%BB%8E0%E5%88%B01%E5%AD%A6%E4%B9%A0%E5%A4%A7%E6%A8%A1%E5%9E%8B-%E5%BC%80%E6%BA%90%E8%B7%AF%E7%BA%BF%E5%9B%BE/"/>
       <url>/2026/08/10/2026-%E4%BB%8E0%E5%88%B01%E5%AD%A6%E4%B9%A0%E5%A4%A7%E6%A8%A1%E5%9E%8B-%E5%BC%80%E6%BA%90%E8%B7%AF%E7%BA%BF%E5%9B%BE/</url>
       
@@ -81,24 +429,24 @@
       
       <categories>
           
-          <category> 大模型学习 </category>
+          <category> AI 学习路线 </category>
           
       </categories>
       
       
         <tags>
             
-            <tag> 开源项目 </tag>
+            <tag> LLM </tag>
             
             <tag> Agent </tag>
             
-            <tag> LLM </tag>
+            <tag> 推理部署 </tag>
+            
+            <tag> 开源项目 </tag>
             
             <tag> 学习路线 </tag>
             
             <tag> 模型训练 </tag>
-            
-            <tag> 推理部署 </tag>
             
         </tags>
       

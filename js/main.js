@@ -1,4 +1,4 @@
-// Fast Theme - 極速主題腳本
+// Cyberpunk 2077 theme interactions
 // 使用原生 JavaScript，零依賴
 
 (function() {
@@ -67,18 +67,7 @@
       const pre = block.parentElement;
       const button = document.createElement('button');
       button.className = 'copy-button';
-      button.textContent = '複製';
-      button.style.cssText = `
-        position: absolute;
-        top: 5px;
-        right: 5px;
-        padding: 4px 8px;
-        font-size: 12px;
-        background: #fff;
-        border: 1px solid #ddd;
-        border-radius: 3px;
-        cursor: pointer;
-      `;
+      button.textContent = '复制';
       
       pre.style.position = 'relative';
       pre.appendChild(button);
@@ -87,12 +76,12 @@
         const code = block.textContent;
         try {
           await navigator.clipboard.writeText(code);
-          button.textContent = '已複製！';
+          button.textContent = '已复制';
           setTimeout(() => {
-            button.textContent = '複製';
+            button.textContent = '复制';
           }, 2000);
         } catch (err) {
-          button.textContent = '複製失敗';
+          button.textContent = '复制失败';
         }
       });
     });

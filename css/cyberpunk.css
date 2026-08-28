@@ -425,7 +425,7 @@
 }
 
 .section-title {
-  font-family: 'Orbitron', 'LXGW WenKai TC', sans-serif;
+  font-family: 'Orbitron', 'LXGW WenKai', sans-serif;
   font-size: 1.25rem;
   font-weight: 600;
   color: var(--cyber-light);
@@ -559,7 +559,7 @@
 }
 
 .card-title {
-  font-family: 'Orbitron', 'LXGW WenKai TC', sans-serif;
+  font-family: 'Orbitron', 'LXGW WenKai', sans-serif;
   font-size: 1.25rem;
   font-weight: 600;
   color: var(--cyber-light);
@@ -703,7 +703,7 @@
 }
 
 .post-title {
-  font-family: 'LXGW WenKai TC', sans-serif;
+  font-family: 'LXGW WenKai', sans-serif;
   font-size: 1rem;
   font-weight: 500;
   color: var(--cyber-light);
@@ -761,7 +761,7 @@
 }
 
 .btn-text {
-  font-family: 'Orbitron', 'LXGW WenKai TC', sans-serif;
+  font-family: 'Orbitron', 'LXGW WenKai', sans-serif;
   font-size: 0.875rem;
   font-weight: 500;
   color: var(--cyber-cyan);
@@ -1008,7 +1008,7 @@
 }
 
 .nav-text {
-  font-family: 'Orbitron', 'LXGW WenKai TC', sans-serif;
+  font-family: 'Orbitron', 'LXGW WenKai', sans-serif;
   font-size: 0.875rem;
   font-weight: 500;
   color: rgba(224, 230, 255, 0.7);
