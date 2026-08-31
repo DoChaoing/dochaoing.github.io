@@ -295,21 +295,23 @@ function initSmoothReveal() {
   // 文章內容段落動畫
   const paragraphs = document.querySelectorAll('.post-content p, .post-content h2, .post-content h3');
   
-  paragraphs.forEach((p, i) => {
-    gsap.set(p, { opacity: 0, y: 30 });
+  paragraphs.forEach((p) => {
+    // 在元素进入视口前提前触发淡入，保留滚动动效但不使用全文累计延迟。
+    gsap.set(p, { opacity: 0, y: 22 });
     
     ScrollTrigger.create({
       trigger: p,
-      start: 'top 90%',
+      start: 'top 102%',
       onEnter: () => {
         gsap.to(p, {
-          duration: 0.6,
+          duration: 0.42,
           opacity: 1,
           y: 0,
           ease: 'power2.out',
-          delay: i * 0.05
+          overwrite: 'auto'
         });
-      }
+      },
+      once: true
     });
   });
 

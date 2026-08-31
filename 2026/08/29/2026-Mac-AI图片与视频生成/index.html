@@ -126,6 +126,8 @@
   → 生成 3～5 秒的缓慢运镜视频
   → 导出 MP4 并检查画面稳定性</code></pre>
 
+<p><img src="/images/ai-media/mac-ai-image-video-pipeline.png" alt="Mac 上从提示词、生图、首帧到视频导出的完整流程"></p>
+<p><em>流程示意：先让单张图片的主体与构图稳定，再把它作为第一帧生成视频，最后导出 MP4。</em></p>
 <p>主工具选择 ComfyUI Desktop。它把模型推理拆成可视化节点，图片和视频可以共用同一套模型管理与工作流机制。</p>
 <h2 id="一、先判断本地生成是否适合你的-Mac"><a href="#一、先判断本地生成是否适合你的-Mac" class="headerlink" title="一、先判断本地生成是否适合你的 Mac"></a>一、先判断本地生成是否适合你的 Mac</h2><p>ComfyUI Desktop for macOS 目前只支持 Apple Silicon，并推荐使用 MPS，让 PyTorch 通过 Metal 使用 Apple GPU。</p>
 <p>可以按照统一内存选择目标：</p>
@@ -172,6 +174,8 @@
 <li><strong>CLIP Text Encode</strong>：填写正向或负向提示词；</li>
 <li><strong>Run &#x2F; Queue</strong>：执行工作流，快捷键通常是 <code>Cmd + Enter</code>。</li>
 </ul>
+<p><img src="/images/ai-media/comfyui-image-workflow.png" alt="节点式图片生成工作流示意图"></p>
+<p><em>节点关系示意：模型和提示词进入采样器，生成结果交给保存节点。实际 ComfyUI 界面会包含更多编码、Latent 和 VAE 节点。</em></p>
 <h2 id="三、第一部分：生成一张图片"><a href="#三、第一部分：生成一张图片" class="headerlink" title="三、第一部分：生成一张图片"></a>三、第一部分：生成一张图片</h2><p>为了先理解流程，使用官方入门工作流和 SD 1.5。它不是最新、质量最高的模型，但体积和资源要求相对较低，适合验证 Mac、MPS、模型目录和保存流程是否都正常。</p>
 <h3 id="第-1-步：加载模板和模型"><a href="#第-1-步：加载模板和模型" class="headerlink" title="第 1 步：加载模板和模型"></a>第 1 步：加载模板和模型</h3><p>在 ComfyUI 中打开：</p>
 <pre><code class="highlight text">Workflow → Browse Workflow Templates → Image Generation</code></pre>
@@ -298,6 +302,8 @@ No scene change, no new objects, no people.</code></pre>
 <li>改用云端 GPU。</li>
 </ol>
 <p>不要同时提高分辨率、帧数和 Batch。视频总像素量大致随“宽 × 高 × 帧数”增长，三个参数一起增加会迅速放大资源需求。</p>
+<p><img src="/images/ai-media/mac-video-memory-comparison.png" alt="Mac 视频生成保守参数与过载参数对比"></p>
+<p><em>第一次运行应从低分辨率、少帧数、Batch 1 开始。图中的参数用于解释资源增长关系，不代表所有视频模型都接受完全相同的尺寸和帧数。</em></p>
 <h2 id="七、图片与视频提示词模板"><a href="#七、图片与视频提示词模板" class="headerlink" title="七、图片与视频提示词模板"></a>七、图片与视频提示词模板</h2><p>图片提示词：</p>
 <pre><code class="highlight text">[主体]，位于[环境]，[构图/视角]，[光线]，[材质与细节]，
 [视觉风格]，[色彩]，[画面中不要出现什么]</code></pre>
@@ -411,6 +417,10 @@ no scene change, no new objects, continuous motion</code></pre>
       
       <!-- 上一篇/下一篇導航 -->
       <nav class="post-nav">
+        
+          <a href="/2026/08/30/2026-%E6%AF%94%E7%89%B9%E5%B8%81%E8%B5%B7%E6%BA%90%E5%8F%91%E8%A1%8C%E4%B8%8E%E6%8A%95%E8%B5%84/" class="prev">
+            ← 比特币从哪里来：起源、发行机制与理性投资指南
+          </a>
         
         
           <a href="/2026/08/28/2026-%E5%A4%A7%E6%A8%A1%E5%9E%8B%E9%83%A8%E7%BD%B2%E4%B8%8E%E6%80%A7%E8%83%BD%E8%B0%83%E4%BC%98/" class="next">
