@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Transformer 入门：一次文本生成经历了什么 | Chao Blog</title>
+  
+  <!-- SEO -->
+  <meta name="description" content="从输入、位置、Attention、前馈网络到 KV Cache，解释 Decoder-only Transformer 完成一次文本生成的主要步骤。">
+  <meta name="keywords" content="LLM,Transformer,Attention">
+  
+  <!-- Google Fonts - 字體 -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <!-- 霞鹜文楷简体中文字体 -->
+  <link href="https://fonts.googleapis.com/css2?family=LXGW+WenKai:wght@300;400;700&display=swap" rel="stylesheet">
+  <!-- Inter - 英文字體 -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- JetBrains Mono - 程式碼字體 -->
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <!-- Orbitron - 賽博龐克風格字體 -->
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <!-- Audiowide - Cyberpunk 風格字體 -->
+  <link href="https://fonts.googleapis.com/css2?family=Audiowide&display=swap" rel="stylesheet">
+  <!-- Teko - 斜體科幻風格 -->
+  <link href="https://fonts.googleapis.com/css2?family=Teko:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Russo One - 粗體科幻風格 -->
+  <link href="https://fonts.googleapis.com/css2?family=Russo+One&display=swap" rel="stylesheet">
+  
+  <!-- Critical CSS 內聯 -->
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'LXGW WenKai','Inter',-apple-system,BlinkMacSystemFont,sans-serif;line-height:1.8;color:#1e293b;background:#f8fafc}
+    .container{max-width:900px;margin:0 auto;padding:20px}
+    a{color:#6366f1;text-decoration:none}
+  </style>
+  
+  <!-- Prism.js 程式碼高亮 - Tomorrow Night 主題 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+  
+  <!-- 完整樣式表 -->
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/gsap-styles.css">
+  <link rel="stylesheet" href="/css/embeds.css">
+  <link rel="stylesheet" href="/css/cyberpunk.css">
+<meta name="generator" content="Hexo 7.3.0"><link rel="alternate" href="/atom.xml" title="Chao Blog" type="application/atom+xml">
+</head>
+
+<body class="post-page">
+  <header class="site-header cyber-header">
+  <div class="container">
+    <div class="header-content">
+      <a href="/" class="site-logo">
+        <span class="logo-bracket">[</span>
+        <span class="logo-text">Chao Blog</span>
+        <span class="logo-bracket">]</span>
+      </a>
+      <nav class="site-nav">
+        
+          <a href="/" class="nav-link">
+            <span class="nav-text">首页</span>
+            <span class="nav-line"></span>
+          </a>
+        
+          <a href="/ai-learning/" class="nav-link">
+            <span class="nav-text">AI 学习</span>
+            <span class="nav-line"></span>
+          </a>
+        
+          <a href="/projects/" class="nav-link">
+            <span class="nav-text">项目实战</span>
+            <span class="nav-line"></span>
+          </a>
+        
+          <a href="/interview/" class="nav-link">
+            <span class="nav-text">AI 面试</span>
+            <span class="nav-line"></span>
+          </a>
+        
+          <a href="/archives/" class="nav-link">
+            <span class="nav-text">归档</span>
+            <span class="nav-line"></span>
+          </a>
+        
+          <a href="/about.html" class="nav-link">
+            <span class="nav-text">关于</span>
+            <span class="nav-line"></span>
+          </a>
+        
+      </nav>
+    </div>
+  </div>
+  <div class="header-line"></div>
+</header>
+
+  
+  <main class="site-main">
+    <div class="container">
+      <article class="post hover-lift">
+  <header class="post-header">
+    <h2 class="post-title">
+      
+        <a href="/2026/08/13/2026-Transformer%E5%85%A5%E9%97%A8-%E4%B8%80%E6%AC%A1%E7%94%9F%E6%88%90%E6%B5%81%E7%A8%8B/">Transformer 入门：一次文本生成经历了什么</a>
+      
+    </h2>
+    <div class="post-meta">
+      <time datetime="2026-08-13T01:00:00.000Z">
+        2026-08-13
+      </time>
+      
+        <span class="separator">•</span>
+        
+          <a href="/categories/AI-%E5%AD%A6%E4%B9%A0%E8%B7%AF%E7%BA%BF/">AI 学习路线</a>
+        
+      
+    </div>
+  </header>
+  
+  <div class="post-content">
+    
+      <p>理解 Transformer 不需要一开始推完所有公式。先沿着一次请求走完数据流，再回头学习矩阵计算，会更容易知道每个模块解决什么问题。</p>
+<h2 id="1-输入被整理成模型能接受的序列"><a href="#1-输入被整理成模型能接受的序列" class="headerlink" title="1. 输入被整理成模型能接受的序列"></a>1. 输入被整理成模型能接受的序列</h2><p>聊天应用通常会先用 chat template 把 system、user、assistant 消息转换为模型训练时熟悉的格式，然后由 tokenizer 生成 token ID。</p>
+<p>不同模型的特殊标记和消息模板可能不同。直接拼字符串虽然有时能运行，却可能破坏角色边界或停止条件。使用模型仓库提供的 tokenizer 和 chat template 更可靠。</p>
+<h2 id="2-Token-Embedding-加上位置信息"><a href="#2-Token-Embedding-加上位置信息" class="headerlink" title="2. Token Embedding 加上位置信息"></a>2. Token Embedding 加上位置信息</h2><p>每个 token ID 会被映射成向量。模型还必须知道顺序，否则“猫追狗”和“狗追猫”只包含相同 token。原始 Transformer 使用位置编码，现代模型也常使用旋转位置编码等方案。</p>
+<p>位置信息不只是一个配置数字。扩大上下文长度可能涉及位置编码、训练分布、KV Cache 显存和注意力计算成本，不能只修改一个上限就假设效果保持不变。</p>
+<h2 id="3-Masked-Self-Attention-只查看已经出现的内容"><a href="#3-Masked-Self-Attention-只查看已经出现的内容" class="headerlink" title="3. Masked Self-Attention 只查看已经出现的内容"></a>3. Masked Self-Attention 只查看已经出现的内容</h2><p>Decoder-only 模型在生成当前位置时不能偷看未来 token，因此使用 causal mask。每一层会根据 Query、Key、Value 计算信息应该如何混合。</p>
+<p>可以把多头注意力理解为：多个并行的信息通道使用不同投影寻找关系，最后合并。它并不保证每个头都对应一个人类可命名的语法规则。</p>
+<h2 id="4-前馈网络处理每个位置"><a href="#4-前馈网络处理每个位置" class="headerlink" title="4. 前馈网络处理每个位置"></a>4. 前馈网络处理每个位置</h2><p>Attention 主要在 token 之间传递信息，前馈网络则对每个位置的表示进行非线性变换。残差连接和归一化帮助深层网络稳定训练和传播信息。</p>
+<p>一个 Transformer Block 大致重复：</p>
+<pre><code class="highlight text">输入
+  -&gt; 归一化
+  -&gt; Self-Attention
+  -&gt; 残差连接
+  -&gt; 归一化
+  -&gt; 前馈网络
+  -&gt; 残差连接</code></pre>
+
+<p>不同模型会调整归一化位置、激活函数、注意力结构和专家模块，但整体数据流仍可以从这个骨架理解。</p>
+<h2 id="5-输出层预测下一个-Token"><a href="#5-输出层预测下一个-Token" class="headerlink" title="5. 输出层预测下一个 Token"></a>5. 输出层预测下一个 Token</h2><p>最后一层隐藏状态经过投影得到词表 logits，再由解码策略选出下一个 token。新 token 被接回序列，模型继续生成，直到遇到停止标记、达到长度限制或被应用主动终止。</p>
+<h2 id="6-KV-Cache-为什么能加速生成"><a href="#6-KV-Cache-为什么能加速生成" class="headerlink" title="6. KV Cache 为什么能加速生成"></a>6. KV Cache 为什么能加速生成</h2><p>如果每生成一个 token 都重新计算全部历史 Key 和 Value，会产生大量重复工作。KV Cache 保存前面 token 在各层的 Key&#x2F;Value，后续步骤只计算新 token 对应部分。</p>
+<p>代价是显存会随层数、序列长度、并发请求和缓存数据类型增长。长上下文服务经常不是模型权重放不下，而是并发时 KV Cache 成为瓶颈。</p>
+<h2 id="Prefill-和-Decode-要分开看"><a href="#Prefill-和-Decode-要分开看" class="headerlink" title="Prefill 和 Decode 要分开看"></a>Prefill 和 Decode 要分开看</h2><ul>
+<li>Prefill：一次处理完整输入，计算量通常较集中；</li>
+<li>Decode：逐 token 生成，延迟更受内存带宽、缓存访问和调度影响。</li>
+</ul>
+<p>因此压测至少应分开记录首 token 延迟和后续生成速度。只报告“总共用了几秒”，很难判断系统到底慢在哪里。</p>
+<h2 id="建议做的三个实验"><a href="#建议做的三个实验" class="headerlink" title="建议做的三个实验"></a>建议做的三个实验</h2><ol>
+<li>固定输出长度，逐渐增加输入长度，记录首 token 延迟；</li>
+<li>固定输入，增加输出长度，记录每秒输出 token；</li>
+<li>固定请求内容，增加并发，记录吞吐量和 P95 延迟。</li>
+</ol>
+<p>每次只改变一个变量，并保存模型、量化、硬件、上下文和采样参数。</p>
+<h2 id="面试时怎么解释"><a href="#面试时怎么解释" class="headerlink" title="面试时怎么解释"></a>面试时怎么解释</h2><p>用一句话概括：Decoder-only Transformer 把上下文编码成隐藏表示，通过多层因果自注意力和前馈网络预测下一个 token；推理时利用 KV Cache 避免重复计算历史状态。</p>
+<p>如果继续追问，再分别展开 tokenizer、位置编码、Attention、解码和缓存，不要从公式背诵开始。</p>
+<h2 id="原始资料"><a href="#原始资料" class="headerlink" title="原始资料"></a>原始资料</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://arxiv.org/abs/1706.03762">Attention Is All You Need</a></li>
+<li><a target="_blank" rel="noopener" href="https://huggingface.co/docs/transformers/main/en/generation_strategies">Hugging Face：Generation strategies</a></li>
+<li><a target="_blank" rel="noopener" href="https://huggingface.co/docs/transformers/">Hugging Face Transformers 文档</a></li>
+</ul>
+
+    
+  </div>
+  
+  
+  <footer class="post-footer">
+    <div class="post-tags">
+      
+        <a href="/tags/LLM/">#LLM</a>
+      
+        <a href="/tags/Transformer/">#Transformer</a>
+      
+        <a href="/tags/Attention/">#Attention</a>
+      
+    </div>
+  </footer>
+  
+</article>
+
+      
+      <!-- 上一篇/下一篇導航 -->
+      <nav class="post-nav">
+        
+          <a href="/2026/08/14/2026-%E5%BC%80%E6%BA%90%E5%A4%A7%E6%A8%A1%E5%9E%8B%E9%80%89%E6%8B%A9%E6%8C%87%E5%8D%97/" class="prev">
+            ← 开源大模型怎么选：参数、量化、上下文和硬件指南
+          </a>
+        
+        
+          <a href="/2026/08/12/2026-AI%E5%85%A5%E9%97%A8-Token%E5%88%B0%E6%96%87%E6%9C%AC%E7%94%9F%E6%88%90/" class="next">
+            AI 入门第一课：Token、Embedding 和文本生成到底是什么 →
+          </a>
+        
+      </nav>
+    </div>
+  </main>
+  
+  <footer class="site-footer">
+  <div class="container">
+    <p>&copy; 2026 Chao</p>
+    <p>
+      Powered by <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a> 
+      | Theme: <a href="https://github.com/ceeyu/hexo-theme-cyberpunk2077" target="_blank" rel="noopener">Cyberpunk 2077</a>
+    </p>
+    
+    <div class="social-links">
+      
+        <a href="https://github.com/dochaoing" target="_blank" rel="noopener">GitHub</a>
+      
+    </div>
+    
+  </div>
+</footer>
+
+<!-- Prism.js 程式碼高亮 -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<!-- 預載入常用語言 -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-c.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-cpp.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-java.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-css.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-markup.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-dart.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-yaml.min.js"></script>
+
+<!-- GSAP 動畫庫 -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
+<!-- 自定義腳本 -->
+<script defer src="/js/main.js"></script>
+<script defer src="/js/gsap-animations.js"></script>
+<script defer src="/js/cyberpunk.js"></script>
+
+<!-- 初始化程式碼高亮 -->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // 统一 Hexo 输出与 Prism 的语言类，避免重复包装和重复行号。
+    document.querySelectorAll('.post-content pre > code, .page-body pre > code').forEach(function(block) {
+      const content = block.textContent;
+      let lang = 'plaintext';
+      const languageClass = Array.from(block.classList).find(function(name) {
+        return name.startsWith('language-');
+      });
+      const hexoClass = Array.from(block.classList).find(function(name) {
+        return name !== 'highlight' && name !== 'hljs';
+      });
+
+      if (languageClass) {
+        lang = languageClass.replace('language-', '');
+      } else if (hexoClass) {
+        lang = hexoClass;
+      } else if (content.includes('#include') || content.includes('int main')) {
+        lang = 'cpp';
+      } else if (content.includes('def ') || content.includes('import ')) {
+        lang = 'python';
+      } else if (content.includes('function') || content.includes('const ')) {
+        lang = 'javascript';
+      }
+
+      block.className = 'language-' + lang;
+      block.parentElement.className = 'language-' + lang;
+      block.parentElement.dataset.language = lang.toUpperCase();
+
+      if (typeof Prism !== 'undefined' && Prism.languages[lang]) {
+        Prism.highlightElement(block);
+      }
+    });
+  });
+</script>
+
+</body>
+</html>

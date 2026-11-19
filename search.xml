@@ -1,0 +1,874 @@
+<?xml version="1.0" encoding="utf-8"?>
+<search> 
+  
+  
+    
+    <entry>
+      <title>Agent 长期记忆：从文件到 mem0 与 Zep</title>
+      <link href="/2026/11/19/2026-Agent%E9%95%BF%E6%9C%9F%E8%AE%B0%E5%BF%86-%E4%BB%8E%E6%96%87%E4%BB%B6%E5%88%B0mem0%E4%B8%8EZep/"/>
+      <url>/2026/11/19/2026-Agent%E9%95%BF%E6%9C%9F%E8%AE%B0%E5%BF%86-%E4%BB%8E%E6%96%87%E4%BB%B6%E5%88%B0mem0%E4%B8%8EZep/</url>
+      
+        <content type="html"><![CDATA[<p>模型没有记忆，会话历史就是它的记忆——关掉窗口就归零。所谓&quot;长期记忆&quot;，全是外部系统在会话开始时把相关信息重新塞进上下文。方案从简到繁差着数量级的工程成本，先搞清楚你到底需要哪一层。</p><h2 id="三个层次的需求"><a href="#三个层次的需求" class="headerlink" title="三个层次的需求"></a>三个层次的需求</h2><pre><code class="highlight text">第 1 层  会话内      天然具备，就是对话历史第 2 层  跨会话      同一用户/项目，下次还记得（本篇重点）第 3 层  跨用户      团队知识库，本质是 RAG（已有专篇）</code></pre><p>很多&quot;我需要记忆系统&quot;的需求，其实是第 1 层没做好（忘了压缩历史）或第 3 层没做对（知识库检索质量差）。先排除这两种。</p><h2 id="方案一：文件式记忆（Claude-Code-的答案）"><a href="#方案一：文件式记忆（Claude-Code-的答案）" class="headerlink" title="方案一：文件式记忆（Claude Code 的答案）"></a>方案一：文件式记忆（Claude Code 的答案）</h2><p>Claude Code 的自动记忆系统是这层的教科书实现：<strong>记忆就是一个 Markdown 文件，每次会话开始注入</strong>。</p><pre><code class="highlight text">~/.claude/projects/&lt;项目&gt;/MEMORY.md   ← 模型自己写的笔记~/.claude/CLAUDE.md                    ← 你写的常驻约定</code></pre><p>工作机制：你在对话中纠正过它几次（&quot;这个博客用 pnpm 不用 npm&quot;），模型把这些教训写成一条条记忆文件；下次会话，摘要常驻注入，需要细节时按需读取单条文件。</p><p>值得学的三个设计：</p><ol><li><strong>记忆是文本</strong>，人可读可改可版本化，出问题能直接编辑；</li><li><strong>渐进加载</strong>，先注入每条记忆的摘要，命中才读全文——又是上下文经济学；</li><li>**记录&quot;为什么&quot;**，不只是事实：&quot;用户偏好 pnpm&quot;不如&quot;项目用 pnpm-workspace，npm 会装出两套依赖&quot;。</li></ol><p>个人 Agent 和单人工作流，这一层基本够用，没有运维成本。</p><h2 id="方案二：mem0——抽取式记忆"><a href="#方案二：mem0——抽取式记忆" class="headerlink" title="方案二：mem0——抽取式记忆"></a>方案二：mem0——抽取式记忆</h2><p>产品化的聊天 Agent（客服、陪伴类应用）面对的是海量用户对话，做法变成两阶段：</p><pre><code class="highlight text">对话结束 → LLM 从中抽取候选事实（&quot;用户养了一只猫&quot;）        → 与已有记忆比对：新增 / 更新 / 冲突 / 无效        → 存入向量库下次对话 → 检索相关记忆 → 注入 system prompt</code></pre><pre><code class="highlight python"><span class="keyword">from</span> mem0 <span class="keyword">import</span> Memorym = Memory()m.add(<span class="string">&quot;我家猫叫年糕，最近在治疗猫癣&quot;</span>, user_id=<span class="string">&quot;alice&quot;</span>)<span class="comment"># 下次对话时</span>related = m.search(<span class="string">&quot;宠物的注意事项&quot;</span>, user_id=<span class="string">&quot;alice&quot;</span>)</code></pre><p>优点是全自动、按用户隔离；代价是每次抽取都要调 LLM（成本），抽取质量受模型能力影响，且简单的向量检索处理不好&quot;<strong>时效</strong>&quot;——&quot;年糕在治疗猫癣&quot;是一个状态，病好了之后它就该过期。</p><h2 id="方案三：Zep——带时间线的知识图谱"><a href="#方案三：Zep——带时间线的知识图谱" class="headerlink" title="方案三：Zep——带时间线的知识图谱"></a>方案三：Zep——带时间线的知识图谱</h2><p>Zep 把记忆组织成时间感知的知识图谱：每条事实带有效区间，支持&quot;截至上周用户的地址还是 A，之后改成了 B&quot;这类查询。它是三家里工程最重的，适合对记忆准确性和可解释性要求高的产品（如长期陪伴、医疗健康类助手），并且同样需要评估体系来证明它比&quot;摘要+检索&quot;基线更好。</p><h2 id="选型：先做基线，再上系统"><a href="#选型：先做基线，再上系统" class="headerlink" title="选型：先做基线，再上系统"></a>选型：先做基线，再上系统</h2><p>一个容易踩的坑是跳过基线直接上记忆框架。基线是：</p><pre><code class="highlight python"><span class="comment"># 每次会话结束</span>summary = llm(<span class="string">&quot;把本次对话里关于用户偏好的内容总结成 20 条以内的事实清单&quot;</span>)<span class="comment"># 下次会话</span>prompt = system_note + summary + 本次对话</code></pre><p>几百行代码以内。然后固定一组&quot;记忆测试题&quot;（过一周回来问模型&quot;我的猫怎么样了&quot;这类），量化命中率、过期率，<strong>基线不够好再上 mem0 &#x2F; Zep</strong>，并证明提升。</p><h2 id="记忆最难的部分：遗忘"><a href="#记忆最难的部分：遗忘" class="headerlink" title="记忆最难的部分：遗忘"></a>记忆最难的部分：遗忘</h2><p>错误记忆比没有记忆更糟——模型会理直气壮地用三个月前的过期事实回答你。任何方案都要回答：</p><ul><li>冲突时新事实如何覆盖旧事实；</li><li>被用户纠正的记忆如何删除；</li><li>如何防止某次对话里的错误结论被固化为长期记忆（一个做法：只在会话结束时批量抽取，抽取前让人或规则过一道）。</li></ul><h2 id="官方资料"><a href="#官方资料" class="headerlink" title="官方资料"></a>官方资料</h2><ul><li><a href="https://code.claude.com/docs/en/memory">Claude Code 记忆机制</a></li><li><a href="https://docs.mem0.ai/">mem0 文档</a></li><li><a href="https://docs.getzep.com/">Zep 文档</a></li></ul><p>记忆系统的本质和 RAG 一样：把&quot;什么时候、什么内容进入上下文&quot;变成显式工程问题。区别是 RAG 检索的是公共知识，记忆检索的是&quot;关于你的过去&quot;——而过去，是会过期的。</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> AI 应用实战 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> Agent </tag>
+            
+            <tag> RAG </tag>
+            
+            <tag> 记忆 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>LLM API 调用入门：messages、流式响应与错误处理</title>
+      <link href="/2026/11/19/2026-LLMAPI%E5%85%A5%E9%97%A8-Messages%E4%B8%8E%E6%B5%81%E5%BC%8F%E5%93%8D%E5%BA%94/"/>
+      <url>/2026/11/19/2026-LLMAPI%E5%85%A5%E9%97%A8-Messages%E4%B8%8E%E6%B5%81%E5%BC%8F%E5%93%8D%E5%BA%94/</url>
+      
+        <content type="html"><![CDATA[<p>调用 LLM API 表面上和调用普通 REST API 没区别，实际上有三个本质差异：<strong>输入是累积的对话历史</strong>、<strong>输出是逐 token 流出的</strong>、<strong>错误需要专门的重试策略</strong>。这篇从零写一个能上生产的调用层。</p><h2 id="准备：API-Key-的正确放法"><a href="#准备：API-Key-的正确放法" class="headerlink" title="准备：API Key 的正确放法"></a>准备：API Key 的正确放法</h2><p>Key 从平台控制台创建（以 Claude 为例是 console），放到环境变量：</p><pre><code class="highlight bash"><span class="built_in">export</span> ANTHROPIC_API_KEY=sk-ant-xxxxx</code></pre><p>三条纪律：不写进代码、不提交进 git、用 <code>.env</code> 文件时确认它被 <code>.gitignore</code> 覆盖。泄漏的 key 会被人拿来烧你的账单，平台也建议按项目分 key 方便单独吊销和限额。</p><h2 id="messages：多轮对话要自己维护"><a href="#messages：多轮对话要自己维护" class="headerlink" title="messages：多轮对话要自己维护"></a>messages：多轮对话要自己维护</h2><p>LLM API 无状态。所谓&quot;多轮对话&quot;，是你把历史全部重发一遍：</p><pre><code class="highlight python"><span class="keyword">import</span> anthropicclient = anthropic.Anthropic()  <span class="comment"># 自动读 ANTHROPIC_API_KEY</span>messages = [&#123;<span class="string">&quot;role&quot;</span>: <span class="string">&quot;user&quot;</span>, <span class="string">&quot;content&quot;</span>: <span class="string">&quot;用一句话解释什么是上下文窗口&quot;</span>&#125;]response = client.messages.create(    model=<span class="string">&quot;claude-sonnet-5-5&quot;</span>,    max_tokens=<span class="number">1024</span>,        <span class="comment"># 必填：本次最多生成多少 token</span>    system=<span class="string">&quot;你是一个简洁的技术助手&quot;</span>,  <span class="comment"># 可选：系统提示，设定行为</span>    messages=messages,)<span class="built_in">print</span>(response.content[<span class="number">0</span>].text)<span class="comment"># 第二轮：必须手动把第一轮拼进历史</span>messages.append(&#123;<span class="string">&quot;role&quot;</span>: <span class="string">&quot;assistant&quot;</span>, <span class="string">&quot;content&quot;</span>: response.content[<span class="number">0</span>].text&#125;)messages.append(&#123;<span class="string">&quot;role&quot;</span>: <span class="string">&quot;user&quot;</span>, <span class="string">&quot;content&quot;</span>: <span class="string">&quot;那它和 KV Cache 有什么关系？&quot;</span>&#125;)response = client.messages.create(    model=<span class="string">&quot;claude-sonnet-5-5&quot;</span>, max_tokens=<span class="number">1024</span>, messages=messages)</code></pre><p>三个角色：<code>system</code>（全局行为约束）、<code>user</code>、<code>assistant</code>。忘记追加历史，模型就&quot;失忆&quot;；顺序错乱会直接报 4xx。上一篇文章（上下文与 Token 计费）讲过：这份历史每轮全量计费，所以对话越长越贵，生产代码要考虑裁剪或摘要。</p><h2 id="流式响应"><a href="#流式响应" class="headerlink" title="流式响应"></a>流式响应</h2><p>非流式调用要等整个回复生成完才返回，长回复可能等十几秒。流式把生成过程拆成事件推送（SSE），首字延迟降到几百毫秒：</p><pre><code class="highlight python"><span class="keyword">with</span> client.messages.stream(    model=<span class="string">&quot;claude-sonnet-5-5&quot;</span>,    max_tokens=<span class="number">1024</span>,    messages=[&#123;<span class="string">&quot;role&quot;</span>: <span class="string">&quot;user&quot;</span>, <span class="string">&quot;content&quot;</span>: <span class="string">&quot;写一首关于上下文的五言诗&quot;</span>&#125;],) <span class="keyword">as</span> stream:    <span class="keyword">for</span> text <span class="keyword">in</span> stream.text_stream:        <span class="built_in">print</span>(text, end=<span class="string">&quot;&quot;</span>, flush=<span class="literal">True</span>)</code></pre><p>什么时候必须流式：聊天界面的打字机效果（用户等待体感）、Agent 需要尽早展示中间过程。什么时候不必：后台批处理、需要完整 JSON 一次解析的场景。</p><h2 id="错误处理：LLM-API-的特色"><a href="#错误处理：LLM-API-的特色" class="headerlink" title="错误处理：LLM API 的特色"></a>错误处理：LLM API 的特色</h2><p>普通 API 的 4xx 都是&quot;你的错&quot;，LLM API 还有一类&quot;<strong>现在不行，待会儿再试</strong>&quot;：</p><table><thead><tr><th>状态</th><th>含义</th><th>处理</th></tr></thead><tbody><tr><td>401 &#x2F; 403</td><td>key 无效或无权限</td><td>停止，检查配置</td></tr><tr><td>400</td><td>请求结构错误（messages 顺序、超限）</td><td>修代码，别重试</td></tr><tr><td>413</td><td>输入超上下文窗口</td><td>裁剪历史</td></tr><tr><td>429</td><td>限流（rate limit）</td><td>指数退避重试</td></tr><tr><td>5xx &#x2F; 529</td><td>服务端错误或过载</td><td>指数退避重试</td></tr></tbody></table><pre><code class="highlight python"><span class="keyword">import</span> time<span class="keyword">def</span> <span class="title function_">chat_with_retry</span>(<span class="params">messages, max_retries=<span class="number">4</span></span>):    <span class="keyword">for</span> attempt <span class="keyword">in</span> <span class="built_in">range</span>(max_retries):        <span class="keyword">try</span>:            <span class="keyword">return</span> client.messages.create(                model=<span class="string">&quot;claude-sonnet-5-5&quot;</span>, max_tokens=<span class="number">1024</span>, messages=messages            )        <span class="keyword">except</span> anthropic.RateLimitError:            wait = <span class="number">2</span> ** attempt          <span class="comment"># 1s, 2s, 4s, 8s</span>            time.sleep(wait)    <span class="keyword">raise</span> RuntimeError(<span class="string">&quot;重试耗尽，检查配额&quot;</span>)</code></pre><p>官方 SDK 自带自动重试，这里手写是为了说清逻辑。注意 400 无论如何都不要重试——结构错误重试一万次还是错。</p><h2 id="成本预估"><a href="#成本预估" class="headerlink" title="成本预估"></a>成本预估</h2><p>调用前心里要有数：</p><pre><code class="highlight text">成本 ≈ (输入 token 数 × 输入单价) + (预期输出 token 数 × 输出单价)</code></pre><p><code>max_tokens</code> 就是你的输出成本上限。开发阶段用 <code>response.usage</code> 里的 input_tokens &#x2F; output_tokens 核对真实消耗，和估算对不齐时先查这一步。</p><h2 id="官方资料"><a href="#官方资料" class="headerlink" title="官方资料"></a>官方资料</h2><ul><li><a href="https://platform.claude.com/docs/en/api/overview">API 总览</a></li><li><a href="https://platform.claude.com/docs/en/api/messages">Messages API 参考</a></li><li><a href="https://platform.claude.com/docs/en/build-with-claude/streaming">流式响应</a></li><li><a href="https://platform.claude.com/docs/en/api/errors">错误处理参考</a></li></ul><p>写好这四块——历史维护、流式、重试、成本预估——你就有了调 LLM 的地基，后面无论做 Agent 还是 RAG 都是往这份地基上加东西。</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> AI 学习路线 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> LLM </tag>
+            
+            <tag> Python </tag>
+            
+            <tag> API </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>MCP 入门：协议拆解与开发第一个 MCP 工具</title>
+      <link href="/2026/11/19/2026-MCP%E5%85%A5%E9%97%A8-%E5%8D%8F%E8%AE%AE%E4%B8%8E%E7%AC%AC%E4%B8%80%E4%B8%AAMCP%E5%B7%A5%E5%85%B7/"/>
+      <url>/2026/11/19/2026-MCP%E5%85%A5%E9%97%A8-%E5%8D%8F%E8%AE%AE%E4%B8%8E%E7%AC%AC%E4%B8%80%E4%B8%AAMCP%E5%B7%A5%E5%85%B7/</url>
+      
+        <content type="html"><![CDATA[<p>每个 AI 工具都在发明自己的插件协议，MCP（Model Context Protocol）的意义是把这件事标准化一次：你写的工具 server，Claude Code、各种 IDE 插件和任何支持协议的客户端都能用。理解它需要拆开三层：通信、原语、传输。</p><h2 id="协议拆解"><a href="#协议拆解" class="headerlink" title="协议拆解"></a>协议拆解</h2><p>MCP 基于 JSON-RPC 2.0，一次工具调用链路是：</p><pre><code class="highlight text">Host（如 Claude Code）          MCP Server（你的工具服务）        ├─ initialize 握手 ──────→        ├─ tools/list ─────────→  返回工具清单（名称、描述、参数 schema）        ├─ tools/call ─────────→  执行，返回结果        └─（结果进入模型的上下文，模型基于它继续决策）</code></pre><p>关键点：<strong>模型永远不直接执行任何东西</strong>。模型看到工具清单，决定&quot;我想调哪个、参数是什么&quot;，由 Host 发起真正的调用——和 Tool Calling 里的安全边界完全一致，MCP 只是把&quot;工具从哪来&quot;标准化了。</p><p>三种原语，用途不同：</p><table><thead><tr><th>原语</th><th>是什么</th><th>例子</th></tr></thead><tbody><tr><td>tools</td><td>模型可以主动调用的操作</td><td>查笔记、发请求</td></tr><tr><td>resources</td><td>只读数据，由客户端挂载</td><td>文件内容、配置</td></tr><tr><td>prompts</td><td>预置的提示词模板</td><td>常用任务模板</td></tr></tbody></table><p>实际开发里 90% 的价值在 tools，这篇也只做 tools。</p><h2 id="传输：stdio-与-HTTP"><a href="#传输：stdio-与-HTTP" class="headerlink" title="传输：stdio 与 HTTP"></a>传输：stdio 与 HTTP</h2><ul><li><strong>stdio</strong>：server 是本机命令，Host 起子进程通过标准输入输出通信。简单、安全边界清晰，适合个人和团队内部工具；</li><li><strong>Streamable HTTP</strong>：server 是远程服务，适合跨机器共享、需要集中鉴权和计费的场景。</li></ul><p>个人工作流从 stdio 开始，不需要部署任何东西。</p><h2 id="动手：一个最小-MCP-Server"><a href="#动手：一个最小-MCP-Server" class="headerlink" title="动手：一个最小 MCP Server"></a>动手：一个最小 MCP Server</h2><p>用官方 Python SDK 的 FastMCP 封装，十几行：</p><pre><code class="highlight python"><span class="comment"># server.py</span><span class="keyword">from</span> mcp.server.fastmcp <span class="keyword">import</span> FastMCPmcp = FastMCP(<span class="string">&quot;notes&quot;</span>)<span class="meta">@mcp.tool()</span><span class="keyword">def</span> <span class="title function_">search_notes</span>(<span class="params">query: <span class="built_in">str</span></span>) -&gt; <span class="built_in">str</span>:    <span class="string">&quot;&quot;&quot;在本地笔记库里搜索，返回最相关的 5 条标题和路径。&quot;&quot;&quot;</span>    <span class="comment"># 真实实现里接你的检索逻辑</span>    <span class="keyword">return</span> <span class="string">&quot;1. 上下文管理笔记 (notes/context.md)\n2. ...&quot;</span><span class="keyword">if</span> __name__ == <span class="string">&quot;__main__&quot;</span>:    mcp.run(transport=<span class="string">&quot;stdio&quot;</span>)</code></pre><p>注意 docstring 不是注释——它就是工具描述，模型靠它决定何时调用、怎么传参。这和 Skill 的 description 一个道理：<strong>写给模型看的说明，质量决定命中率</strong>。</p><h2 id="接入-Claude-Code"><a href="#接入-Claude-Code" class="headerlink" title="接入 Claude Code"></a>接入 Claude Code</h2><pre><code class="highlight bash">claude mcp add notes -- python /abs/path/to/server.py</code></pre><p>等价的配置方式是项目根目录的 <code>.mcp.json</code>（进 git，全团队共享）：</p><pre><code class="highlight json"><span class="punctuation">&#123;</span>  <span class="attr">&quot;mcpServers&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span>    <span class="attr">&quot;notes&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span>      <span class="attr">&quot;command&quot;</span><span class="punctuation">:</span> <span class="string">&quot;python&quot;</span><span class="punctuation">,</span>      <span class="attr">&quot;args&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="string">&quot;/abs/path/to/server.py&quot;</span><span class="punctuation">]</span>    <span class="punctuation">&#125;</span>  <span class="punctuation">&#125;</span><span class="punctuation">&#125;</span></code></pre><p>重启会话后 <code>/mcp</code> 查看连接状态，工具会自动出现在模型的工具清单里。之后直接说&quot;搜一下我关于上下文管理的笔记&quot;即可。</p><h2 id="什么时候不该用-MCP"><a href="#什么时候不该用-MCP" class="headerlink" title="什么时候不该用 MCP"></a>什么时候不该用 MCP</h2><p>MCP 不是把一切接到 AI 的默认答案：</p><ul><li><strong>固定的小操作</strong>（部署、格式化、跑构建）做成 Skill 或脚本更轻——MCP server 要维护握手、生命周期，杀鸡用牛刀；</li><li><strong>模型只需要读一次的数据</strong>，直接把内容贴进对话或 CLAUDE.md；</li><li>MCP 的适用场景是：工具<strong>可复用、跨项目&#x2F;跨应用共享、需要独立演进</strong>（比如公司内部统一的数据查询服务）。</li></ul><h2 id="安全边界"><a href="#安全边界" class="headerlink" title="安全边界"></a>安全边界</h2><p>MCP server 的返回值会直接进入模型上下文，这意味着：</p><ul><li><strong>提示注入面</strong>：一个返回搜索结果的 server，其结果里可能藏着&quot;忽略之前的指令&quot;这类内容。工具返回视为不可信输入，和用户输入同级对待；</li><li><strong>最小权限</strong>：server 进程拥有你给它的全部权限，只读需求就只做只读实现；</li><li><strong>审计</strong>：工具调用要能追溯（谁、何时、什么参数），和个人写 Tool Calling 时的要求一致。</li></ul><h2 id="官方资料"><a href="#官方资料" class="headerlink" title="官方资料"></a>官方资料</h2><ul><li><a href="https://modelcontextprotocol.io/">MCP 官网与文档</a></li><li><a href="https://spec.modelcontextprotocol.io/">MCP 协议规范</a></li><li><a href="https://code.claude.com/docs/en/mcp">Claude Code 的 MCP 配置</a></li></ul><p>MCP 的本质是把&quot;AI 工具生态&quot;从 N×N 的两两适配压缩成 N+M 的标准接口。对个人开发者，先用 stdio + 十行代码跑通一个真实需求，比读完整个协议文档收获大得多。</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> AI 应用实战 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> Claude Code </tag>
+            
+            <tag> Python </tag>
+            
+            <tag> MCP </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>上下文是什么？token 怎么计费？</title>
+      <link href="/2026/11/19/2026-%E4%B8%8A%E4%B8%8B%E6%96%87%E4%B8%8EToken%E8%AE%A1%E8%B4%B9-%E7%9C%81%E9%92%B1%E5%8E%9F%E7%90%86/"/>
+      <url>/2026/11/19/2026-%E4%B8%8A%E4%B8%8B%E6%96%87%E4%B8%8EToken%E8%AE%A1%E8%B4%B9-%E7%9C%81%E9%92%B1%E5%8E%9F%E7%90%86/</url>
+      
+        <content type="html"><![CDATA[<p>之前的两篇文章（Token 到文本生成、Transformer 一次生成流程）讲的是模型怎么生成下一个 token。这篇讲另一个决定性的东西：模型每次请求能&quot;看见&quot;什么，以及这一切怎么算钱。</p><h2 id="上下文-每轮都全量重发的对话历史"><a href="#上下文-每轮都全量重发的对话历史" class="headerlink" title="上下文 &#x3D; 每轮都全量重发的对话历史"></a>上下文 &#x3D; 每轮都全量重发的对话历史</h2><p>模型没有记忆。你在聊天框里打第三句话时，API 实际收到的是完整历史：</p><pre><code class="highlight text">[system 系统提示] [用户第1句] [助手回复] [用户第2句] [助手回复] [用户第3句]  ← 本次全部发送</code></pre><p>上下文窗口（context window）就是这个列表能装下的最大 token 数。当前主流模型是 200K 上下文，听起来很大，但实际算笔账：一个中型代码库的几个文件 + 几十轮对话 + 工具返回的日志，很快就会逼近上限。</p><p>两个直接后果：</p><ol><li><strong>每轮的输入成本随对话轮数线性增长</strong>，长会话越到后面每句话越贵；</li><li>**装不下的内容就是&quot;不存在&quot;**——超长对话开头的内容会被截断或压缩，模型会一本正经地&quot;忘记&quot;你最初的要求。</li></ol><p>所以 Agent 工程的几乎所有技巧——压缩历史、子代理隔离、按需加载文档——本质都是上下文管理。</p><h2 id="计费结构：三种-token-单价不同"><a href="#计费结构：三种-token-单价不同" class="headerlink" title="计费结构：三种 token 单价不同"></a>计费结构：三种 token 单价不同</h2><p>API 按 token 计费，但不是所有 token 一个价：</p><table><thead><tr><th>类别</th><th>说明</th><th>相对价格</th></tr></thead><tbody><tr><td>输入（input）</td><td>你发给模型的全部内容</td><td>基准价</td></tr><tr><td>输出（output）</td><td>模型生成的回复</td><td>通常是输入的 4~5 倍</td></tr><tr><td>缓存写入（cache write）</td><td>首次缓存稳定的前缀</td><td>输入价的约 1.25 倍</td></tr><tr><td>缓存读取（cache read）</td><td>命中缓存的前缀</td><td>输入价的约 10%</td></tr></tbody></table><p>输出贵是因为生成比读取慢、计算量在每一步都要做完整的下一词预测。最值得注意的是<strong>提示缓存</strong>（prompt caching）：前缀完全一致时，第二次请求只需为缓存读取付约 10% 的输入价。</p><p>这就是为什么 API 的最佳实践永远是：<strong>系统提示和工具定义放最前面且保持稳定，变化的内容放最后</strong>。乱序的对话历史会打碎缓存前缀，每轮都全价重算。Agent 工具（如 Claude Code）自动做了这件事，自己拼 messages 时要自己做。</p><h2 id="一个真实的成本直觉"><a href="#一个真实的成本直觉" class="headerlink" title="一个真实的成本直觉"></a>一个真实的成本直觉</h2><p>假设输入 $3&#x2F;百万 token、输出 $15&#x2F;百万 token：</p><pre><code class="highlight text">一轮对话历史累计 40K input + 本次生成 2K output：输入成本 ≈ 40K/1M × $3 = $0.12输出成本 ≈ 2K/1M × $15 = $0.03第 20 轮时历史涨到 200K：输入成本 ≈ $0.60 —— 单轮是第一轮的 5 倍</code></pre><p>不带缓存跑长会话，成本曲线会陡到你怀疑人生。而缓存命中时，那 200K 里大部分按 10% 计价。</p><h2 id="省钱的工程手段"><a href="#省钱的工程手段" class="headerlink" title="省钱的工程手段"></a>省钱的工程手段</h2><p>按效果排序：</p><ol><li><strong>及时清场</strong>：换任务就清上下文，别让上一个任务的残留陪你聊完下一个任务；</li><li><strong>压缩历史</strong>：接近上限时用摘要替代原文（Claude Code 的 <code>/compact</code>），保留结论丢弃过程；</li><li><strong>裁剪工具结果</strong>：让工具返回&quot;结论&quot;而不是全量数据——读文件返回相关段落、查日志返回统计值，而不是整个文件整个日志；</li><li><strong>子代理隔离</strong>：大量中间输出放到子代理的独立窗口里，主对话只接收结论；</li><li><strong>稳定前缀</strong>：自己调 API 时把不变的内容放前面，最大化缓存命中。</li></ol><h2 id="感受一下-200K-token"><a href="#感受一下-200K-token" class="headerlink" title="感受一下 200K token"></a>感受一下 200K token</h2><ul><li>约等于 15 万汉字，一部中篇小说；</li><li>一个 100KB 的源代码文件大约 25K token——八个文件就能塞满；</li><li>一张按主流 tokenizer 编码的截图可能上千 token——多模态输入同样计费。</li></ul><p>这也解释了为什么&quot;把整个代码库塞给模型&quot;不可行，以及为什么检索和按需加载不是优化项而是必需品。</p><h2 id="官方资料"><a href="#官方资料" class="headerlink" title="官方资料"></a>官方资料</h2><ul><li><a href="https://platform.claude.com/docs/en/build-with-claude/prompt-caching">Prompt caching（提示缓存）</a></li><li><a href="https://docs.claude.com/en/docs/build-with-claude/tokens">Tokens 与计数方式</a></li><li><a href="https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents">管理长上下文的策略</a></li></ul><p>理解了&quot;每轮全量重发&quot;和&quot;输入输出差价&quot;，你看到的一切 Agent 上下文技巧——压缩、缓存、子代理——都只是这两条事实的推论。</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> AI 学习路线 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> LLM </tag>
+            
+            <tag> 上下文 </tag>
+            
+            <tag> 成本 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>给 Agent 设定目标：验收标准与自动循环</title>
+      <link href="/2026/11/19/2026-%E7%BB%99Agent%E8%AE%BE%E5%AE%9A%E7%9B%AE%E6%A0%87-%E9%AA%8C%E6%94%B6%E6%A0%87%E5%87%86%E4%B8%8E%E8%87%AA%E5%8A%A8%E5%BE%AA%E7%8E%AF/"/>
+      <url>/2026/11/19/2026-%E7%BB%99Agent%E8%AE%BE%E5%AE%9A%E7%9B%AE%E6%A0%87-%E9%AA%8C%E6%94%B6%E6%A0%87%E5%87%86%E4%B8%8E%E8%87%AA%E5%8A%A8%E5%BE%AA%E7%8E%AF/</url>
+      
+        <content type="html"><![CDATA[<p>对 Agent 说&quot;帮我把这个功能做好&quot;，得到什么全凭运气。Agent 时代的第一个技能是把愿望翻译成<strong>可验证的目标</strong>：模型自己判断是否达成、自己发现偏差、自己迭代。</p><h2 id="完成标准必须是机器可判定的"><a href="#完成标准必须是机器可判定的" class="headerlink" title="完成标准必须是机器可判定的"></a>完成标准必须是机器可判定的</h2><p>对比两种说法：</p><pre><code class="highlight text">愿望型：&quot;给博客加上 RSS，要好用&quot;目标型：&quot;用 hexo 生成 RSS；验收标准：        1. hexo generate 无报错        2. public/ 下存在 atom.xml        3. XML 能通过 xmllint 校验&quot;</code></pre><p>目标型 prompt 让&quot;完成&quot;不再靠模型自我感觉——它有明确的检查清单，做完逐条验证，不通过就修。最好用的验收标准是<strong>现成的命令</strong>：测试套件、构建脚本、lint。项目里已有这些设施时，只要说&quot;完成的标准是这些命令全部通过&quot;，模型就会自己跑、自己循环修复。</p><h2 id="三层目标设定"><a href="#三层目标设定" class="headerlink" title="三层目标设定"></a>三层目标设定</h2><p><strong>第一层：一次对话内的目标。</strong> 把验收标准写进 prompt 本身，配合 Plan Mode 先对齐步骤。小任务到此为止。</p><p><strong>第二层：项目级目标。</strong> 长期有效的标准写进 CLAUDE.md——&quot;本项目所有改动完成后必须通过 npm test&quot;，让每次会话自动继承这个底线。</p><p><strong>第三层：自动循环。</strong> 目标明确后，允许 Agent 无人值守迭代：</p><ul><li><strong>会话内</strong>：明确说&quot;循环执行直到测试全部通过，中途不需要问我&quot;；</li><li><strong>Stop 钩子</strong>：在 settings.json 里配置 Stop 事件，模型每次想结束时跑一次验收脚本，不达标就把失败信息塞回去强迫继续；</li><li><strong>无头模式</strong>：<code>claude -p &quot;修复失败的测试，直到全部通过&quot;</code>，跑在脚本或 CI 里，退出码即成败信号。</li></ul><p>无头模式让 Agent 变成可编排的一环：</p><pre><code class="highlight bash"><span class="comment"># CI 里：构建失败就让它自己修</span>npm <span class="built_in">test</span> || claude -p <span class="string">&quot;根据上面的报错修复测试，直到 npm test 通过&quot;</span> --max-turns 20</code></pre><h2 id="目标之外，护栏也不能少"><a href="#目标之外，护栏也不能少" class="headerlink" title="目标之外，护栏也不能少"></a>目标之外，护栏也不能少</h2><p>自主循环的 Agent 权限越大，越需要约束：</p><ul><li>deny 列表挡住绝对不许碰的操作（<code>git push --force</code>、删除文件）；</li><li>循环上限：<code>--max-turns</code> 或任务描述里写明&quot;最多尝试 5 轮，仍失败就停下来报告&quot;；</li><li>循环检测：让它在&quot;连续两次改动没有任何测试状态变化&quot;时停止——死循环及时止损也是目标达成的一部分。</li></ul><h2 id="拆解长目标"><a href="#拆解长目标" class="headerlink" title="拆解长目标"></a>拆解长目标</h2><p>&quot;把博客从 Hexo 迁移到 Astro&quot;这种大目标，直接扔给 Agent 会失控。做法是拆成机器可判定的小目标链：</p><pre><code class="highlight text">1. 搭建 Astro 骨架，验收：astro dev 能启动2. 迁移文章 front matter，验收：脚本校验全部通过3. 迁移主题，验收：首页和文章页视觉对照截图4. 迁移部署脚本，验收：CI 全绿</code></pre><p>每个目标一个会话，完成标准独立可验证。串起来就是一条没人盯着也不会走偏的流水线。</p><h2 id="官方资料"><a href="#官方资料" class="headerlink" title="官方资料"></a>官方资料</h2><ul><li><a href="https://code.claude.com/docs/en/common-workflows">常见工作流与 headless 模式</a></li><li><a href="https://code.claude.com/docs/en/hooks">Hooks：Stop 事件</a></li><li><a href="https://code.claude.com/docs/en/cli-reference">CLI 参考（-p &#x2F; --max-turns）</a></li></ul><p>一句话总结：给 Agent 的每个目标都应该自带&quot;怎么算完成&quot;的答案，答案最好是一条命令。</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> AI 应用实战 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> Agent </tag>
+            
+            <tag> Claude Code </tag>
+            
+            <tag> 自动化 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>Claude Code 会话存储：你的聊天记录存在哪</title>
+      <link href="/2026/11/18/2026-ClaudeCode%E4%BC%9A%E8%AF%9D%E5%AD%98%E5%82%A8-%E8%81%8A%E5%A4%A9%E8%AE%B0%E5%BD%95%E5%AD%98%E5%9C%A8%E5%93%AA/"/>
+      <url>/2026/11/18/2026-ClaudeCode%E4%BC%9A%E8%AF%9D%E5%AD%98%E5%82%A8-%E8%81%8A%E5%A4%A9%E8%AE%B0%E5%BD%95%E5%AD%98%E5%9C%A8%E5%93%AA/</url>
+      
+        <content type="html"><![CDATA[<p>Claude Code 的聊天记录不在云端，就在你本机的一个目录里，明文 JSON Lines 格式。知道它存在哪、怎么恢复、怎么回退，长项目的工作流会完全不一样。</p><h2 id="存在哪"><a href="#存在哪" class="headerlink" title="存在哪"></a>存在哪</h2><pre><code class="highlight text">~/.claude/projects/&lt;把项目路径里的 / 替换成 -&gt;/*.jsonl</code></pre><p>比如在 <code>/Users/you/projects/chaoblog</code> 里的会话，会存到：</p><pre><code class="highlight text">~/.claude/projects/-Users-you-projects-chaoblog/abc123def....jsonl</code></pre><p>每个会话一个 <code>.jsonl</code> 文件，每行一条 JSON 记录：用户消息、模型回复、工具调用及结果、以及元数据。想验证很简单：</p><pre><code class="highlight bash"><span class="built_in">ls</span> -lt ~/.claude/projects/ | <span class="built_in">head</span>    <span class="comment"># 按最近活跃列出项目</span><span class="comment"># 找到对应目录后：</span><span class="built_in">ls</span> -lt ~/.claude/projects/-Users-you-projects-chaoblog/ | <span class="built_in">head</span></code></pre><h2 id="恢复会话"><a href="#恢复会话" class="headerlink" title="恢复会话"></a>恢复会话</h2><pre><code class="highlight bash">claude --<span class="built_in">continue</span>      <span class="comment"># 接着当前项目最近一次会话，不用选</span>claude --resume        <span class="comment"># 弹出会话列表让你挑</span></code></pre><p>典型用法：昨天的任务做了一半，今天 <code>claude --continue</code> 接着干，模型记得全部上下文——<strong>前提是那个会话还没被压得太满</strong>。</p><h2 id="把会话记录当数据库用"><a href="#把会话记录当数据库用" class="headerlink" title="把会话记录当数据库用"></a>把会话记录当数据库用</h2><p>既然是明文 jsonl，就可以直接搜：</p><pre><code class="highlight bash"><span class="comment"># 上周那个关于部署脚本的讨论，当时结论是什么？</span>grep -l <span class="string">&quot;部署脚本&quot;</span> ~/.claude/projects/-Users-you-projects-chaoblog/*.jsonl</code></pre><p>比翻聊天界面快得多。很多&quot;我记得当时它给过一个很好的方案&quot;的时刻，答案就在历史文件里。</p><h2 id="回退：rewind"><a href="#回退：rewind" class="headerlink" title="回退：rewind"></a>回退：rewind</h2><p>模型改错了方向怎么办？连按两次 Esc 触发 rewind，可以回退到之前任意一个检查点：</p><ul><li><strong>只回退代码</strong>：文件状态还原，对话继续——适合&quot;改动没问题，但我想换个思路重来&quot;；</li><li><strong>回退代码和对话</strong>：整个状态回去，从头再引导。</li></ul><p>配合干净的小步 git 提交，基本不会出现&quot;改坏了救不回来&quot;的局面。</p><h2 id="会话寿命与-compact"><a href="#会话寿命与-compact" class="headerlink" title="会话寿命与 &#x2F;compact"></a>会话寿命与 &#x2F;compact</h2><p>上下文窗口是有限的。会话越长，历史越多，每一轮都变贵、变慢，直到模型开始&quot;遗忘&quot;开头的内容。两个动作：</p><ul><li>**<code>/compact</code>**：压缩历史为摘要，保留要点继续当前任务。长任务中途的续命手段，摘要可能丢细节，重要结论最好让它写进文件再压缩；</li><li>**<code>/clear</code>**：任务完成就清场，下一个任务从零开始。</li></ul><p>原则：一个会话一件事。跨会话要留痕的结论，让模型写进 CLAUDE.md 或文档文件，而不是指望下次还能恢复会话。</p><h2 id="隐私提醒"><a href="#隐私提醒" class="headerlink" title="隐私提醒"></a>隐私提醒</h2><ul><li>记录是<strong>明文</strong>的，包含你粘贴进对话的一切。不要往对话里贴 API key、密码、生产数据；</li><li>清理旧会话就是删对应的 jsonl 文件，或按项目目录整个删除；</li><li>公司项目要确认这种本地留痕是否符合你的合规要求。</li></ul><h2 id="官方资料"><a href="#官方资料" class="headerlink" title="官方资料"></a>官方资料</h2><ul><li><a href="https://code.claude.com/docs/en/cli-reference">CLI 参考（--continue &#x2F; --resume）</a></li><li><a href="https://code.claude.com/docs/en/checkpointing">会话回退与检查点</a></li><li><a href="https://code.claude.com/docs/en/data-usage">数据使用与隐私</a></li></ul><p>会话记录是资产：能恢复、能检索、能回退。唯一的敌人是明文泄露——管住你粘贴进对话的东西。</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> AI 应用实战 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> Claude Code </tag>
+            
+            <tag> Session </tag>
+            
+            <tag> 隐私 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>Sub Agent：上下文管理的艺术</title>
+      <link href="/2026/11/17/2026-SubAgent-%E4%B8%8A%E4%B8%8B%E6%96%87%E7%AE%A1%E7%90%86%E7%9A%84%E8%89%BA%E6%9C%AF/"/>
+      <url>/2026/11/17/2026-SubAgent-%E4%B8%8A%E4%B8%8B%E6%96%87%E7%AE%A1%E7%90%86%E7%9A%84%E8%89%BA%E6%9C%AF/</url>
+      
+        <content type="html"><![CDATA[<p>Agent 工程的核心矛盾：模型能力随上下文丰富度上升，但上下文窗口有限、越来越贵、塞满了还会让注意力稀释。子代理（Sub Agent）是主要解法之一——<strong>让它自己的窗口去承受过程，主对话只接收结论</strong>。</p><h2 id="模式"><a href="#模式" class="headerlink" title="模式"></a>模式</h2><pre><code class="highlight text">主对话（宝贵，保持干净）  ├─ 委派：&quot;搜一下项目里所有处理支付回调的代码，总结入口和校验逻辑&quot;  │     └─ 子代理在独立上下文里翻几十个文件 → 返回 300 字结论  ├─ 主对话拿到结论继续决策  └─ 中间翻过的 50 个文件内容，从未进入主上下文</code></pre><p>子代理是一个独立上下文的 Agent，有自己的系统提示、自己的工具循环、自己的历史记录。它不知道主对话聊了什么——这正是它的价值，也是它的限制。</p><h2 id="内置能力与自定义"><a href="#内置能力与自定义" class="headerlink" title="内置能力与自定义"></a>内置能力与自定义</h2><p>Claude Code 自带几种委派方式：</p><ul><li><strong>Explore &#x2F; general-purpose</strong>：内置的探索型和通用型子代理，前者擅长大规模只读搜索，后者可以多步骤执行；</li><li><strong>Fork</strong>：从当前对话分叉出一个继承完整上下文的代理，适合&quot;验证一个想法但不想污染主线&quot;的支线任务。</li></ul><p>更常见的是定义专属子代理，<code>.claude/agents/code-reviewer.md</code>：</p><pre><code class="highlight markdown">---name: code-reviewerdescription: 审查代码改动，在提交或 PR 前使用。重点看正确性、边界条件和测试覆盖。tools: Read, Grep, Glob, Bash<span class="section">model: inherit</span><span class="section">---</span>你是资深代码审查者。审查时：<span class="bullet">1.</span> 先看改动范围（git diff），再看改动涉及的上下游代码<span class="bullet">2.</span> 每个发现必须给出：问题描述、触发场景、建议修法<span class="bullet">3.</span> 不确定的风格问题标注为&quot;建议&quot;，正确性问题标注为&quot;必须修复&quot;</code></pre><p>frontmatter 里 <code>tools</code> 限制它能用的工具（审查器不需要写文件），<code>description</code> 决定主模型什么时候自动委派给它——和 Skill 的 description 一样，写清楚触发时机。</p><h2 id="什么时候委派"><a href="#什么时候委派" class="headerlink" title="什么时候委派"></a>什么时候委派</h2><p>适合委派的任务有共同特征：</p><ul><li><strong>产生大量中间输出</strong>：全库搜索、读长日志、批量分析文件——垃圾留在子代理窗口里；</li><li><strong>边界清晰、可独立验证</strong>：能写成&quot;输入是什么、输出长什么样&quot;的任务；</li><li><strong>可并行</strong>：同时审查三个模块、同时调研三个技术方案，互不依赖的任务可以并发派发。</li></ul><p>不适合委派的：需要主对话连贯意图的决策（架构选择）、强依赖前文讨论上下文的任务（子代理看不到主对话历史）、一问一答的小事（委派本身有开销，不如直接答）。</p><h2 id="代价"><a href="#代价" class="headerlink" title="代价"></a>代价</h2><p>子代理不是免费的：</p><ul><li>每个子代理都从头加载自己的系统提示和工具定义；</li><li>它看不到主对话，任务描述必须自包含——写不清就返工；</li><li>返回结论的质量取决于你对&quot;输出长什么样&quot;的约束，不约束就给你写一篇散文。</li></ul><p>经验：委派前先问一句&quot;这个任务的中间过程，主对话需要看吗？&quot;——不需要，就委派。</p><h2 id="官方资料"><a href="#官方资料" class="headerlink" title="官方资料"></a>官方资料</h2><ul><li><a href="https://code.claude.com/docs/en/sub-agents">Sub-agents 文档</a></li><li><a href="https://code.claude.com/docs/en/skills">Skills 与代理的组织方式</a></li><li><a href="https://www.anthropic.com/engineering/claude-code-best-practices">Claude Code 最佳实践</a></li></ul><p>上下文管理是所有 Agent 技巧背后的同一条主线：窗口里只放当前决策真正需要的东西。</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> AI 应用实战 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> Claude Code </tag>
+            
+            <tag> Sub Agent </tag>
+            
+            <tag> 上下文 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>Claude Code Skills：把重复操作固化成可复用的工作流</title>
+      <link href="/2026/11/16/2026-ClaudeCodeSkills-%E5%AE%9A%E5%88%B6%E5%8F%AF%E5%A4%8D%E7%94%A8%E5%B7%A5%E4%BD%9C%E6%B5%81/"/>
+      <url>/2026/11/16/2026-ClaudeCodeSkills-%E5%AE%9A%E5%88%B6%E5%8F%AF%E5%A4%8D%E7%94%A8%E5%B7%A5%E4%BD%9C%E6%B5%81/</url>
+      
+        <content type="html"><![CDATA[<p>当你发现自己第三次把同样的操作步骤粘贴进对话——压缩图片、发布博客、生成周报——就该做 Skill 了。Skill 是一个带 <code>SKILL.md</code> 的目录，把一段多步骤流程固化下来，之后一句话触发，每次都按同样的标准执行。</p><h2 id="SKILL-md-的结构"><a href="#SKILL-md-的结构" class="headerlink" title="SKILL.md 的结构"></a>SKILL.md 的结构</h2><pre><code class="highlight plaintext">.claude/skills/deploy-blog/├── SKILL.md          # 必需：说明 + 流程└── scripts/    └── check-seo.sh  # 可选：附属脚本</code></pre><pre><code class="highlight markdown">---name: deploy-blog<span class="section">description: 发布本博客文章前执行完整的质量检查流程。当用户要求发布、部署博客或检查文章质量时使用。</span><span class="section">---</span><span class="section">## 流程</span><span class="bullet">1.</span> 运行 scripts/check-seo.sh，检查所有待发布文章的 front matter 完整性<span class="bullet">2.</span> 运行 npx hexo generate 确认构建无错误<span class="bullet">3.</span> 任一步骤失败：修复后重跑，直到全部通过<span class="bullet">4.</span> 全部通过后询问用户是否执行发布<span class="section">## 约定</span><span class="bullet">-</span> 构建失败时优先检查最近修改的文章<span class="bullet">-</span> 不要修改 <span class="emphasis">_config.yml</span></code></pre><p>存放位置有两级：<code>.claude/skills/</code>（项目内共享，进 git）和 <code>~/.claude/skills/</code>（个人全局）。三件事决定 Skill 好不好用：</p><ul><li><strong>description 写触发时机</strong>，不只是写功能。模型靠它判断什么时候自动启用，写&quot;当用户要求发布博客时使用&quot;比写&quot;博客发布工具&quot;命中率高得多；</li><li><strong>流程写成可执行步骤</strong>，而不是泛泛的原则；</li><li><strong>固定的机械步骤交给脚本</strong>，SKILL.md 里只写判断和分支。脚本比自然语言指令可靠且省 token。</li></ul><h2 id="渐进式加载：Skill-的上下文经济学"><a href="#渐进式加载：Skill-的上下文经济学" class="headerlink" title="渐进式加载：Skill 的上下文经济学"></a>渐进式加载：Skill 的上下文经济学</h2><p>Skill 不会一开始就占满上下文，而是分三层按需加载：</p><pre><code class="highlight text">第 1 层：所有 skill 的 name + description 常驻（几十 token 每个）第 2 层：命中任务时才加载 SKILL.md 正文（几百到几千 token）第 3 层：正文引用的脚本、参考资料，执行到才读取</code></pre><p>这意味着你可以在项目里放二十个 Skill，而不用为它们一次性支付上下文成本。这也是 Skill 和 CLAUDE.md 的分工标准：<strong>常驻的&quot;事实&quot;进 CLAUDE.md，按需的&quot;操作流程&quot;进 Skill</strong>。</p><h2 id="触发方式"><a href="#触发方式" class="headerlink" title="触发方式"></a>触发方式</h2><ul><li><strong>自动</strong>：description 与当前任务匹配时，模型自行加载使用，无感；</li><li><strong>手动</strong>：<code>/deploy-blog 直接发布最新那篇</code> ——像斜杠命令一样调用，<code>$ARGUMENTS</code> 接收后半句作为参数；</li><li>还可以用 frontmatter 精细控制：<code>disable-model-invocation: true</code> 只允许手动触发，<code>allowed-tools</code> 预授权一组工具免去权限确认。</li></ul><h2 id="和其他机制的分工"><a href="#和其他机制的分工" class="headerlink" title="和其他机制的分工"></a>和其他机制的分工</h2><table><thead><tr><th>机制</th><th>放什么</th><th>加载方式</th></tr></thead><tbody><tr><td>CLAUDE.md</td><td>项目事实与约定，每轮都相关</td><td>常驻</td></tr><tr><td>自定义命令</td><td>单步小指令（<code>.claude/commands/</code>）</td><td>手动</td></tr><tr><td>Skill</td><td>多步骤、带判断、带附属文件的工作流</td><td>按需三层</td></tr><tr><td>Hooks</td><td>强制性的硬约束</td><td>事件触发</td></tr></tbody></table><p>一个简单判断：内容超过一屏、或者需要带脚本和参考资料，就用 Skill。</p><h2 id="官方资料"><a href="#官方资料" class="headerlink" title="官方资料"></a>官方资料</h2><ul><li><a href="https://code.claude.com/docs/en/skills">Skills 官方文档</a></li><li><a href="https://www.anthropic.com/engineering/claude-code-best-practices">Claude Code 最佳实践</a></li></ul><p>Skill 的本质是把&quot;你脑子里每次都要重述的流程&quot;变成项目资产——写一次，所有人（包括未来的你）每次都以同一标准执行。</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> AI 应用实战 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> Claude Code </tag>
+            
+            <tag> 自动化 </tag>
+            
+            <tag> Skills </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>Claude Code Hooks：给 Agent 立下系统层面的规矩</title>
+      <link href="/2026/11/15/2026-ClaudeCodeHooks-%E7%BB%99Agent%E7%AB%8B%E8%A7%84%E7%9F%A9/"/>
+      <url>/2026/11/15/2026-ClaudeCodeHooks-%E7%BB%99Agent%E7%AB%8B%E8%A7%84%E7%9F%A9/</url>
+      
+        <content type="html"><![CDATA[<p>CLAUDE.md 写着&quot;提交前要跑 lint&quot;，模型大多数时候会照做，但总有忘记的时候。Hooks 解决的就是这个问题：它在 Claude Code 运行的关键时机执行你预先配好的脚本，脚本的输出和退出码会真实影响下一步行为。<strong>CLAUDE.md 是软提醒，Hooks 是硬约束。</strong></p><h2 id="支持的时机"><a href="#支持的时机" class="headerlink" title="支持的时机"></a>支持的时机</h2><table><thead><tr><th>事件</th><th>触发点</th></tr></thead><tbody><tr><td><code>UserPromptSubmit</code></td><td>用户提交 prompt 后、模型看到前</td></tr><tr><td><code>PreToolUse</code></td><td>工具调用前，可放行或拦截</td></tr><tr><td><code>PostToolUse</code></td><td>工具调用后</td></tr><tr><td><code>Stop</code></td><td>主 Agent 结束响应时</td></tr><tr><td><code>SubagentStop</code></td><td>子 Agent 结束时</td></tr><tr><td><code>PreCompact</code></td><td>&#x2F;compact 压缩前</td></tr><tr><td><code>SessionStart</code></td><td>会话启动时</td></tr><tr><td><code>Notification</code></td><td>需要用户注意时（如等待权限确认）</td></tr></tbody></table><p>配置写在 <code>.claude/settings.json</code>（项目级）或 <code>~/.claude/settings.json</code>（个人级）。</p><h2 id="例子一：编辑后自动格式化"><a href="#例子一：编辑后自动格式化" class="headerlink" title="例子一：编辑后自动格式化"></a>例子一：编辑后自动格式化</h2><p><code>PostToolUse</code> 在每次文件编辑后触发，用 <code>matcher</code> 限定只针对 Edit 工具：</p><pre><code class="highlight json"><span class="punctuation">&#123;</span>  <span class="attr">&quot;hooks&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span>    <span class="attr">&quot;PostToolUse&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span>      <span class="punctuation">&#123;</span>        <span class="attr">&quot;matcher&quot;</span><span class="punctuation">:</span> <span class="string">&quot;Edit|Write&quot;</span><span class="punctuation">,</span>        <span class="attr">&quot;hooks&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span>          <span class="punctuation">&#123;</span>            <span class="attr">&quot;type&quot;</span><span class="punctuation">:</span> <span class="string">&quot;command&quot;</span><span class="punctuation">,</span>            <span class="attr">&quot;command&quot;</span><span class="punctuation">:</span> <span class="string">&quot;$CLAUDE_PROJECT_DIR/scripts/auto-format.sh&quot;</span>          <span class="punctuation">&#125;</span>        <span class="punctuation">]</span>      <span class="punctuation">&#125;</span>    <span class="punctuation">]</span>  <span class="punctuation">&#125;</span><span class="punctuation">&#125;</span></code></pre><p>脚本从 stdin 读到 JSON（含被改的文件路径），格式化后如有改动就输出一句提示，模型会看到并自行处理遗漏。</p><h2 id="例子二：拦截危险命令"><a href="#例子二：拦截危险命令" class="headerlink" title="例子二：拦截危险命令"></a>例子二：拦截危险命令</h2><p><code>PreToolUse</code> 是最重要的安全钩子。退出码 2 表示拦截并阻止本次调用：</p><pre><code class="highlight json"><span class="punctuation">&#123;</span>  <span class="attr">&quot;hooks&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span>    <span class="attr">&quot;PreToolUse&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span>      <span class="punctuation">&#123;</span>        <span class="attr">&quot;matcher&quot;</span><span class="punctuation">:</span> <span class="string">&quot;Bash&quot;</span><span class="punctuation">,</span>        <span class="attr">&quot;hooks&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span>          <span class="punctuation">&#123;</span>            <span class="attr">&quot;type&quot;</span><span class="punctuation">:</span> <span class="string">&quot;command&quot;</span><span class="punctuation">,</span>            <span class="attr">&quot;command&quot;</span><span class="punctuation">:</span> <span class="string">&quot;$CLAUDE_PROJECT_DIR/scripts/guard-bash.sh&quot;</span>          <span class="punctuation">&#125;</span>        <span class="punctuation">]</span>      <span class="punctuation">&#125;</span>    <span class="punctuation">]</span>  <span class="punctuation">&#125;</span><span class="punctuation">&#125;</span></code></pre><pre><code class="highlight bash"><span class="meta">#!/bin/bash</span><span class="comment"># guard-bash.sh：拒绝高危命令</span>input=$(<span class="built_in">cat</span>)<span class="built_in">command</span>=$(<span class="built_in">echo</span> <span class="string">&quot;<span class="variable">$input</span>&quot;</span> | jq -r <span class="string">&#x27;.tool_input.command&#x27;</span>)<span class="keyword">if</span> <span class="built_in">echo</span> <span class="string">&quot;<span class="variable">$command</span>&quot;</span> | grep -qE <span class="string">&#x27;rm -rf|git push --force|git reset --hard&#x27;</span>; <span class="keyword">then</span>  <span class="built_in">echo</span> <span class="string">&quot;禁止执行高危命令：<span class="variable">$command</span>&quot;</span> &gt;&amp;2  <span class="built_in">exit</span> 2   <span class="comment"># 退出码 2 = 拦截本次调用</span><span class="keyword">fi</span><span class="built_in">exit</span> 0</code></pre><p>也可以不靠退出码，而是输出 JSON 精细控制：</p><pre><code class="highlight json"><span class="punctuation">&#123;</span><span class="attr">&quot;hookSpecificOutput&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span><span class="attr">&quot;permissionDecision&quot;</span><span class="punctuation">:</span> <span class="string">&quot;deny&quot;</span><span class="punctuation">,</span> <span class="attr">&quot;permissionDecisionReason&quot;</span><span class="punctuation">:</span> <span class="string">&quot;该命令在黑名单中&quot;</span><span class="punctuation">&#125;</span><span class="punctuation">&#125;</span></code></pre><h2 id="例子三：给每次-prompt-注入上下文"><a href="#例子三：给每次-prompt-注入上下文" class="headerlink" title="例子三：给每次 prompt 注入上下文"></a>例子三：给每次 prompt 注入上下文</h2><p><code>UserPromptSubmit</code> 的 stdout 会直接拼进模型看到的 prompt。适合注入&quot;时时刻刻都有用&quot;的动态信息：</p><pre><code class="highlight json"><span class="punctuation">&#123;</span>  <span class="attr">&quot;hooks&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span>    <span class="attr">&quot;UserPromptSubmit&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span>      <span class="punctuation">&#123;</span>        <span class="attr">&quot;hooks&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span>          <span class="punctuation">&#123;</span> <span class="attr">&quot;type&quot;</span><span class="punctuation">:</span> <span class="string">&quot;command&quot;</span><span class="punctuation">,</span> <span class="attr">&quot;command&quot;</span><span class="punctuation">:</span> <span class="string">&quot;echo \&quot;当前分支：$(git branch --show-current)，未提交文件数：$(git status -s | wc -l)\&quot;&quot;</span> <span class="punctuation">&#125;</span>        <span class="punctuation">]</span>      <span class="punctuation">&#125;</span>    <span class="punctuation">]</span>  <span class="punctuation">&#125;</span><span class="punctuation">&#125;</span></code></pre><p>模型从此不必每次调用 git 命令才知道仓库状态，省 token 也省来回。</p><h2 id="调试要点"><a href="#调试要点" class="headerlink" title="调试要点"></a>调试要点</h2><ul><li>脚本通过 <strong>stdin 收到完整 JSON</strong>（工具名、参数、会话 ID 等），用 <code>jq</code> 解析；</li><li><code>exit 2</code> &#x3D; 阻止并报错，其他非零 &#x3D; 非阻塞错误，<code>exit 0</code> &#x3D; 放行；</li><li>stdout 在 <code>UserPromptSubmit</code> 里进上下文，在 <code>PreToolUse</code> 里配合 JSON 用；stderr 始终只是调试日志；</li><li>改完配置用 <code>/hooks</code> 查看是否生效，或在命令里加 <code>echo &quot;$input&quot; &gt; /tmp/hook-debug.json</code> 抓真实输入。</li></ul><h2 id="别过度使用"><a href="#别过度使用" class="headerlink" title="别过度使用"></a>别过度使用</h2><p>Hooks 每次触发都要跑脚本，复杂的同步脚本会让整个会话变卡。经验法则：安全拦截和自动格式化值得做成 Hook；一次性流程不值得，那是 Skills 的领域。模型指令遵从能力越来越强，先想想&quot;一句 CLAUDE.md 能不能解决&quot;，再决定是否上 Hook。</p><h2 id="官方资料"><a href="#官方资料" class="headerlink" title="官方资料"></a>官方资料</h2><ul><li><a href="https://code.claude.com/docs/en/hooks">Hooks 参考与事件一览</a></li><li><a href="https://code.claude.com/docs/en/hooks-guide">Hooks 实战指南</a></li><li><a href="https://code.claude.com/docs/en/settings">settings.json 配置</a></li></ul><p>把&quot;可能被忘掉的规矩&quot;交给 Hooks 强制执行，人和模型都轻松。</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> AI 应用实战 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> Claude Code </tag>
+            
+            <tag> Hooks </tag>
+            
+            <tag> 自动化 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>Claude Code 常用技巧：CLAUDE.md、Plan Mode 与高频命令</title>
+      <link href="/2026/11/14/2026-ClaudeCode%E5%B8%B8%E7%94%A8%E6%8A%80%E5%B7%A7-CLAUDE%E6%96%87%E4%BB%B6%E4%B8%8EPlanMode/"/>
+      <url>/2026/11/14/2026-ClaudeCode%E5%B8%B8%E7%94%A8%E6%8A%80%E5%B7%A7-CLAUDE%E6%96%87%E4%BB%B6%E4%B8%8EPlanMode/</url>
+      
+        <content type="html"><![CDATA[<p>新手用 Claude Code 是&quot;每次都从零解释一遍项目&quot;，熟手是&quot;项目约定已经写好、计划先行、命令顺手&quot;。差距不在模型，在基本功。</p><h2 id="CLAUDE-md：项目约定的家"><a href="#CLAUDE-md：项目约定的家" class="headerlink" title="CLAUDE.md：项目约定的家"></a>CLAUDE.md：项目约定的家</h2><p>每次会话开始，Claude Code 都会读取 CLAUDE.md 作为常驻上下文。三级作用域按需使用：</p><pre><code class="highlight text">~/.claude/CLAUDE.md          个人全局：跨项目的个人偏好（如&quot;提交信息用中文&quot;）项目根/CLAUDE.md             项目级：进仓库就该知道的一切项目根/CLAUDE.local.md       本机私有：不想提交到 git 的个人配置（建议加入 .gitignore）</code></pre><p>新项目直接让它自己生成初稿：</p><pre><code class="highlight text">&gt; /init</code></pre><p>CLAUDE.md 里最值得写的是那些&quot;不看会踩坑&quot;的事：</p><ul><li>常用命令：怎么构建、怎么测试、怎么本地预览；</li><li>项目结构：哪个目录放什么，命名约定是什么；</li><li>红线：不许动的文件、必须遵守的代码风格；</li><li>事实性背景：这个项目为什么用某个看起来奇怪的设计。</li></ul><p>保持短。CLAUDE.md 是常驻上下文，每轮对话都要为它付费，把&quot;操作流程&quot;类的长内容挪到 Skills 或子代理里按需加载。对话中发现新约定，用 <code>#</code> 开头发一句消息即可快速追加进去。</p><h2 id="Plan-Mode：先对齐，再动手"><a href="#Plan-Mode：先对齐，再动手" class="headerlink" title="Plan Mode：先对齐，再动手"></a>Plan Mode：先对齐，再动手</h2><p>按 Shift+Tab 循环切换权限模式，切到 Plan Mode 后 Claude Code 只读不写，产出一份行动计划。这一步的价值在于：<strong>在代码被改坏之前发现理解偏差</strong>。</p><pre><code class="highlight text">&gt; 给博客加一个暗色主题切换按钮（Plan Mode 下先输出：涉及哪些文件、按钮放哪、状态存哪、要改几个组件）</code></pre><p>计划满意后确认执行。改动越大、仓库越不熟，越值得先进 Plan Mode；改一行配置这种小事就没必要了。</p><h2 id="高频命令清单"><a href="#高频命令清单" class="headerlink" title="高频命令清单"></a>高频命令清单</h2><table><thead><tr><th>命令</th><th>用途</th></tr></thead><tbody><tr><td><code>/clear</code></td><td>清空上下文开新任务，任务切换必用</td></tr><tr><td><code>/compact</code></td><td>压缩历史保留要点，长会话省钱续命</td></tr><tr><td><code>/resume</code></td><td>恢复历史会话</td></tr><tr><td><code>/model</code></td><td>切换模型，简单任务切便宜模型</td></tr><tr><td><code>/init</code></td><td>生成 CLAUDE.md 初稿</td></tr><tr><td><code>/help</code></td><td>查看全部命令</td></tr></tbody></table><p><code>/clear</code> 是最被低估的命令：上下文里堆着的旧任务残留只会干扰当前任务，还会让每一轮变贵。任务完成，立刻清。</p><h2 id="让它替你管-git"><a href="#让它替你管-git" class="headerlink" title="让它替你管 git"></a>让它替你管 git</h2><p>Claude Code 对 git 工作流很熟，可以直接委派：</p><pre><code class="highlight text">&gt; 把当前改动按逻辑拆成几个提交，提交信息遵循项目现有风格&gt; 基于当前改动开一个 PR，描述里写清楚动机和测试情况</code></pre><p>好的习惯是小步提交：让每完成一个独立改动就提交一次，这样任何一步不满意都能精确回退。</p><h2 id="把重复指令做成自定义命令"><a href="#把重复指令做成自定义命令" class="headerlink" title="把重复指令做成自定义命令"></a>把重复指令做成自定义命令</h2><p>第三次粘贴同一段 prompt 时就该固化了。项目里建 <code>.claude/commands/build-check.md</code>：</p><pre><code class="highlight markdown">---<span class="section">description: 构建并检查本博客最新改动</span><span class="section">---</span>运行 hexo generate，若失败则修复错误直到构建通过。注意：不要改动 <span class="emphasis">_config.yml。</span></code></pre><p>之后输入 <code>/build-check</code> 即可调用。支持 <code>$ARGUMENTS</code> 占位符接收参数，做成命令的好处是版本化、可分享给协作者。</p><h2 id="官方资料"><a href="#官方资料" class="headerlink" title="官方资料"></a>官方资料</h2><ul><li><a href="https://code.claude.com/docs/en/memory">CLAUDE.md 与记忆机制</a></li><li><a href="https://code.claude.com/docs/en/common-workflows">常见工作流</a></li><li><a href="https://code.claude.com/docs/en/slash-commands">斜杠命令与自定义命令</a></li><li><a href="https://www.anthropic.com/engineering/claude-code-best-practices">Claude Code 最佳实践（Anthropic 工程博客）</a></li></ul><p>这些技巧的共同逻辑是：把你的项目知识外置成文件，把上下文留给当前任务本身。</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> AI 应用实战 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> Claude Code </tag>
+            
+            <tag> CLAUDE.md </tag>
+            
+            <tag> 工作流 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>Claude Code 入门：安装、认证与权限边界</title>
+      <link href="/2026/11/13/2026-ClaudeCode%E5%85%A5%E9%97%A8-%E5%AE%89%E8%A3%85%E8%AE%A4%E8%AF%81%E4%B8%8E%E6%9D%83%E9%99%90/"/>
+      <url>/2026/11/13/2026-ClaudeCode%E5%85%A5%E9%97%A8-%E5%AE%89%E8%A3%85%E8%AE%A4%E8%AF%81%E4%B8%8E%E6%9D%83%E9%99%90/</url>
+      
+        <content type="html"><![CDATA[<p>Claude Code 和聊天机器人的区别在于：它不只回答问题，还能直接在你的项目目录里读文件、改代码、跑命令。所有技巧都建立在一个前提上——先把安装、认证和权限边界设置好。</p><h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2><pre><code class="highlight bash"><span class="comment"># 官方安装脚本（推荐，自动跟随版本更新）</span>curl -fsSL https://claude.ai/install.sh | bash<span class="comment"># 或通过 npm（需要 Node 18+）</span>npm install -g @anthropic-ai/claude-code</code></pre><p>装完后 <code>cd</code> 到你的项目根目录，输入 <code>claude</code> 启动。在项目根目录启动很重要：Claude Code 会把当前目录视为工作区，项目级配置（CLAUDE.md、.claude&#x2F; 目录）都从这里解析。</p><h2 id="两种认证方式"><a href="#两种认证方式" class="headerlink" title="两种认证方式"></a>两种认证方式</h2><table><thead><tr><th>方式</th><th>适合人群</th><th>计费</th></tr></thead><tbody><tr><td>账号登录（<code>/login</code>）</td><td>Claude Pro &#x2F; Max 订阅用户</td><td>包含在订阅里，按套餐限额</td></tr><tr><td>API Key</td><td>无订阅、或需要精确控制成本</td><td>按 token 计费，在控制台充值</td></tr></tbody></table><p>无订阅时设置环境变量即可：</p><pre><code class="highlight bash"><span class="built_in">export</span> ANTHROPIC_API_KEY=sk-ant-xxxxx</code></pre><p>API Key 方式下，一次长会话可能花掉几美元，建议先在控制台设置用量上限再开始。订阅方式的额度模型不同，重任务前可以先 <code>/usage</code> 看余量。</p><h2 id="第一次对话的正确姿势"><a href="#第一次对话的正确姿势" class="headerlink" title="第一次对话的正确姿势"></a>第一次对话的正确姿势</h2><p>不要上来就说&quot;帮我把这个项目重构一下&quot;。从小而完整的任务开始：</p><pre><code class="highlight text">&gt; 这个项目用什么构建？读 package.json 告诉我&gt; 给 source/_posts 加一个 2026 年的空文章模板，不要改其他文件</code></pre><p>你会看到 Claude Code 的典型工作流：先调用读文件工具查看现状，给出方案，再调用编辑工具落地，每一步危险操作前会向你确认。</p><h2 id="权限模式"><a href="#权限模式" class="headerlink" title="权限模式"></a>权限模式</h2><p>Claude Code 的每次工具调用默认都要你批准。这是最重要的安全边界，有几种放宽方式，按需选择：</p><ul><li><strong>默认模式</strong>：每个写操作和命令都询问，适合不熟悉的仓库。</li><li><strong>auto-accept</strong>：按 Shift+Tab 切换，会话内自动接受编辑（命令仍会确认）。</li><li><strong>Plan Mode</strong>：先只规划不动手，计划确认后再执行，适合大改动。</li><li><strong>permissions 配置</strong>：在 <code>.claude/settings.json</code> 里写白名单，把高频安全操作固化下来。</li></ul><pre><code class="highlight json"><span class="punctuation">&#123;</span>  <span class="attr">&quot;permissions&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span>    <span class="attr">&quot;allow&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="string">&quot;Read&quot;</span><span class="punctuation">,</span> <span class="string">&quot;Glob&quot;</span><span class="punctuation">,</span> <span class="string">&quot;Grep&quot;</span><span class="punctuation">,</span> <span class="string">&quot;Bash(git diff:*)&quot;</span><span class="punctuation">,</span> <span class="string">&quot;Bash(git log:*)&quot;</span><span class="punctuation">]</span><span class="punctuation">,</span>    <span class="attr">&quot;deny&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="string">&quot;Bash(rm -rf:*)&quot;</span><span class="punctuation">,</span> <span class="string">&quot;Bash(git push --force:*)&quot;</span><span class="punctuation">]</span>  <span class="punctuation">&#125;</span><span class="punctuation">&#125;</span></code></pre><p><code>allow</code> 里放确定无害的操作，<code>deny</code> 里放绝对不想让它碰的命令。deny 优先级最高，即使你本人在会话里批准也会被拦下。</p><p><code>--dangerously-skip-permissions</code> 会跳过所有确认，只建议在一次性容器或沙箱环境里用，绝不要在主力开发机上全局开启。</p><h2 id="常见坑"><a href="#常见坑" class="headerlink" title="常见坑"></a>常见坑</h2><ol><li><strong>启动目录不对</strong>：在子目录启动会看不到项目级配置，也让文件搜索范围变窄。</li><li><strong>git 工作区太脏</strong>：改动混在一起无法回退。让 Claude Code 动手前保持工作区干净，或让它先建分支。</li><li><strong>一个会话塞太多需求</strong>：上下文是有限资源，任务完成就 <code>/clear</code>，大任务拆会话。</li></ol><h2 id="官方资料"><a href="#官方资料" class="headerlink" title="官方资料"></a>官方资料</h2><ul><li><a href="https://code.claude.com/docs/en/overview">Claude Code 文档总览</a></li><li><a href="https://code.claude.com/docs/en/quickstart">快速开始</a></li><li><a href="https://code.claude.com/docs/en/settings">settings 与 permissions 配置</a></li><li><a href="https://code.claude.com/docs/en/costs">模型与用量说明</a></li></ul><p>把权限边界当成第一件事配置，之后的所有自动化才谈得上安全。</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> AI 应用实战 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> Agent </tag>
+            
+            <tag> Claude Code </tag>
+            
+            <tag> CLI </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>比特币从哪里来：起源、发行机制与理性投资指南</title>
+      <link href="/2026/08/30/2026-%E6%AF%94%E7%89%B9%E5%B8%81%E8%B5%B7%E6%BA%90%E5%8F%91%E8%A1%8C%E4%B8%8E%E6%8A%95%E8%B5%84/"/>
+      <url>/2026/08/30/2026-%E6%AF%94%E7%89%B9%E5%B8%81%E8%B5%B7%E6%BA%90%E5%8F%91%E8%A1%8C%E4%B8%8E%E6%8A%95%E8%B5%84/</url>
+      
+        <content type="html"><![CDATA[<p>比特币常被同时描述为电子现金、数字黄金、投机资产和去中心化网络。这些说法分别抓住了它的一部分，却也容易把技术事实、市场叙事和投资判断混在一起。</p><p>本文尝试回答三个问题：</p><ol><li>比特币为什么会在 2008 年出现？</li><li>没有央行的情况下，新比特币如何发行？</li><li>普通人如果考虑投资，应如何评估工具、仓位、托管和风险？</li></ol><blockquote><p>本文只用于技术与金融教育，不构成投资、法律或税务建议。比特币价格可能剧烈波动，甚至可能造成全部本金损失。任何操作前都要确认所在地最新法律，并根据自身财务状况咨询合格专业人士。</p></blockquote><h2 id="一、比特币不是凭空出现的"><a href="#一、比特币不是凭空出现的" class="headerlink" title="一、比特币不是凭空出现的"></a>一、比特币不是凭空出现的</h2><p>比特币之前，数字货币一直面临一个核心问题：数字文件可以无限复制，如何防止同一笔钱被花两次？</p><p>传统支付系统依赖银行或支付公司维护中央账本。密码朋克社区则长期探索另一条路线：用密码学、点对点网络和公开规则建立不依赖单一机构的电子现金。</p><p>比特币组合了多项已有思想：</p><ul><li>公钥密码学：证明谁有权花费一笔钱；</li><li>哈希函数：把数据压缩成难以伪造的指纹；</li><li>工作量证明：让创建新区块需要现实计算成本；</li><li>点对点网络：让许多节点共同传播交易与区块；</li><li>链式时间戳：让修改历史记录变得越来越昂贵；</li><li>经济激励：奖励遵守规则并保护网络的矿工。</li></ul><p>它的创新不是单独发明其中某个零件，而是把这些零件组合成一个能在开放网络中运行的系统。</p><h2 id="二、从白皮书到网络启动"><a href="#二、从白皮书到网络启动" class="headerlink" title="二、从白皮书到网络启动"></a>二、从白皮书到网络启动</h2><p>2008 年 10 月 31 日，化名 <strong>Satoshi Nakamoto（中本聪）</strong> 的作者发布《Bitcoin: A Peer-to-Peer Electronic Cash System》。白皮书提出一种无需金融机构作为可信第三方的点对点电子现金系统。</p><p>2009 年 1 月 3 日，比特币创世区块产生，网络开始运行。中本聪的真实身份至今没有得到可靠证实。这种身份未知并不自动证明系统可靠；比特币的规则是否可信，应由公开代码、共识机制、节点验证和长期运行记录来判断，而不是依赖创始人的权威。</p><p>早期比特币几乎没有市场价格，主要是密码学和开源社区的实验。后来才逐步出现兑换、支付、交易平台、矿池、钱包和托管服务。</p><p>可以把它的发展简化为：</p><pre><code class="highlight text">密码学研究与密码朋克思想  → 2008 年白皮书  → 2009 年主网启动  → 早期点对点转账与挖矿  → 交易市场和专业矿业出现  → 全球监管、机构产品和金融化</code></pre><h2 id="三、比特币到底是什么"><a href="#三、比特币到底是什么" class="headerlink" title="三、比特币到底是什么"></a>三、比特币到底是什么</h2><p>比特币不是存在某个文件夹里的一枚数字硬币。比特币网络维护的是一份公开账本，记录哪些未花费交易输出可以被哪些密钥控制。</p><p>三个概念必须分开：</p><ul><li><strong>Bitcoin 网络</strong>：节点、矿工、协议和区块链组成的系统；</li><li><strong>bitcoin &#x2F; BTC</strong>：网络中的记账单位；</li><li><strong>钱包</strong>：管理私钥、生成地址和签署交易的软件或设备。</li></ul><p>钱包并不真正“存放 BTC”，而是管理能够授权花费的私钥。丢失私钥通常意味着永久失去控制权；别人拿到私钥，则可以转走资产。</p><p>一个 BTC 可以拆分为 100,000,000 个 satoshi，通常简称 sats。因此投资比特币并不需要购买完整的 1 BTC。</p><h2 id="四、比特币如何发行"><a href="#四、比特币如何发行" class="headerlink" title="四、比特币如何发行"></a>四、比特币如何发行</h2><p>比特币没有公司在首次发行时预留全部代币，也没有央行按会议决定增发。新币通过区块中的 <strong>coinbase transaction</strong> 按协议规则产生。</p><p>矿工主要完成以下工作：</p><ol><li>收集并验证尚未确认的交易；</li><li>构造候选区块；</li><li>不断改变随机数并计算哈希；</li><li>尝试找到满足当前难度目标的结果；</li><li>将新区块广播给网络；</li><li>节点独立验证区块是否符合共识规则。</li></ol><p>成功区块的矿工可以获得：</p><pre><code class="highlight text">区块奖励 = 区块补贴（新发行 BTC）+ 区块内交易手续费</code></pre><p>矿工不能随意给自己更多新币。若 coinbase 交易超过规则允许的金额，其他节点会拒绝整个区块。</p><h3 id="减半机制"><a href="#减半机制" class="headerlink" title="减半机制"></a>减半机制</h3><p>区块补贴每 210,000 个区块减半一次，大约每四年发生一次：</p><table><thead><tr><th>周期</th><th align="right">每个区块的补贴</th></tr></thead><tbody><tr><td>2009 年启动</td><td align="right">50 BTC</td></tr><tr><td>2012 年第一次减半后</td><td align="right">25 BTC</td></tr><tr><td>2016 年第二次减半后</td><td align="right">12.5 BTC</td></tr><tr><td>2020 年第三次减半后</td><td align="right">6.25 BTC</td></tr><tr><td>2024 年第四次减半后</td><td align="right">3.125 BTC</td></tr></tbody></table><p>由于补贴构成递减的几何级数，比特币总发行量趋近但不会超过约 2,100 万枚。最后一小部分预计到 2140 年前后才逐步发行完毕。</p><p>“固定上限”不等于价格一定上涨。稀缺资产仍然需要需求；需求、监管、技术安全、市场流动性和替代品都可能改变价格。</p><h3 id="新币发行完后谁保护网络"><a href="#新币发行完后谁保护网络" class="headerlink" title="新币发行完后谁保护网络"></a>新币发行完后谁保护网络</h3><p>随着区块补贴降低，矿工收入结构会逐渐更多依赖交易手续费。未来手续费能否持续提供足够安全预算，是比特币长期经济模型的重要讨论之一，不应假定它已经得到永久解决。</p><h2 id="五、为什么挖矿难度会变化"><a href="#五、为什么挖矿难度会变化" class="headerlink" title="五、为什么挖矿难度会变化"></a>五、为什么挖矿难度会变化</h2><p>如果更多计算设备加入，而挖矿难度不变，区块会越来越快产生，发行计划也会失控。比特币会周期性调整工作量证明难度，使长期平均出块速度保持在约十分钟附近。</p><p>这形成一个反馈过程：</p><pre><code class="highlight text">算力增加 → 区块暂时变快 → 难度上调算力减少 → 区块暂时变慢 → 难度下调</code></pre><p>挖矿不是在“解一道对社会有用的数学题”，而是在进行大量可验证但难以提前预测的哈希尝试。这带来网络攻击成本，也带来能源消耗、设备折旧和产业集中等争议。</p><h2 id="六、比特币为什么有价格"><a href="#六、比特币为什么有价格" class="headerlink" title="六、比特币为什么有价格"></a>六、比特币为什么有价格</h2><p>协议只定义了如何验证和转移 BTC，没有规定它值多少美元或人民币。价格来自市场买卖双方。</p><p>常见需求叙事包括：</p><ul><li>不依赖单一发行机构的稀缺数字资产；</li><li>可以跨网络转移和自托管；</li><li>对某些投资者而言，是传统资产之外的组合选择；</li><li>对部分地区用户而言，是跨境价值转移工具；</li><li>机构产品增加了传统账户中的价格敞口渠道。</li></ul><p>但反方风险同样真实：</p><ul><li>没有现金流，估值高度依赖未来需求；</li><li>价格受市场情绪影响，波动极大；</li><li>政策和税务规则可能改变；</li><li>交易平台可能被攻击、破产或冻结提款；</li><li>私钥可能因操作失误永久丢失；</li><li>网络和市场都可能受到技术或治理事件影响。</li></ul><p>因此，“比特币有稀缺性”和“现在值得以某个价格购买”是两个完全不同的判断。</p><h2 id="七、投资前先通过五个问题"><a href="#七、投资前先通过五个问题" class="headerlink" title="七、投资前先通过五个问题"></a>七、投资前先通过五个问题</h2><p>在研究购买方式前，先回答：</p><ol><li>如果这笔资金损失 70% 或全部损失，会不会影响生活？</li><li>是否已经准备应急金，并处理高息债务？</li><li>投资期限是几个月还是五年以上？</li><li>能否承受价格暴跌时仍不冲动加杠杆或割肉？</li><li>是否理解自己购买的是现货、交易产品、衍生品还是公司股票？</li></ol><p>只要第一项答案是“会”，这笔钱就不适合投入高风险资产。</p><h2 id="八、获得比特币价格敞口的几种方式"><a href="#八、获得比特币价格敞口的几种方式" class="headerlink" title="八、获得比特币价格敞口的几种方式"></a>八、获得比特币价格敞口的几种方式</h2><p>各地区允许的工具不同。下表用于解释结构，不代表推荐：</p><table><thead><tr><th>方式</th><th>实际持有什么</th><th>优点</th><th>主要风险</th></tr></thead><tbody><tr><td>直接持有现货 BTC</td><td>链上资产或平台债权</td><td>可以提币、自托管和链上转账</td><td>平台、私钥、诈骗和转账错误</td></tr><tr><td>合规现货 ETP&#x2F;ETF 类产品</td><td>证券账户中的产品份额</td><td>不需要管理私钥，账户和报表熟悉</td><td>管理费、跟踪误差、托管与交易时段</td></tr><tr><td>期货或其他衍生品</td><td>合约</td><td>可用于专业交易或套期保值</td><td>杠杆、爆仓、展期和复杂定价</td></tr><tr><td>持有相关上市公司</td><td>公司股权</td><td>通过传统证券账户交易</td><td>公司经营风险，不等同于 BTC</td></tr><tr><td>挖矿设备或矿企</td><td>设备或企业权益</td><td>参与网络经济</td><td>电价、难度、设备折旧和运营风险</td></tr></tbody></table><p>美国 SEC 在 2024 年批准了若干现货比特币 ETP 上市交易，但明确表示批准上市不等于认可或推荐比特币。产品是否可买、受何种监管以及税务如何处理，都取决于投资者所在地。</p><h3 id="中国内地读者尤其要注意"><a href="#中国内地读者尤其要注意" class="headerlink" title="中国内地读者尤其要注意"></a>中国内地读者尤其要注意</h3><p>中国人民银行等部门发布的《关于进一步防范和处置虚拟货币交易炒作风险的通知》明确指出，虚拟货币不具有与法定货币等同的法律地位，相关业务活动属于非法金融活动，境外虚拟货币交易所向境内居民提供服务同样受到监管。</p><p>因此，本文不会提供绕过地区限制、支付限制或网络限制的交易教程。人在中国内地时，应以监管部门最新公开文件为准，不要把海外平台“能注册”误解为业务合法、资产受保护或风险可控。</p><h2 id="九、一个不依赖预测价格的投资框架"><a href="#九、一个不依赖预测价格的投资框架" class="headerlink" title="九、一个不依赖预测价格的投资框架"></a>九、一个不依赖预测价格的投资框架</h2><p>如果所在地允许、个人也通过了前面的风险检查，可以用以下框架思考，而不是猜明天涨跌。</p><h3 id="1-先定义最大损失预算"><a href="#1-先定义最大损失预算" class="headerlink" title="1. 先定义最大损失预算"></a>1. 先定义最大损失预算</h3><p>高风险仓位应足够小，即使归零也不会改变家庭计划。不要使用生活费、应急金、学费、房租或短期要用的钱。</p><p>一个简单思路是先确定整个可投资资产中允许承担极端损失的比例，再决定其中有多少分配给比特币。这里没有适合所有人的“标准百分比”。年龄、收入稳定性、负债、家庭责任和风险承受力都会改变答案。</p><h3 id="2-分批投入不等于消除风险"><a href="#2-分批投入不等于消除风险" class="headerlink" title="2. 分批投入不等于消除风险"></a>2. 分批投入不等于消除风险</h3><p>定期定额可以降低一次性择时压力，但不能保证盈利，也不能避免长期下跌。它真正解决的是执行纪律，而不是资产本身的风险。</p><p>记录一份规则：</p><pre><code class="highlight text">固定周期：每月一次固定预算：不因短期涨跌临时增加最大仓位：达到上限后停止新增再平衡：按季度或半年检查退出条件：投资逻辑、法律环境或个人财务发生变化</code></pre><h3 id="3-不使用杠杆"><a href="#3-不使用杠杆" class="headerlink" title="3. 不使用杠杆"></a>3. 不使用杠杆</h3><p>比特币本身已经高度波动。杠杆会把暂时回撤变成强制平仓，还会引入资金费率、保证金和交易对手风险。对初学者而言，“能承受现货波动”与“能控制杠杆风险”不是一回事。</p><h3 id="4-计算总成本"><a href="#4-计算总成本" class="headerlink" title="4. 计算总成本"></a>4. 计算总成本</h3><p>需要比较的不只是买卖手续费，还包括：</p><ul><li>买卖价差；</li><li>入金、出金与链上转账费用；</li><li>ETP 管理费与跟踪误差；</li><li>外汇转换成本；</li><li>税费和报税成本；</li><li>硬件钱包与备份成本。</li></ul><p>频繁交易会让这些摩擦不断累积。</p><h2 id="十、托管：平台保管还是自己保管"><a href="#十、托管：平台保管还是自己保管" class="headerlink" title="十、托管：平台保管还是自己保管"></a>十、托管：平台保管还是自己保管</h2><h3 id="第三方托管"><a href="#第三方托管" class="headerlink" title="第三方托管"></a>第三方托管</h3><p>交易平台或专业托管人控制私钥，用户看到的是账户余额。操作方便，但需要承担对方被攻击、停止服务、冻结账户或破产的风险。</p><p>检查：监管身份、资产隔离方式、提款规则、安全历史、费用、保险范围，以及机构失败时用户处于什么法律位置。</p><h3 id="自托管"><a href="#自托管" class="headerlink" title="自托管"></a>自托管</h3><p>用户自己控制私钥或助记词，不依赖平台批准提款，但所有安全责任也由自己承担。</p><p>基本原则：</p><ul><li>助记词永不拍照、截图、上传网盘或输入陌生网页；</li><li>任何索要私钥或助记词的“客服”都是危险信号；</li><li>大额转账前先做小额测试；</li><li>仔细核对地址和网络，链上转账通常不可撤销；</li><li>备份需要防火、防水、防盗，并考虑继承方案；</li><li>使用硬件钱包前确认来源、初始化过程和恢复流程。</li></ul><p>“Not your keys, not your coins”强调第三方风险，但自托管并不天然更安全。缺乏备份知识的人自行保管，可能比可靠托管更容易永久丢失资产。</p><h2 id="十一、最常见的骗局"><a href="#十一、最常见的骗局" class="headerlink" title="十一、最常见的骗局"></a>十一、最常见的骗局</h2><p>看到以下情况应立即停止：</p><ul><li>承诺固定收益、保本或稳赚；</li><li>陌生网友、恋爱对象或群聊导师带单；</li><li>要求把 BTC 转入所谓“量化托管地址”；</li><li>账户显示盈利，但提款前要求继续缴税或解冻费；</li><li>冒充监管机构、平台客服或名人；</li><li>以空投、钱包升级为名索要助记词；</li><li>声称 AI 机器人能无风险套利；</li><li>已被骗后，又有人收费承诺追回资产。</li></ul><p>链上交易可追踪不等于资金一定能追回。转账前的验证远比事后追讨有效。</p><h2 id="十二、理解比特币的正确学习顺序"><a href="#十二、理解比特币的正确学习顺序" class="headerlink" title="十二、理解比特币的正确学习顺序"></a>十二、理解比特币的正确学习顺序</h2><p>如果目标是研究，而不是马上交易，可以按顺序完成：</p><ol><li>阅读白皮书，理解它试图解决的问题；</li><li>区分地址、私钥、钱包、节点和矿工；</li><li>理解 UTXO、区块、确认和手续费；</li><li>了解工作量证明、难度调整和减半；</li><li>在测试网络体验钱包和转账，不投入真实资金；</li><li>阅读所在地监管和税务文件；</li><li>最后才研究投资工具与仓位。</li></ol><p>这能避免一个常见错误：只研究价格图，却不了解自己买的资产如何运行和保存。</p><h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>比特币的起点是一项点对点电子现金实验。它通过工作量证明、节点验证和预先定义的减半规则，在没有中央发行机构的情况下分发新币，总量趋近约 2,100 万枚。</p><p>但技术上的稀缺性不会自动转化为投资收益。理性参与需要同时理解：</p><pre><code class="highlight text">协议规则 + 市场需求 + 法律环境 + 投资工具+ 仓位管理 + 托管安全 + 诈骗风险</code></pre><p>如果无法解释私钥、减半、托管方式和最大可能损失，就还没有准备好用真金白银参与。</p><h2 id="主要资料"><a href="#主要资料" class="headerlink" title="主要资料"></a>主要资料</h2><ul><li><a href="https://bitcoin.org/en/bitcoin-paper">中本聪：Bitcoin 白皮书</a></li><li><a href="https://developer.bitcoin.org/reference/block_chain.html">Bitcoin Developer Reference：区块与区块奖励</a></li><li><a href="https://developer.bitcoin.org/devguide/mining.html">Bitcoin Developer Guide：Mining</a></li><li><a href="https://bitcoin.org/en/faq">Bitcoin.org：总量与发行 FAQ</a></li><li><a href="https://www.pbc.gov.cn/tiaofasi/144941/3581332/4348658/index.html">中国人民银行：关于进一步防范和处置虚拟货币交易炒作风险的通知</a></li><li><a href="https://www.sec.gov/newsroom/speeches-statements/gensler-statement-spot-bitcoin-011023">SEC：现货比特币 ETP 批准声明</a></li><li><a href="https://www.investor.gov/introduction-investing/general-resources/news-alerts/alerts-bulletins/investor-bulletins/crypto-asset-custody-basics-retail-investors-investor-bulletin-0">Investor.gov：加密资产托管基础</a></li><li><a href="https://www.investor.gov/introduction-investing/general-resources/news-alerts/alerts-bulletins/investor-alerts/crypto-scams">Investor.gov：加密资产诈骗警示</a></li></ul>]]></content>
+      
+      
+      <categories>
+          
+          <category> 其他 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> 比特币 </tag>
+            
+            <tag> 区块链 </tag>
+            
+            <tag> 投资风险 </tag>
+            
+            <tag> 数字资产 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>Mac AI 图片与视频生成：用 ComfyUI 跑通第一个完整工作流</title>
+      <link href="/2026/08/29/2026-Mac-AI%E5%9B%BE%E7%89%87%E4%B8%8E%E8%A7%86%E9%A2%91%E7%94%9F%E6%88%90/"/>
+      <url>/2026/08/29/2026-Mac-AI%E5%9B%BE%E7%89%87%E4%B8%8E%E8%A7%86%E9%A2%91%E7%94%9F%E6%88%90/</url>
+      
+        <content type="html"><![CDATA[<p>文本大模型输出的是 Token，图片模型输出像素，视频模型则要生成一串在时间上连续的画面。三者的操作界面不同，但工程方法一致：<strong>先跑通最小案例，再固定输入做参数对比，最后才追求分辨率和复杂效果。</strong></p><p>本文在 Apple 芯片 Mac 上完成一个具体项目：</p><pre><code class="highlight text">文字提示词  → 生成一张“赛博朋克终端桌面”图片  → 把图片作为视频第一帧  → 生成 3～5 秒的缓慢运镜视频  → 导出 MP4 并检查画面稳定性</code></pre><p><img src="/images/ai-media/mac-ai-image-video-pipeline.png" alt="Mac 上从提示词、生图、首帧到视频导出的完整流程"></p><p><em>流程示意：先让单张图片的主体与构图稳定，再把它作为第一帧生成视频，最后导出 MP4。</em></p><p>主工具选择 ComfyUI Desktop。它把模型推理拆成可视化节点，图片和视频可以共用同一套模型管理与工作流机制。</p><h2 id="一、先判断本地生成是否适合你的-Mac"><a href="#一、先判断本地生成是否适合你的-Mac" class="headerlink" title="一、先判断本地生成是否适合你的 Mac"></a>一、先判断本地生成是否适合你的 Mac</h2><p>ComfyUI Desktop for macOS 目前只支持 Apple Silicon，并推荐使用 MPS，让 PyTorch 通过 Metal 使用 Apple GPU。</p><p>可以按照统一内存选择目标：</p><table><thead><tr><th align="right">统一内存</th><th>建议目标</th></tr></thead><tbody><tr><td align="right">8 GB</td><td>先做 512×512 图片；视频优先使用云端</td></tr><tr><td align="right">16 GB</td><td>适合轻量图片模型；短视频需要低分辨率、少帧数</td></tr><tr><td align="right">24～32 GB</td><td>可以尝试轻量 2B 视频模型和图片转视频</td></tr><tr><td align="right">48 GB 以上</td><td>可尝试更大模型，但仍要控制分辨率和帧数</td></tr></tbody></table><p>这只是保守起点，不是兼容性保证。视频模型会同时处理多帧，内存和耗时通常远高于单张图片。活动监视器出现黄色或红色内存压力、交换空间持续增长时，应立即降低规模。</p><h2 id="二、安装-ComfyUI-Desktop"><a href="#二、安装-ComfyUI-Desktop" class="headerlink" title="二、安装 ComfyUI Desktop"></a>二、安装 ComfyUI Desktop</h2><p>最简单的方法是使用 Homebrew：</p><pre><code class="highlight bash">brew install comfyui</code></pre><p>也可以从 <a href="https://docs.comfy.org/installation/desktop/macos">ComfyUI Desktop macOS 页面</a> 下载应用。第一次启动时：</p><ol><li>计算设备选择 <strong>MPS</strong>；</li><li>选择一个空间充足的独立目录；</li><li>等待 Python 环境和依赖初始化；</li><li>不要修改应用内部的 <code>resource/ComfyUI</code> 目录。</li></ol><p>模型通常比程序本身大得多。建议至少预留几十 GB 空间；计划尝试多个视频模型时，需要预留更多。</p><p>进入界面后先认识四个位置：</p><ul><li>左侧或菜单中的 <strong>Workflow Templates</strong>：加载官方工作流；</li><li><strong>Load Checkpoint</strong>：选择图片模型；</li><li><strong>CLIP Text Encode</strong>：填写正向或负向提示词；</li><li><strong>Run &#x2F; Queue</strong>：执行工作流，快捷键通常是 <code>Cmd + Enter</code>。</li></ul><p><img src="/images/ai-media/comfyui-image-workflow.png" alt="节点式图片生成工作流示意图"></p><p><em>节点关系示意：模型和提示词进入采样器，生成结果交给保存节点。实际 ComfyUI 界面会包含更多编码、Latent 和 VAE 节点。</em></p><h2 id="三、第一部分：生成一张图片"><a href="#三、第一部分：生成一张图片" class="headerlink" title="三、第一部分：生成一张图片"></a>三、第一部分：生成一张图片</h2><p>为了先理解流程，使用官方入门工作流和 SD 1.5。它不是最新、质量最高的模型，但体积和资源要求相对较低，适合验证 Mac、MPS、模型目录和保存流程是否都正常。</p><h3 id="第-1-步：加载模板和模型"><a href="#第-1-步：加载模板和模型" class="headerlink" title="第 1 步：加载模板和模型"></a>第 1 步：加载模板和模型</h3><p>在 ComfyUI 中打开：</p><pre><code class="highlight text">Workflow → Browse Workflow Templates → Image Generation</code></pre><p>如果缺少 <code>v1-5-pruned-emaonly-fp16.safetensors</code>，界面会显示 Missing Models。Desktop 版可以点击下载，模型会被放入 <code>models/checkpoints</code>。</p><p>如果需要手动确认模型目录：</p><pre><code class="highlight text">左上角 ComfyUI 标志 → Help → Open folder → Open models folder</code></pre><p>模型加入后按 <code>R</code> 刷新节点，再在 <code>Load Checkpoint</code> 中选中它。</p><h3 id="第-2-步：设置第一组提示词"><a href="#第-2-步：设置第一组提示词" class="headerlink" title="第 2 步：设置第一组提示词"></a>第 2 步：设置第一组提示词</h3><p>正向提示词不要只写关键词列表。按照“主体、环境、构图、光线、材质、风格”的顺序描述：</p><pre><code class="highlight text">a futuristic programmer desk inside a dark cyberpunk room,a vintage terminal monitor displaying green command line text,mechanical keyboard, subtle neon cyan and magenta lights,rain on the window, cinematic wide shot, realistic materials,high contrast lighting, detailed, no person</code></pre><p>负向提示词用于排除常见问题：</p><pre><code class="highlight text">blurry, low quality, distorted monitor, unreadable layout,extra keyboards, duplicate objects, watermark, logo, person</code></pre><p>图片模型经常无法稳定生成正确文字，所以重点应是“终端视觉氛围”，不要期待屏幕命令完全正确。准确文字更适合在后期设计工具中添加。</p><h3 id="第-3-步：使用一组可复现参数"><a href="#第-3-步：使用一组可复现参数" class="headerlink" title="第 3 步：使用一组可复现参数"></a>第 3 步：使用一组可复现参数</h3><p>在工作流节点中设置：</p><pre><code class="highlight text">宽度：512高度：512Batch size：1Steps：20CFG：7Seed：20260829</code></pre><p>不同模板的采样器默认值可能不同，第一轮保持模板默认即可。点击 Run 或按 <code>Cmd + Enter</code>。生成结果会出现在 Save Image 节点，并保存到 ComfyUI 的 <code>output</code> 目录。</p><p>验收第一张图：</p><ul><li>能否成功生成，没有 MPS 或内存错误；</li><li>主体是否明确是终端桌面；</li><li>构图是否适合后续做运镜；</li><li>是否存在重复键盘、扭曲屏幕等明显错误；</li><li>保存的图片能否重新拖入 ComfyUI 恢复工作流。</li></ul><p>最后一点很实用：ComfyUI 生成的 PNG 通常带有工作流元数据，拖回界面就能继续修改。</p><h2 id="四、不要盲调：完成三轮图片实验"><a href="#四、不要盲调：完成三轮图片实验" class="headerlink" title="四、不要盲调：完成三轮图片实验"></a>四、不要盲调：完成三轮图片实验</h2><p>固定 Seed，一次只改一个变量：</p><table><thead><tr><th>实验</th><th>改动</th><th>观察点</th></tr></thead><tbody><tr><td>A</td><td>Steps 20 → 30</td><td>细节是否改善，耗时增加多少</td></tr><tr><td>B</td><td>CFG 7 → 5</td><td>构图是否更自然，提示词遵循是否下降</td></tr><tr><td>C</td><td>512² → 768²</td><td>细节、耗时和内存压力变化</td></tr></tbody></table><p>Seed 固定后，噪声起点基本一致，更容易看出参数的影响。如果每次同时换 Seed、尺寸、提示词和采样器，就无法知道改进来自哪里。</p><p>Mac 上优先遵循以下顺序：</p><pre><code class="highlight text">先优化提示词和构图→ 再尝试少量增加 Steps→ 最后提高分辨率或做后期放大</code></pre><p>直接用大分辨率生成，通常比低分辨率出图后放大更容易造成高内存压力。</p><h2 id="五、第二部分：把图片生成短视频"><a href="#五、第二部分：把图片生成短视频" class="headerlink" title="五、第二部分：把图片生成短视频"></a>五、第二部分：把图片生成短视频</h2><p>视频入门建议选择<strong>图片转视频（Image-to-Video）</strong>，而不是直接文字转视频。首帧已经确定了主体、颜色和构图，视频模型只需要解决运动，结果通常更可控。</p><p>这里使用 ComfyUI 官方的 LTX-Video 轻量工作流思路。官方 LTX 0.9.5 示例提供 2B 模型和 Image-to-Video 模板，更适合本地学习。最新 LTX-2.x 模型规模明显更大，低内存 Mac 应优先考虑 Comfy Cloud 或其他云端 GPU。</p><h3 id="第-1-步：加载-Image-to-Video-模板"><a href="#第-1-步：加载-Image-to-Video-模板" class="headerlink" title="第 1 步：加载 Image-to-Video 模板"></a>第 1 步：加载 Image-to-Video 模板</h3><p>先更新 ComfyUI，然后打开模板库：</p><pre><code class="highlight text">Workflow Templates → Video → LTX Video → Image to Video</code></pre><p>模板名称会随 ComfyUI 版本变化。如果找不到，参考 <a href="https://docs.comfy.org/tutorials/video/ltxv">ComfyUI LTX 工作流示例</a> 下载官方工作流；Desktop 稳定版有时会晚于最新文档。</p><p>模板加载后，根据 Missing Models 提示下载模型。官方轻量示例使用的文件包括：</p><pre><code class="highlight text">models/checkpoints/ltx-video-2b-v0.9.5.safetensorsmodels/text_encoders/t5xxl_fp16.safetensors</code></pre><p>视频模型和文本编码器都很大，下载前再次检查磁盘空间。不要从来源不明的网站下载可执行文件或自定义节点。</p><h3 id="第-2-步：载入刚才生成的图片"><a href="#第-2-步：载入刚才生成的图片" class="headerlink" title="第 2 步：载入刚才生成的图片"></a>第 2 步：载入刚才生成的图片</h3><p>在 <code>Load Image</code> 节点中选择赛博朋克终端图片。第一次实验使用横向尺寸，并避免过高分辨率：</p><pre><code class="highlight text">宽度：768（如果内存不足则 512）高度：512帧数：先使用模板的较小默认值Batch：1Seed：20260829</code></pre><p>具体宽高需要符合工作流节点的倍数约束。如果报尺寸错误，使用模板默认尺寸，而不是随意输入任意像素。</p><h3 id="第-3-步：写“运动提示词”"><a href="#第-3-步：写“运动提示词”" class="headerlink" title="第 3 步：写“运动提示词”"></a>第 3 步：写“运动提示词”</h3><p>图片提示词描述画面里有什么；视频提示词还要描述谁在动、如何动、镜头如何动，以及哪些东西必须保持稳定。</p><pre><code class="highlight text">Slow cinematic camera push-in toward the terminal monitor.Green terminal cursor blinks softly, subtle code lines scroll upward.Neon cyan and magenta reflections move gently across the desk.Rain slides down the window in the background.The monitor, keyboard and desk remain structurally stable.No scene change, no new objects, no people.</code></pre><p>第一条视频不要写爆炸、快速旋转、人物走动和大幅镜头切换。运动越多，短视频越容易出现物体变形和闪烁。</p><h3 id="第-4-步：生成并导出"><a href="#第-4-步：生成并导出" class="headerlink" title="第 4 步：生成并导出"></a>第 4 步：生成并导出</h3><p>点击 Run。视频生成可能比图片慢得多，期间观察活动监视器，不要同时启动其他大模型。</p><p>完成后，视频通常由保存节点写入：</p><pre><code class="highlight text">ComfyUI/output/</code></pre><p>部分工作流会放入 <code>output/video</code> 子目录。最终格式取决于保存节点，常见为 MP4 或 WebM。</p><p>验收视频时不要只看第一帧：</p><ul><li>终端、键盘和桌子结构是否稳定；</li><li>是否出现突然增加或消失的物体；</li><li>光线变化是否连续；</li><li>首尾是否有跳变；</li><li>是否存在大面积闪烁、融化或拉伸；</li><li>实际时长和画幅是否适合发布平台。</li></ul><h2 id="六、视频失败时怎么调"><a href="#六、视频失败时怎么调" class="headerlink" title="六、视频失败时怎么调"></a>六、视频失败时怎么调</h2><h3 id="画面严重变形"><a href="#画面严重变形" class="headerlink" title="画面严重变形"></a>画面严重变形</h3><p>减少运动数量，把提示词从“镜头旋转、屏幕变化、雨水、人物进入”缩减为一个主运动，例如只保留缓慢推进。图片转视频的第一帧也要构图清晰，避免过多细碎物体。</p><h3 id="视频像静态图片"><a href="#视频像静态图片" class="headerlink" title="视频像静态图片"></a>视频像静态图片</h3><p>把运动写成明确动词：<code>camera slowly pushes in</code>、<code>cursor blinks</code>、<code>rain slides down</code>。不要只重复图片的风格词。可以小幅提高运动相关参数，但每次只改一项。</p><h3 id="闪烁严重"><a href="#闪烁严重" class="headerlink" title="闪烁严重"></a>闪烁严重</h3><p>减少生成尺寸和运动幅度，缩短视频，避免提示词要求连续出现精确文字。先生成稳定的短片，再考虑插帧和放大。</p><h3 id="Mac-内存不足或系统卡死"><a href="#Mac-内存不足或系统卡死" class="headerlink" title="Mac 内存不足或系统卡死"></a>Mac 内存不足或系统卡死</h3><p>按顺序处理：</p><ol><li>Batch 固定为 1；</li><li>降低宽高；</li><li>减少帧数；</li><li>关闭 Ollama、浏览器大标签页和其他高内存应用；</li><li>换轻量模型；</li><li>改用云端 GPU。</li></ol><p>不要同时提高分辨率、帧数和 Batch。视频总像素量大致随“宽 × 高 × 帧数”增长，三个参数一起增加会迅速放大资源需求。</p><p><img src="/images/ai-media/mac-video-memory-comparison.png" alt="Mac 视频生成保守参数与过载参数对比"></p><p><em>第一次运行应从低分辨率、少帧数、Batch 1 开始。图中的参数用于解释资源增长关系，不代表所有视频模型都接受完全相同的尺寸和帧数。</em></p><h2 id="七、图片与视频提示词模板"><a href="#七、图片与视频提示词模板" class="headerlink" title="七、图片与视频提示词模板"></a>七、图片与视频提示词模板</h2><p>图片提示词：</p><pre><code class="highlight text">[主体]，位于[环境]，[构图/视角]，[光线]，[材质与细节]，[视觉风格]，[色彩]，[画面中不要出现什么]</code></pre><p>视频提示词：</p><pre><code class="highlight text">[主体]执行[一个主要动作]，[镜头运动]，[背景中的次要运动]，[光线如何变化]，[必须保持稳定的对象]，no scene change, no new objects, continuous motion</code></pre><p>提示词不必无限加长。真正有效的是明确主体、空间关系和运动，而不是堆满“8K、masterpiece、best quality”等宽泛词。</p><h2 id="八、什么时候该用本地，什么时候用云端"><a href="#八、什么时候该用本地，什么时候用云端" class="headerlink" title="八、什么时候该用本地，什么时候用云端"></a>八、什么时候该用本地，什么时候用云端</h2><table><thead><tr><th>场景</th><th>本地 Mac</th><th>云端生成服务</th></tr></thead><tbody><tr><td>学习工作流</td><td>非常适合</td><td>可以，但不利于理解节点</td></tr><tr><td>隐私图片</td><td>适合，注意模型许可证</td><td>需要确认数据政策</td></tr><tr><td>512～768 图片</td><td>适合</td><td>更快但可能按量付费</td></tr><tr><td>高质量长视频</td><td>通常较吃力</td><td>更适合</td></tr><tr><td>大规模批量生产</td><td>不推荐个人 Mac</td><td>更容易扩容</td></tr><tr><td>最新超大模型</td><td>经常受内存限制</td><td>通常先在云端可用</td></tr></tbody></table><p>比较成本时，不要只看一次生成价格。本地还有下载空间、等待时间、电量和电脑被占用的成本；云端则有费用、隐私和平台依赖。</p><h2 id="九、发布前的版权与安全检查"><a href="#九、发布前的版权与安全检查" class="headerlink" title="九、发布前的版权与安全检查"></a>九、发布前的版权与安全检查</h2><ul><li>确认基础模型、LoRA 和素材允许你的使用方式；</li><li>不用真实人物照片制作误导性内容；</li><li>不模仿在世艺术家的独特风格进行商业冒充；</li><li>检查图片和视频中的错误文字、商标和水印；</li><li>保存模型版本、工作流、Seed 和提示词；</li><li>对外发布时根据平台要求说明 AI 生成或 AI 辅助；</li><li>涉及客户或公司资料时，不上传到未经批准的云端服务。</li></ul><h2 id="十、下一步怎么练"><a href="#十、下一步怎么练" class="headerlink" title="十、下一步怎么练"></a>十、下一步怎么练</h2><p>完成本文后，可以按这个顺序继续：</p><ol><li>同一 Seed 比较三种提示词；</li><li>学习 Image-to-Image，保持构图改变风格；</li><li>使用 ControlNet 控制边缘、深度或人物姿态；</li><li>使用 LoRA 固定视觉风格；</li><li>对视频进行插帧、放大和剪辑；</li><li>把工作流导出为 JSON，记录每次实验结果。</li></ol><p>最值得保留的成果不是某一张“抽卡成功”的图片，而是一份别人可以重新运行的工作流。</p><h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>Mac 上生成图片和视频的可靠路线是：</p><pre><code class="highlight text">安装 ComfyUI Desktop（MPS）→ 用 SD 1.5 跑通第一张 512×512 图片→ 固定 Seed 比较参数→ 选择稳定图片作为首帧→ 用轻量 LTX Image-to-Video 生成短片→ 从低分辨率、少帧数、单运动开始调优</code></pre><p>先得到一个稳定、可复现的小结果，再逐步增加模型、尺寸和运动复杂度。对 Mac 来说，这比一开始挑战最新最大的视频模型更容易真正学会生成工作流。</p><h2 id="官方资料"><a href="#官方资料" class="headerlink" title="官方资料"></a>官方资料</h2><ul><li><a href="https://docs.comfy.org/installation/desktop/macos">ComfyUI：macOS Desktop 安装</a></li><li><a href="https://docs.comfy.org/get_started/first_generation">ComfyUI：第一次图片生成</a></li><li><a href="https://docs.comfy.org/tutorials/basic/text-to-image">ComfyUI：Text-to-Image 工作流</a></li><li><a href="https://docs.comfy.org/interface/features/template">ComfyUI：工作流模板</a></li><li><a href="https://docs.comfy.org/tutorials/video/ltxv">ComfyUI：LTX-Video 示例</a></li><li><a href="https://huggingface.co/docs/diffusers/main/optimization/mps">Hugging Face Diffusers：Apple Silicon MPS</a></li><li><a href="https://github.com/Lightricks/LTX-Video">Lightricks：LTX-Video</a></li></ul>]]></content>
+      
+      
+      <categories>
+          
+          <category> AI 应用实战 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> Mac </tag>
+            
+            <tag> ComfyUI </tag>
+            
+            <tag> AI 绘画 </tag>
+            
+            <tag> 视频生成 </tag>
+            
+            <tag> 提示词 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>Mac 本地部署大模型：从 Ollama 安装到性能调优</title>
+      <link href="/2026/08/28/2026-%E5%A4%A7%E6%A8%A1%E5%9E%8B%E9%83%A8%E7%BD%B2%E4%B8%8E%E6%80%A7%E8%83%BD%E8%B0%83%E4%BC%98/"/>
+      <url>/2026/08/28/2026-%E5%A4%A7%E6%A8%A1%E5%9E%8B%E9%83%A8%E7%BD%B2%E4%B8%8E%E6%80%A7%E8%83%BD%E8%B0%83%E4%BC%98/</url>
+      
+        <content type="html"><![CDATA[<p>Mac 的 CPU 和 GPU 共享统一内存，因此很适合在个人电脑上学习大模型部署：不需要安装 CUDA，也能使用 Apple GPU 加速推理。但“模型可以启动”和“模型运行得好”是两回事。</p><p>本文使用 <strong>Ollama 作为部署主线</strong>。它安装简单、提供本地 API，并在 Apple 芯片上内置 Metal 支持。最后再介绍什么时候值得换用 Apple 的 MLX LM。</p><blockquote><p>本文讨论的是本地推理优化，不是训练基础大模型。下载前应检查模型许可证和磁盘空间。</p></blockquote><h2 id="一、确认-Mac-能跑多大的模型"><a href="#一、确认-Mac-能跑多大的模型" class="headerlink" title="一、确认 Mac 能跑多大的模型"></a>一、确认 Mac 能跑多大的模型</h2><p>先查看芯片、统一内存和系统版本：</p><pre><code class="highlight bash">system_profiler SPHardwareDataTypesw_vers</code></pre><p>Ollama 当前要求 macOS 14 或更新版本。Apple M 系列支持 CPU 和 GPU，Intel Mac 只能使用 CPU，后者不适合运行较大的模型。</p><p>Mac 上最重要的不是“显存是多少”，而是<strong>统一内存有多少</strong>。模型权重、KV Cache、系统和其他应用共享这块内存。可用下面的经验值做第一轮选择：</p><table><thead><tr><th align="right">统一内存</th><th>建议起步</th><th>适合任务</th></tr></thead><tbody><tr><td align="right">8 GB</td><td>1B～3B 的 4-bit 模型</td><td>摘要、改写、简单问答</td></tr><tr><td align="right">16 GB</td><td>3B～8B 的 4-bit 模型</td><td>中文问答、轻量代码辅助</td></tr><tr><td align="right">24～32 GB</td><td>7B～14B 的 4-bit 模型</td><td>RAG、代码和复杂推理</td></tr><tr><td align="right">48 GB 以上</td><td>更大模型或更长上下文</td><td>本地实验、低并发服务</td></tr></tbody></table><p>这不是硬性边界。同为 8B 模型，量化格式、上下文和并发不同，内存占用也不同。务必给 macOS 留出余量；出现明显卡顿或大量交换空间时，应该换小模型。</p><h2 id="二、安装-Ollama"><a href="#二、安装-Ollama" class="headerlink" title="二、安装 Ollama"></a>二、安装 Ollama</h2><p>从 <a href="https://ollama.com/download/mac">Ollama 官网</a> 下载 DMG，将应用拖入“应用程序”后启动。首次运行会检查终端中的 <code>ollama</code> 命令。</p><pre><code class="highlight bash">ollama --versionollama list<span class="built_in">df</span> -h /</code></pre><p>模型可能占用数 GB 到数十 GB，默认数据位于 <code>~/.ollama</code>，所以下载前要检查磁盘空间。</p><h2 id="三、完整实验：安装-Qwen3-5-4B"><a href="#三、完整实验：安装-Qwen3-5-4B" class="headerlink" title="三、完整实验：安装 Qwen3.5 4B"></a>三、完整实验：安装 Qwen3.5 4B</h2><p>下面不再使用占位符，直接用 <code>qwen3.5:4b</code> 完成一次实验。它体积较小、支持中文，适合 Apple 芯片 Mac 入门。如果当前 Ollama 版本不能识别它，请先升级 Ollama；也可以把全文模型名替换为 <code>qwen3:4b</code>。</p><h3 id="第-1-步：确认-Ollama-服务正常"><a href="#第-1-步：确认-Ollama-服务正常" class="headerlink" title="第 1 步：确认 Ollama 服务正常"></a>第 1 步：确认 Ollama 服务正常</h3><p>打开 Ollama 应用，然后在终端执行：</p><pre><code class="highlight bash">curl http://127.0.0.1:11434/api/tags</code></pre><p>看到 JSON 说明服务已经启动。若连接失败，先确认菜单栏里有 Ollama 图标，或者手动运行：</p><pre><code class="highlight bash">ollama serve</code></pre><p>如果提示端口已经被占用，通常表示应用版服务已经在运行，不需要再启动一个。</p><h3 id="第-2-步：下载模型"><a href="#第-2-步：下载模型" class="headerlink" title="第 2 步：下载模型"></a>第 2 步：下载模型</h3><pre><code class="highlight bash">ollama pull qwen3.5:4b</code></pre><p>下载完成后确认模型存在：</p><pre><code class="highlight bash">ollama listollama show qwen3.5:4b</code></pre><p><code>show</code> 的结果会包含模型家族、参数规模、量化信息和上下文能力。模型库中的具体文件可能随发布更新，因此不要在文章里假定固定文件大小。</p><h3 id="第-3-步：在终端完成第一次对话"><a href="#第-3-步：在终端完成第一次对话" class="headerlink" title="第 3 步：在终端完成第一次对话"></a>第 3 步：在终端完成第一次对话</h3><pre><code class="highlight bash">ollama run qwen3.5:4b</code></pre><p>依次输入下面三个问题：</p><pre><code class="highlight text">你是谁？请用一句中文回答。把“本地模型不会把请求发送给远程 API”改写成更严谨的说法。写一个 Python 函数，输入字符串列表，返回长度最长的字符串，并给出两个测试用例。</code></pre><p>这一轮分别检查中文能力、事实表达和代码能力。不要只问“你好”，那无法判断模型是否适合实际任务。输入 <code>/bye</code> 结束对话。</p><h3 id="第-4-步：检查是否使用-GPU"><a href="#第-4-步：检查是否使用-GPU" class="headerlink" title="第 4 步：检查是否使用 GPU"></a>第 4 步：检查是否使用 GPU</h3><p>让模型保持加载状态，然后另开一个终端：</p><pre><code class="highlight bash">ollama ps</code></pre><p>重点看三列：</p><ul><li><code>PROCESSOR</code>：是否为 <code>100% GPU</code>；</li><li><code>CONTEXT</code>：实际分配的上下文长度；</li><li><code>UNTIL</code>：模型还会在内存中保留多久。</li></ul><p>如果主要在 CPU 上运行，先关闭占用内存较大的应用，再降低上下文；仍然无法完全放入 GPU 时，换成 <code>qwen3.5:2b</code>：</p><pre><code class="highlight bash">ollama pull qwen3.5:2bollama run qwen3.5:2b</code></pre><h2 id="四、把本地模型变成一个摘要工具"><a href="#四、把本地模型变成一个摘要工具" class="headerlink" title="四、把本地模型变成一个摘要工具"></a>四、把本地模型变成一个摘要工具</h2><p>终端聊天只是验证模型能运行。接下来做一个真正可用的小程序：输入一段技术笔记，让本地模型返回标题、摘要和关键词。</p><h3 id="第-1-步：创建-Python-环境"><a href="#第-1-步：创建-Python-环境" class="headerlink" title="第 1 步：创建 Python 环境"></a>第 1 步：创建 Python 环境</h3><pre><code class="highlight bash"><span class="built_in">mkdir</span> ollama-mac-demo<span class="built_in">cd</span> ollama-mac-demopython3 -m venv .venv<span class="built_in">source</span> .venv/bin/activatepip install ollama</code></pre><p>创建 <code>app.py</code>：</p><pre><code class="highlight python"><span class="keyword">import</span> json<span class="keyword">from</span> ollama <span class="keyword">import</span> chatarticle = <span class="string">&quot;&quot;&quot;</span><span class="string">KV Cache 保存大模型生成过程中已经计算过的 Key 和 Value。</span><span class="string">这样模型生成下一个 Token 时，不必重新计算全部历史内容。</span><span class="string">它能减少重复计算，但占用会随着上下文长度和并发量增加。</span><span class="string">&quot;&quot;&quot;</span>response = chat(    model=<span class="string">&quot;qwen3.5:4b&quot;</span>,    messages=[        &#123;            <span class="string">&quot;role&quot;</span>: <span class="string">&quot;system&quot;</span>,            <span class="string">&quot;content&quot;</span>: (                <span class="string">&quot;你是技术编辑。只能依据用户提供的原文回答，&quot;</span>                <span class="string">&quot;不得补充原文不存在的事实。&quot;</span>            ),        &#125;,        &#123;            <span class="string">&quot;role&quot;</span>: <span class="string">&quot;user&quot;</span>,            <span class="string">&quot;content&quot;</span>: <span class="string">f&quot;&quot;&quot;请整理下面的笔记：</span><span class="string"></span><span class="string"><span class="subst">&#123;article&#125;</span></span><span class="string"></span><span class="string">返回 JSON，字段为 title、summary、keywords。</span><span class="string">keywords 必须是 3 个中文字符串组成的数组。&quot;&quot;&quot;</span>,        &#125;,    ],    <span class="built_in">format</span>=&#123;        <span class="string">&quot;type&quot;</span>: <span class="string">&quot;object&quot;</span>,        <span class="string">&quot;properties&quot;</span>: &#123;            <span class="string">&quot;title&quot;</span>: &#123;<span class="string">&quot;type&quot;</span>: <span class="string">&quot;string&quot;</span>&#125;,            <span class="string">&quot;summary&quot;</span>: &#123;<span class="string">&quot;type&quot;</span>: <span class="string">&quot;string&quot;</span>&#125;,            <span class="string">&quot;keywords&quot;</span>: &#123;                <span class="string">&quot;type&quot;</span>: <span class="string">&quot;array&quot;</span>,                <span class="string">&quot;items&quot;</span>: &#123;<span class="string">&quot;type&quot;</span>: <span class="string">&quot;string&quot;</span>&#125;,                <span class="string">&quot;minItems&quot;</span>: <span class="number">3</span>,                <span class="string">&quot;maxItems&quot;</span>: <span class="number">3</span>,            &#125;,        &#125;,        <span class="string">&quot;required&quot;</span>: [<span class="string">&quot;title&quot;</span>, <span class="string">&quot;summary&quot;</span>, <span class="string">&quot;keywords&quot;</span>],    &#125;,    options=&#123;        <span class="string">&quot;temperature&quot;</span>: <span class="number">0</span>,        <span class="string">&quot;num_ctx&quot;</span>: <span class="number">4096</span>,        <span class="string">&quot;seed&quot;</span>: <span class="number">42</span>,    &#125;,)result = json.loads(response.message.content)<span class="built_in">print</span>(json.dumps(result, ensure_ascii=<span class="literal">False</span>, indent=<span class="number">2</span>))</code></pre><p>运行：</p><pre><code class="highlight bash">python app.py</code></pre><p>预期看到类似结构，而不是要求字句完全一致：</p><pre><code class="highlight json"><span class="punctuation">&#123;</span>  <span class="attr">&quot;title&quot;</span><span class="punctuation">:</span> <span class="string">&quot;KV Cache 的作用与代价&quot;</span><span class="punctuation">,</span>  <span class="attr">&quot;summary&quot;</span><span class="punctuation">:</span> <span class="string">&quot;KV Cache 通过保存已计算的 Key 和 Value 减少重复计算，但会随上下文和并发增长而占用更多内存。&quot;</span><span class="punctuation">,</span>  <span class="attr">&quot;keywords&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="string">&quot;KV Cache&quot;</span><span class="punctuation">,</span> <span class="string">&quot;重复计算&quot;</span><span class="punctuation">,</span> <span class="string">&quot;内存占用&quot;</span><span class="punctuation">]</span><span class="punctuation">&#125;</span></code></pre><p>如果能够稳定解析 JSON，这个最小应用才算通过。实际项目还需要捕获连接失败、超时、空输出和 JSON 解析错误。</p><h2 id="五、实际跑一次性能基线"><a href="#五、实际跑一次性能基线" class="headerlink" title="五、实际跑一次性能基线"></a>五、实际跑一次性能基线</h2><p>先用 API 做一次非流式测试。非流式响应会返回完整性能指标：</p><pre><code class="highlight bash">curl http://127.0.0.1:11434/api/generate -d <span class="string">&#x27;&#123;</span><span class="string">  &quot;model&quot;: &quot;qwen3.5:4b&quot;,</span><span class="string">  &quot;prompt&quot;: &quot;用三点解释什么是 KV Cache，每点不超过 30 字。&quot;,</span><span class="string">  &quot;stream&quot;: false,</span><span class="string">  &quot;keep_alive&quot;: &quot;10m&quot;,</span><span class="string">  &quot;options&quot;: &#123;</span><span class="string">    &quot;temperature&quot;: 0,</span><span class="string">    &quot;num_predict&quot;: 128,</span><span class="string">    &quot;num_ctx&quot;: 4096,</span><span class="string">    &quot;seed&quot;: 42</span><span class="string">  &#125;</span><span class="string">&#125;&#x27;</span></code></pre><p>响应末尾包含：</p><ul><li><code>load_duration</code>：模型加载耗时；</li><li><code>prompt_eval_count</code> &#x2F; <code>prompt_eval_duration</code>：输入处理量和耗时；</li><li><code>eval_count</code> &#x2F; <code>eval_duration</code>：输出生成量和耗时；</li><li><code>total_duration</code>：整个请求耗时。</li></ul><p>输出速度的计算方式是：</p><pre><code class="highlight text">输出 tokens/s = eval_count ÷ (eval_duration ÷ 1,000,000,000)</code></pre><p>首次调用包含冷启动成本。<code>keep_alive</code> 让模型暂时留在内存中，便于继续测预热后的速度。</p><h3 id="自动比较-2K-与-8K-上下文"><a href="#自动比较-2K-与-8K-上下文" class="headerlink" title="自动比较 2K 与 8K 上下文"></a>自动比较 2K 与 8K 上下文</h3><p>创建 <code>benchmark.py</code>：</p><pre><code class="highlight python"><span class="keyword">import</span> statistics<span class="keyword">import</span> time<span class="keyword">import</span> ollamaMODEL = <span class="string">&quot;qwen3.5:4b&quot;</span>PROMPT = <span class="string">&quot;用三点解释什么是 KV Cache，每点不超过 30 字。&quot;</span><span class="keyword">def</span> <span class="title function_">run_once</span>(<span class="params">num_ctx: <span class="built_in">int</span></span>) -&gt; <span class="built_in">dict</span>:    started = time.perf_counter()    result = ollama.generate(        model=MODEL,        prompt=PROMPT,        stream=<span class="literal">False</span>,        keep_alive=<span class="string">&quot;10m&quot;</span>,        options=&#123;            <span class="string">&quot;temperature&quot;</span>: <span class="number">0</span>,            <span class="string">&quot;seed&quot;</span>: <span class="number">42</span>,            <span class="string">&quot;num_predict&quot;</span>: <span class="number">128</span>,            <span class="string">&quot;num_ctx&quot;</span>: num_ctx,        &#125;,    )    elapsed = time.perf_counter() - started    output_tps = result[<span class="string">&quot;eval_count&quot;</span>] / (result[<span class="string">&quot;eval_duration&quot;</span>] / <span class="number">1e9</span>)    <span class="keyword">return</span> &#123;<span class="string">&quot;seconds&quot;</span>: elapsed, <span class="string">&quot;output_tps&quot;</span>: output_tps&#125;<span class="keyword">for</span> context <span class="keyword">in</span> (<span class="number">2048</span>, <span class="number">8192</span>):    run_once(context)  <span class="comment"># 预热，不计入结果</span>    rows = [run_once(context) <span class="keyword">for</span> _ <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">5</span>)]    <span class="built_in">print</span>(        <span class="string">f&quot;ctx=<span class="subst">&#123;context:&lt;<span class="number">5</span>&#125;</span> &quot;</span>        <span class="string">f&quot;平均总耗时=<span class="subst">&#123;statistics.mean(r[<span class="string">&#x27;seconds&#x27;</span>] <span class="keyword">for</span> r <span class="keyword">in</span> rows):<span class="number">.2</span>f&#125;</span>s &quot;</span>        <span class="string">f&quot;平均输出速度=<span class="subst">&#123;statistics.mean(r[<span class="string">&#x27;output_tps&#x27;</span>] <span class="keyword">for</span> r <span class="keyword">in</span> rows):<span class="number">.2</span>f&#125;</span> tok/s&quot;</span>    )</code></pre><pre><code class="highlight bash">python benchmark.py</code></pre><p>不要在文章里伪造一组“标准成绩”。芯片、内存带宽、温度、后台程序和 Ollama 版本都会影响结果。读者应该把自己实际输出的两行数据保存下来，并回答：</p><ol><li>8K 上下文是否明显增加内存压力？</li><li>这个任务实际上是否需要 8K？</li><li>两种配置的答案质量是否一致？</li><li>活动监视器是否出现黄色或红色内存压力？</li></ol><p>如果短摘要任务在 2K 下已经完成，8K 没有带来质量提升，那么 2K 就是更合理的设置。这就是一次最小的、有数据支撑的调优，而不是凭感觉修改参数。</p><h2 id="六、建立一份公平的测试基线"><a href="#六、建立一份公平的测试基线" class="headerlink" title="六、建立一份公平的测试基线"></a>六、建立一份公平的测试基线</h2><p>准备 10～30 个固定问题，覆盖真实需求：中文摘要、JSON 抽取、代码解释、基于资料回答、生成可执行单元测试等。</p><p>比较模型或参数时固定 Prompt、<code>seed</code>、温度、上下文和最大输出长度，并记录：</p><table><thead><tr><th>指标</th><th>回答的问题</th></tr></thead><tbody><tr><td>任务成功率</td><td>回答是否真的可用</td></tr><tr><td>首次&#x2F;预热后总耗时</td><td>慢在加载还是推理</td></tr><tr><td>输入 tokens&#x2F;s</td><td>长文档处理是否够快</td></tr><tr><td>输出 tokens&#x2F;s</td><td>回答生成是否流畅</td></tr><tr><td>内存压力</td><td>是否影响整台 Mac</td></tr></tbody></table><p>同时打开“活动监视器”的“内存”窗口，关注<strong>内存压力</strong>和<strong>交换使用量</strong>。速度不错但系统持续变黄、变红，不是稳定配置。</p><h2 id="七、Mac-上最有效的五个调优方向"><a href="#七、Mac-上最有效的五个调优方向" class="headerlink" title="七、Mac 上最有效的五个调优方向"></a>七、Mac 上最有效的五个调优方向</h2><h3 id="1-先换合适的模型大小"><a href="#1-先换合适的模型大小" class="headerlink" title="1. 先换合适的模型大小"></a>1. 先换合适的模型大小</h3><p>模型大小通常比微调参数更影响速度和内存。如果 14B 只能勉强运行，换成优秀的 7B&#x2F;8B 往往更流畅。</p><p>采用“两阶段选择法”：先用固定题集淘汰质量不达标的模型，再在合格模型中选择速度最快、内存最稳的一个。参数更多不等于你的任务一定更好，摘要、分类和格式抽取常常不需要大模型。</p><h3 id="2-比较量化，而不是只追求最低位数"><a href="#2-比较量化，而不是只追求最低位数" class="headerlink" title="2. 比较量化，而不是只追求最低位数"></a>2. 比较量化，而不是只追求最低位数</h3><p>Ollama 模型通常使用 GGUF 量化。4-bit 能显著降低权重占用，适合作为 Mac 的起点；但量化越激进，质量下降风险越高。</p><p>比较量化版本时保持题集和生成参数一致，观察输出速度、内存压力，以及代码、JSON、中文和长文本质量。如果 4-bit 已经完全驻留 GPU，继续压低位数未必值得。</p><h3 id="3-控制上下文长度"><a href="#3-控制上下文长度" class="headerlink" title="3. 控制上下文长度"></a>3. 控制上下文长度</h3><p>上下文越长，KV Cache 占用越大。普通问答先用 4096 或 8192，不要直接打开最大窗口。API 中可按请求设置：</p><pre><code class="highlight json"><span class="punctuation">&#123;</span>  <span class="attr">&quot;options&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span> <span class="attr">&quot;num_ctx&quot;</span><span class="punctuation">:</span> <span class="number">4096</span> <span class="punctuation">&#125;</span><span class="punctuation">&#125;</span></code></pre><p>也可以新建 <code>Modelfile</code> 固化配置：</p><pre><code class="highlight dockerfile"><span class="keyword">FROM</span> &lt;模型名&gt;PARAMETER num_ctx <span class="number">4096</span>PARAMETER temperature <span class="number">0.2</span>PARAMETER num_predict <span class="number">512</span></code></pre><pre><code class="highlight bash">ollama create mac-ai-balanced -f Modelfileollama run mac-ai-balanced</code></pre><p>RAG 不要把整个资料库塞进上下文。先检索，再只放最相关片段，通常比盲目增加窗口更快、更准确。</p><h3 id="4-限制并发和已加载模型"><a href="#4-限制并发和已加载模型" class="headerlink" title="4. 限制并发和已加载模型"></a>4. 限制并发和已加载模型</h3><p>个人 Mac 更适合单用户或低并发服务。并行请求会增加上下文所需内存；并发和上下文同时扩大，很容易造成内存压力。</p><p>关闭 Ollama 应用内的服务后，可以用保守配置启动：</p><pre><code class="highlight bash">OLLAMA_NUM_PARALLEL=1 \OLLAMA_MAX_LOADED_MODELS=1 \OLLAMA_MAX_QUEUE=32 \OLLAMA_CONTEXT_LENGTH=4096 \ollama serve</code></pre><p>确认单并发稳定后，再尝试把 <code>OLLAMA_NUM_PARALLEL</code> 调到 2。每次只改一个参数并重复压测。Mac 不适合作为裸露公网的高并发服务器，公网服务仍需要鉴权、TLS、限流和监控。</p><h3 id="5-优化输入和输出长度"><a href="#5-优化输入和输出长度" class="headerlink" title="5. 优化输入和输出长度"></a>5. 优化输入和输出长度</h3><p>最便宜的优化往往在请求本身：</p><ul><li>删除重复系统提示词和无关历史；</li><li>RAG 文档先去重、切分和重排；</li><li>明确要求回答长度；</li><li>设置合理的 <code>num_predict</code>；</li><li>摘要和分类使用低温度；</li><li>结构化任务提供明确字段或 JSON Schema。</li></ul><p>输入越长，等待首字通常越久；输出越长，占用设备的时间也越长。</p><h2 id="八、一张可复现的调优实验表"><a href="#八、一张可复现的调优实验表" class="headerlink" title="八、一张可复现的调优实验表"></a>八、一张可复现的调优实验表</h2><p>一次只改变一个主要变量：</p><table><thead><tr><th>实验</th><th>模型</th><th>量化</th><th align="right">上下文</th><th align="right">并发</th><th>目的</th></tr></thead><tbody><tr><td>A</td><td>3B</td><td>4-bit</td><td align="right">4096</td><td align="right">1</td><td>最小速度基线</td></tr><tr><td>B</td><td>8B</td><td>4-bit</td><td align="right">4096</td><td align="right">1</td><td>比较质量收益</td></tr><tr><td>C</td><td>8B</td><td>4-bit</td><td align="right">8192</td><td align="right">1</td><td>测试长上下文成本</td></tr><tr><td>D</td><td>8B</td><td>4-bit</td><td align="right">4096</td><td align="right">2</td><td>测试并发与内存</td></tr><tr><td>E</td><td>最优模型</td><td>另一量化</td><td align="right">4096</td><td align="right">1</td><td>比较量化质量</td></tr></tbody></table><p>最终选择不应该是单项冠军，而是同时满足：</p><pre><code class="highlight text">质量达标 + 内存压力稳定 + 生成速度可接受 + 不影响日常工作</code></pre><h2 id="九、什么时候使用-MLX-LM"><a href="#九、什么时候使用-MLX-LM" class="headerlink" title="九、什么时候使用 MLX LM"></a>九、什么时候使用 MLX LM</h2><p>如果只是聊天、RAG 或给程序提供本地 API，Ollama 已经足够方便。如果想深入 Apple 芯片模型开发、自己量化或进行 LoRA 微调，可以尝试 Apple 开源的 MLX LM：</p><pre><code class="highlight bash">python3 -m venv .venv<span class="built_in">source</span> .venv/bin/activatepip install mlx-lmmlx_lm.generate \  --model mlx-community/Llama-3.2-3B-Instruct-4bit \  --prompt <span class="string">&quot;解释统一内存为什么适合本地大模型&quot;</span></code></pre><p>MLX LM 可以加载 Hugging Face 上的 MLX 模型，也支持量化、低秩微调、KV Cache 量化和推测解码。它更偏实验与开发，具体参数应以当前版本的命令帮助和官方文档为准。</p><h2 id="十、常见问题"><a href="#十、常见问题" class="headerlink" title="十、常见问题"></a>十、常见问题</h2><h3 id="模型一运行，整台电脑就卡"><a href="#模型一运行，整台电脑就卡" class="headerlink" title="模型一运行，整台电脑就卡"></a>模型一运行，整台电脑就卡</h3><p>说明统一内存余量不足。关闭高内存应用，降低上下文，确保只加载一个模型；仍不稳定就换更小模型或更高压缩率的量化版本。</p><h3 id="第一次回答特别慢"><a href="#第一次回答特别慢" class="headerlink" title="第一次回答特别慢"></a>第一次回答特别慢</h3><p>先查看 <code>load_duration</code>。模型从磁盘载入内存会产生冷启动时间，预热后的请求才适合衡量推理速度。</p><h3 id="同一个问题每次结果差很多"><a href="#同一个问题每次结果差很多" class="headerlink" title="同一个问题每次结果差很多"></a>同一个问题每次结果差很多</h3><p>降低 <code>temperature</code> 并固定 <code>seed</code>。性能和质量对比时要减少随机性。</p><h3 id="模型支持-128K，为什么不直接启用"><a href="#模型支持-128K，为什么不直接启用" class="headerlink" title="模型支持 128K，为什么不直接启用"></a>模型支持 128K，为什么不直接启用</h3><p>最大能力不等于免费能力。更大的上下文增加内存占用和输入处理时间，应按真实任务设置。</p><h3 id="能不能让同一-Wi-Fi-下的设备访问"><a href="#能不能让同一-Wi-Fi-下的设备访问" class="headerlink" title="能不能让同一 Wi-Fi 下的设备访问"></a>能不能让同一 Wi-Fi 下的设备访问</h3><p>技术上可以修改监听地址，但这会扩大安全边界。至少应通过带认证和 TLS 的代理访问，并设置防火墙、限流和输入长度限制；不要把裸 Ollama 端口映射到公网。</p><h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>在 Mac 上部署和调优大模型，可以遵循这条路线：</p><pre><code class="highlight text">确认统一内存 → 安装 Ollama → 选择小模型建立基线→ 检查 GPU 驻留 → 比较模型与量化 → 控制上下文和并发→ 用真实题集验证质量 → 固化稳定配置</code></pre><p>Mac 调优最重要的原则不是把模型做得尽可能大，而是让<strong>模型、上下文和并发共同适配统一内存</strong>。保留可复现的题集和数据，才能让每次优化成为清晰的工程决策。</p><h2 id="官方资料"><a href="#官方资料" class="headerlink" title="官方资料"></a>官方资料</h2><ul><li><a href="https://ollama.com/library/qwen3.5:4b">Ollama 模型库：Qwen3.5 4B</a></li><li><a href="https://docs.ollama.com/macos">Ollama：macOS 安装与系统要求</a></li><li><a href="https://docs.ollama.com/context-length">Ollama：Context length</a></li><li><a href="https://docs.ollama.com/api/usage">Ollama：API usage metrics</a></li><li><a href="https://docs.ollama.com/modelfile">Ollama：Modelfile reference</a></li><li><a href="https://docs.ollama.com/faq">Ollama：FAQ 与并发配置</a></li><li><a href="https://github.com/ml-explore/mlx-lm">Apple MLX LM</a></li><li><a href="https://developer.apple.com/metal/">Apple：Metal</a></li></ul>]]></content>
+      
+      
+      <categories>
+          
+          <category> AI 应用实战 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> Mac </tag>
+            
+            <tag> Ollama </tag>
+            
+            <tag> MLX </tag>
+            
+            <tag> 性能调优 </tag>
+            
+            <tag> 量化 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>AI 系统设计面试：如何设计一个可上线的知识库问答服务</title>
+      <link href="/2026/08/23/2026-AI%E9%9D%A2%E8%AF%95-%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/"/>
+      <url>/2026/08/23/2026-AI%E9%9D%A2%E8%AF%95-%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/</url>
+      
+        <content type="html"><![CDATA[<p>AI 系统设计面试不是画出“用户—大模型—数据库”三个框。一个可上线方案需要同时处理数据更新、权限、质量、延迟、成本和故障。</p><h2 id="第一步：澄清需求"><a href="#第一步：澄清需求" class="headerlink" title="第一步：澄清需求"></a>第一步：澄清需求</h2><p>先问：用户是谁、文档规模、更新频率、并发量、延迟目标、是否需要引用、是否允许外部模型、数据权限和不可接受的错误。</p><p>没有这些信息，就无法判断是否需要向量库、队列、缓存或本地部署。</p><h2 id="第二步：拆分离线与在线链路"><a href="#第二步：拆分离线与在线链路" class="headerlink" title="第二步：拆分离线与在线链路"></a>第二步：拆分离线与在线链路</h2><p>离线：文档接入、解析、清洗、切分、Embedding、索引、版本和权限元数据。</p><p>在线：认证、问题处理、权限过滤、检索、重排、上下文构造、模型生成、引用校验和日志。</p><p>分开后可以独立扩缩容，也更容易定位数据问题还是请求问题。</p><h2 id="第三步：权限必须进入检索"><a href="#第三步：权限必须进入检索" class="headerlink" title="第三步：权限必须进入检索"></a>第三步：权限必须进入检索</h2><p>不能先检索所有文档，再只在界面隐藏无权限结果。权限或租户字段应参与过滤，缓存键也必须包含用户权限范围，避免跨用户泄露。</p><p>模型上下文和日志同样需要数据最小化。</p><h2 id="第四步：设计降级路径"><a href="#第四步：设计降级路径" class="headerlink" title="第四步：设计降级路径"></a>第四步：设计降级路径</h2><ul><li>向量库不可用：返回暂时不可查询，而不是让模型自由回答；</li><li>Reranker 超时：降级到基础检索；</li><li>生成模型超时：返回已找到的相关文档；</li><li>没有高分证据：明确提示资料不足；</li><li>文档更新失败：保留上一版可用索引并告警。</li></ul><p>降级结果必须让用户知道能力发生变化。</p><h2 id="第五步：缓存哪些内容"><a href="#第五步：缓存哪些内容" class="headerlink" title="第五步：缓存哪些内容"></a>第五步：缓存哪些内容</h2><p>可以缓存 Embedding、稳定查询的检索结果、公共前缀和非敏感生成结果。缓存前先定义失效条件：文档版本、模型版本、Prompt 版本和权限范围变化都可能使缓存过期。</p><h2 id="第六步：如何扩展"><a href="#第六步：如何扩展" class="headerlink" title="第六步：如何扩展"></a>第六步：如何扩展</h2><p>无状态 API 可以水平扩容；模型服务按 GPU 资源与批处理能力扩容；文档处理通过任务队列异步执行；向量库根据数据量、查询量和可用性要求分片或复制。</p><p>不要一开始就设计成几十个服务。先识别真正需要独立扩展或隔离故障的部分。</p><h2 id="第七步：质量和运行指标"><a href="#第七步：质量和运行指标" class="headerlink" title="第七步：质量和运行指标"></a>第七步：质量和运行指标</h2><p>离线评测包括 Recall@k、引用正确性、答案正确性与拒答。线上关注 TTFT、P95 延迟、错误率、无答案率、每请求 token、工具或检索失败率和用户反馈。</p><p>索引、Embedding、Prompt 或模型变化时重新运行固定评测集。</p><h2 id="安全问题"><a href="#安全问题" class="headerlink" title="安全问题"></a>安全问题</h2><p>把文档内容视为不可信输入，防止其中的指令覆盖系统规则；限制工具权限；对输出做内容和数据泄露检查；日志与评测样本进行脱敏和访问控制。</p><h2 id="最终架构描述"><a href="#最终架构描述" class="headerlink" title="最终架构描述"></a>最终架构描述</h2><pre><code class="highlight text">用户 -&gt; API / 鉴权 -&gt; 检索编排                    -&gt; 权限过滤 -&gt; 混合检索 -&gt; 重排                    -&gt; 上下文构造 -&gt; 模型服务                    -&gt; 引用与响应文档 -&gt; 解析 / 切分 -&gt; Embedding -&gt; 带版本和权限的索引</code></pre><p>面试回答最后应主动说明容量假设、单点故障、成本最大的环节和下一阶段优化，而不是停在架构图。</p><h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul><li><a href="https://qdrant.tech/documentation/production-checklist/">Qdrant：Production Checklist</a></li><li><a href="https://qdrant.tech/documentation/improve-search/retrieval-relevance/">Qdrant：Retrieval Relevance</a></li><li><a href="https://fastapi.tiangolo.com/deployment/">FastAPI：Deployment</a></li></ul>]]></content>
+      
+      
+      <categories>
+          
+          <category> AI 面试 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> AI 面试 </tag>
+            
+            <tag> RAG </tag>
+            
+            <tag> 系统设计 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>大模型推理面试：首 Token 延迟、吞吐量和 KV Cache</title>
+      <link href="/2026/08/22/2026-AI%E9%9D%A2%E8%AF%95-%E6%8E%A8%E7%90%86%E6%80%A7%E8%83%BD/"/>
+      <url>/2026/08/22/2026-AI%E9%9D%A2%E8%AF%95-%E6%8E%A8%E7%90%86%E6%80%A7%E8%83%BD/</url>
+      
+        <content type="html"><![CDATA[<p>“这个模型每秒能生成多少 token”不能完整描述推理服务。交互体验、系统容量和硬件成本需要不同指标。</p><h2 id="TTFT：首-Token-延迟"><a href="#TTFT：首-Token-延迟" class="headerlink" title="TTFT：首 Token 延迟"></a>TTFT：首 Token 延迟</h2><p>Time to First Token 从请求进入到收到第一个输出 token。它受排队、Prompt 长度、Prefill、模型大小和调度影响。长文档请求通常比短问题有更高 TTFT。</p><h2 id="TPOT-与生成速度"><a href="#TPOT-与生成速度" class="headerlink" title="TPOT 与生成速度"></a>TPOT 与生成速度</h2><p>Time per Output Token 衡量 decode 阶段相邻输出 token 的时间。也常用每秒输出 token 表示。它更直接影响流式回答开始后的速度。</p><p>不要把输入 token 和输出 token 混在同一个吞吐量数字里。</p><h2 id="吞吐量与延迟的取舍"><a href="#吞吐量与延迟的取舍" class="headerlink" title="吞吐量与延迟的取舍"></a>吞吐量与延迟的取舍</h2><p>动态批处理可以让 GPU 同时服务多个请求，提高总吞吐量，但请求等待和竞争也可能增加单请求延迟。面试中应说明目标是交互式聊天、离线批处理还是高并发 API。</p><h2 id="KV-Cache-为什么占显存"><a href="#KV-Cache-为什么占显存" class="headerlink" title="KV Cache 为什么占显存"></a>KV Cache 为什么占显存</h2><p>自回归生成会重复使用历史 token 的 Key 和 Value。缓存它们避免每一步重算，但占用随层数、序列长度、并发和缓存精度增加。</p><p>因此长上下文和高并发会竞争同一块显存。模型权重能加载，不代表服务能承受目标并发。</p><h2 id="量化解决什么"><a href="#量化解决什么" class="headerlink" title="量化解决什么"></a>量化解决什么</h2><p>量化使用更低精度表示权重或激活，主要价值是降低内存和计算成本。Hugging Face 当前 Transformers 支持 bitsandbytes 的 8-bit&#x2F;4-bit，以及 AWQ、GPTQ 等方案。</p><p>量化不保证所有硬件上都更快。需要测试质量、首 token 延迟、生成速度和峰值内存。</p><h2 id="如何设计压测"><a href="#如何设计压测" class="headerlink" title="如何设计压测"></a>如何设计压测</h2><p>固定模型、量化、硬件和采样参数，构造不同输入&#x2F;输出长度与并发组合。至少报告：</p><ul><li>TTFT 的 P50、P95；</li><li>TPOT 或输出 token&#x2F;s；</li><li>请求吞吐量；</li><li>错误率与超时率；</li><li>GPU 利用率和峰值显存；</li><li>输入与输出长度分布。</li></ul><p>先预热模型，再运行足够时间。只测一次短请求不能代表线上能力。</p><h2 id="常见优化方向"><a href="#常见优化方向" class="headerlink" title="常见优化方向"></a>常见优化方向</h2><ul><li>Continuous batching：动态组合正在运行的请求；</li><li>Paged KV Cache：更灵活地管理缓存内存；</li><li>Quantization：降低权重或缓存占用；</li><li>Prefix caching：复用相同前缀；</li><li>Speculative decoding：使用草稿模型减少主模型解码步骤；</li><li>Tensor parallel：跨多卡切分模型。</li></ul><p>每项优化都有适用条件，应通过真实负载验证，而不是全部开启。</p><h2 id="面试回答结构"><a href="#面试回答结构" class="headerlink" title="面试回答结构"></a>面试回答结构</h2><p>先区分 Prefill 和 Decode，再分别解释 TTFT 与 TPOT，接着说明并发&#x2F;批处理的吞吐量取舍，最后给出压测设计和瓶颈定位方法。</p><h2 id="官方资料"><a href="#官方资料" class="headerlink" title="官方资料"></a>官方资料</h2><ul><li><a href="https://huggingface.co/docs/transformers/main/perf_infer_gpu_one">Hugging Face：GPU inference</a></li><li><a href="https://huggingface.co/docs/transformers/main/quantization/concept_guide">Hugging Face：Quantization concepts</a></li><li><a href="https://docs.vllm.ai/">vLLM 文档</a></li></ul>]]></content>
+      
+      
+      <categories>
+          
+          <category> AI 面试 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> AI 面试 </tag>
+            
+            <tag> 推理部署 </tag>
+            
+            <tag> KV Cache </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>Agent 面试高频问题：Tool Calling、工作流和安全边界</title>
+      <link href="/2026/08/21/2026-AI%E9%9D%A2%E8%AF%95-Agent/"/>
+      <url>/2026/08/21/2026-AI%E9%9D%A2%E8%AF%95-Agent/</url>
+      
+        <content type="html"><![CDATA[<p>Agent 面试不应只回答“模型可以自主调用工具”。更重要的是解释：模型负责做什么决定，程序控制什么边界，执行如何停止和恢复。</p><h2 id="Agent-和普通工作流有什么区别"><a href="#Agent-和普通工作流有什么区别" class="headerlink" title="Agent 和普通工作流有什么区别"></a>Agent 和普通工作流有什么区别</h2><p>固定工作流的步骤和分支由程序提前定义，适合规则稳定、风险较高的任务。Agent 让模型根据上下文选择工具或下一步，灵活但更难预测和测试。</p><p>如果流程已知，优先使用确定性工作流；只有步骤难以提前枚举时，才让模型参与决策。</p><h2 id="Tool-Calling-的执行主体是谁"><a href="#Tool-Calling-的执行主体是谁" class="headerlink" title="Tool Calling 的执行主体是谁"></a>Tool Calling 的执行主体是谁</h2><p>模型生成工具名和参数，应用程序验证并执行，再把结果返回模型。模型不会因为“调用了工具”就自动获得系统权限。</p><p>执行循环包括：模型响应、解析 tool calls、验证工具白名单与参数、授权、执行、记录 tool result、继续生成或结束。</p><h2 id="如何防止无限循环"><a href="#如何防止无限循环" class="headerlink" title="如何防止无限循环"></a>如何防止无限循环</h2><p>设置最大步骤、总超时、token 预算、重复调用检测和工具级超时。工具连续返回相同结果时可以提前终止。达到上限后返回明确状态，而不是默默截断。</p><h2 id="如何处理状态"><a href="#如何处理状态" class="headerlink" title="如何处理状态"></a>如何处理状态</h2><p>区分消息历史、业务状态和执行状态。消息历史用于模型上下文；业务状态存储真实订单或任务；执行状态记录当前节点、重试次数和工具结果。</p><p>不要只依赖一段越来越长的聊天记录恢复任务。</p><h2 id="如何控制权限"><a href="#如何控制权限" class="headerlink" title="如何控制权限"></a>如何控制权限</h2><p>工具注册表只是第一层。还需要校验参数、当前用户身份、资源权限和操作风险。写操作可以要求人工确认或使用两阶段执行。</p><p>Prompt 中写“不要删除文件”不是权限控制。</p><h2 id="并行工具调用有什么风险"><a href="#并行工具调用有什么风险" class="headerlink" title="并行工具调用有什么风险"></a>并行工具调用有什么风险</h2><p>只读、互不依赖的查询适合并行；存在顺序依赖或写冲突的操作需要串行或事务控制。并行数量还应受限，避免模型一次发起大量昂贵调用。</p><p>Ollama 当前官方文档分别展示了单工具、并行工具调用和多轮 Agent loop，这些能力仍需要应用侧执行和管理。</p><h2 id="如何评测-Agent"><a href="#如何评测-Agent" class="headerlink" title="如何评测 Agent"></a>如何评测 Agent</h2><p>不要只评最终答案。记录任务成功率、工具选择正确率、参数正确率、平均步骤、超时率、重复调用率、人工接管率和总成本。</p><p>建立包含正常、歧义、权限不足、工具失败和恶意输入的测试集。</p><h2 id="可观测性需要记录什么"><a href="#可观测性需要记录什么" class="headerlink" title="可观测性需要记录什么"></a>可观测性需要记录什么</h2><p>记录模型版本、提示版本、每一步工具、参数摘要、授权结果、耗时、返回摘要、重试和终止原因。敏感数据需要脱敏。</p><h2 id="一句话总结"><a href="#一句话总结" class="headerlink" title="一句话总结"></a>一句话总结</h2><p>Agent 是“模型参与决策的受控执行循环”，不是拥有无限权限的自动化脚本。面试回答应同时覆盖灵活性、状态、安全、终止和评测。</p><h2 id="官方资料"><a href="#官方资料" class="headerlink" title="官方资料"></a>官方资料</h2><ul><li><a href="https://docs.ollama.com/capabilities/tool-calling">Ollama：Tool calling</a></li><li><a href="https://platform.openai.com/docs/guides/function-calling">OpenAI API：Function calling</a></li></ul>]]></content>
+      
+      
+      <categories>
+          
+          <category> AI 面试 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> AI 面试 </tag>
+            
+            <tag> Agent </tag>
+            
+            <tag> Tool Calling </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>RAG 面试高频问题：切分、检索、重排和评测怎么回答</title>
+      <link href="/2026/08/20/2026-AI%E9%9D%A2%E8%AF%95-RAG/"/>
+      <url>/2026/08/20/2026-AI%E9%9D%A2%E8%AF%95-RAG/</url>
+      
+        <content type="html"><![CDATA[<p>RAG 面试最忌讳把答案缩成“文档向量化后放入向量数据库”。面试官通常会沿着数据进入、检索、生成和评测逐层追问。</p><h2 id="问题一：完整-RAG-链路是什么"><a href="#问题一：完整-RAG-链路是什么" class="headerlink" title="问题一：完整 RAG 链路是什么"></a>问题一：完整 RAG 链路是什么</h2><p>离线链路：解析文档、清洗、切分、生成向量、写入索引并保存来源元数据。</p><p>在线链路：理解问题、检索候选、过滤或重排、构造上下文、生成答案、返回引用并记录评测信号。</p><h2 id="问题二：Chunk-大小怎么选"><a href="#问题二：Chunk-大小怎么选" class="headerlink" title="问题二：Chunk 大小怎么选"></a>问题二：Chunk 大小怎么选</h2><p>没有通用数字。Chunk 过小会丢失上下文，过大则混入无关内容、增加 token 和降低检索粒度。选择时考虑文档结构、问题粒度和模型上下文。</p><p>回答中应提出实验：固定问题集，比较不同切分策略的 Recall@k、答案正确率和 token 成本。</p><h2 id="问题三：Dense、Sparse-和混合检索有什么区别"><a href="#问题三：Dense、Sparse-和混合检索有什么区别" class="headerlink" title="问题三：Dense、Sparse 和混合检索有什么区别"></a>问题三：Dense、Sparse 和混合检索有什么区别</h2><p>Dense 通过向量捕获语义相似，适合改写和同义表达；Sparse&#x2F;BM25 对产品编号、函数名、专有名词和精确关键词更敏感。</p><p>混合检索可以同时获得两类候选，再用 RRF、DBSF 等方式融合。Qdrant 当前文档还支持 weighted RRF，但权重应该在训练&#x2F;验证拆分的评测集上调整；没有评测集时，手调权重缺少依据。</p><h2 id="问题四：为什么需要-Reranker"><a href="#问题四：为什么需要-Reranker" class="headerlink" title="问题四：为什么需要 Reranker"></a>问题四：为什么需要 Reranker</h2><p>第一阶段检索追求较高召回率，Reranker 对较小候选集做更细致的 query-document 相关性判断，以提高排序精度。代价是额外延迟和计算，因此不对整个语料库运行。</p><h2 id="问题五：RAG-如何评测"><a href="#问题五：RAG-如何评测" class="headerlink" title="问题五：RAG 如何评测"></a>问题五：RAG 如何评测</h2><p>至少拆成两层：</p><ul><li>检索：Recall@k、MRR、NDCG@k；</li><li>生成：答案正确性、忠实度、引用正确性和拒答表现。</li></ul><p>Qdrant 当前检索评测建议：RAG 把 top-k 片段交给模型时优先关注 Recall@k；FAQ 只使用第一条结果时，MRR 或 Hits@1 更有意义。</p><h2 id="问题六：为什么有引用仍可能答错"><a href="#问题六：为什么有引用仍可能答错" class="headerlink" title="问题六：为什么有引用仍可能答错"></a>问题六：为什么有引用仍可能答错</h2><p>模型可能引用了不支持结论的片段，或把多个片段错误组合。必须分别检查“引用是否存在”和“引用是否蕴含答案”。</p><h2 id="问题七：线上效果下降怎么排查"><a href="#问题七：线上效果下降怎么排查" class="headerlink" title="问题七：线上效果下降怎么排查"></a>问题七：线上效果下降怎么排查</h2><p>按顺序检查：原文是否有答案、解析是否完整、切分是否破坏语义、过滤条件是否错误、相关片段是否进入 top-k、重排是否改变正确结果、Prompt 是否要求基于证据回答。</p><p>一次只隔离一层，比直接更换模型更快。</p><h2 id="一个合格回答模板"><a href="#一个合格回答模板" class="headerlink" title="一个合格回答模板"></a>一个合格回答模板</h2><p>先给定义，再说取舍，然后给评测方法，最后指出边界。例如回答混合检索时，不只说“效果更好”，还要说明它对精确词和语义查询的互补、额外成本，以及如何用自己的数据判断是否值得启用。</p><h2 id="官方资料"><a href="#官方资料" class="headerlink" title="官方资料"></a>官方资料</h2><ul><li><a href="https://qdrant.tech/documentation/improve-search/retrieval-relevance/">Qdrant：Measuring Retrieval Relevance</a></li><li><a href="https://qdrant.tech/documentation/search/hybrid-queries/">Qdrant：Hybrid Queries</a></li><li><a href="https://qdrant.tech/documentation/tutorials-basics/reranking-hybrid-search/">Qdrant：Reranking</a></li></ul>]]></content>
+      
+      
+      <categories>
+          
+          <category> AI 面试 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> AI 面试 </tag>
+            
+            <tag> RAG </tag>
+            
+            <tag> 向量检索 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>AI 项目面试怎么讲：用问题、取舍和证据替代框架清单</title>
+      <link href="/2026/08/19/2026-AI%E9%9D%A2%E8%AF%95-%E9%A1%B9%E7%9B%AE%E8%A1%A8%E8%BE%BE/"/>
+      <url>/2026/08/19/2026-AI%E9%9D%A2%E8%AF%95-%E9%A1%B9%E7%9B%AE%E8%A1%A8%E8%BE%BE/</url>
+      
+        <content type="html"><![CDATA[<p>“项目用了 LangChain、向量数据库和大模型 API”不是项目介绍，只是一份依赖清单。面试官真正想确认的是：你解决了什么问题，为什么这样设计，如何证明它有效，以及失败时你做了什么。</p><h2 id="用六段结构组织答案"><a href="#用六段结构组织答案" class="headerlink" title="用六段结构组织答案"></a>用六段结构组织答案</h2><pre><code class="highlight text">问题与约束  -&gt; 我的职责  -&gt; 方案与取舍  -&gt; 最难的问题  -&gt; 验证结果  -&gt; 失败与改进</code></pre><p>控制第一轮介绍在两到三分钟。每一段只留下一个可继续追问的重点。</p><h2 id="1-问题与约束"><a href="#1-问题与约束" class="headerlink" title="1. 问题与约束"></a>1. 问题与约束</h2><p>不要从“我做了一个 RAG”开始。说明谁在什么场景遇到了什么困难，以及限制条件。</p><p>例如：内部文档分散，客服需要快速找到政策依据；数据不能发送到外部服务；答案必须显示来源；高峰期有固定并发要求。</p><h2 id="2-明确你的职责"><a href="#2-明确你的职责" class="headerlink" title="2. 明确你的职责"></a>2. 明确你的职责</h2><p>团队项目中，要区分“团队实现”和“我负责”。可以说自己负责文档解析、检索评测和 API 服务，而前端由同事完成。夸大职责很容易在深入追问时暴露。</p><h2 id="3-解释技术取舍"><a href="#3-解释技术取舍" class="headerlink" title="3. 解释技术取舍"></a>3. 解释技术取舍</h2><p>使用一个方案时同时说出被放弃的方案：</p><ul><li>为什么先用 dense retrieval，而不是直接上混合检索；</li><li>为什么选小模型，而不是参数更大的模型；</li><li>为什么同步接口足够，暂时没有引入消息队列；</li><li>为什么使用 Schema 约束，而不是解析自由文本。</li></ul><p>好的取舍必须联系业务约束，而不是“网上都这么用”。</p><h2 id="4-讲一个真正困难的问题"><a href="#4-讲一个真正困难的问题" class="headerlink" title="4. 讲一个真正困难的问题"></a>4. 讲一个真正困难的问题</h2><p>选你亲自定位过的问题，例如长表格被错误切分导致检索失败。按照“现象—假设—实验—结论—修复”回答。</p><p>不要把“安装依赖很麻烦”当成核心技术难点，除非你能解释具体兼容问题和解决机制。</p><h2 id="5-用证据描述结果"><a href="#5-用证据描述结果" class="headerlink" title="5. 用证据描述结果"></a>5. 用证据描述结果</h2><p>结果可以是 Recall@5、结构校验通过率、P95 延迟、错误率或人工评测一致率。必须说明测试集、环境和对照方案。</p><p>“准确率提升 30%”如果没有指标定义、样本数量和基线，信息价值很低。</p><h2 id="6-主动讲失败和边界"><a href="#6-主动讲失败和边界" class="headerlink" title="6. 主动讲失败和边界"></a>6. 主动讲失败和边界</h2><p>指出系统在哪些查询上仍会失败，以及下一步优先解决什么。能够清楚描述边界，通常比声称“效果很好”更可信。</p><h2 id="高频追问清单"><a href="#高频追问清单" class="headerlink" title="高频追问清单"></a>高频追问清单</h2><ul><li>不使用这个框架能否实现？</li><li>数据更新后如何重建索引？</li><li>如何避免模型泄露敏感信息？</li><li>为什么选择这个 Embedding 或模型？</li><li>指标下降时先查哪一层？</li><li>如果并发扩大十倍，瓶颈在哪里？</li></ul><h2 id="面试前准备材料"><a href="#面试前准备材料" class="headerlink" title="面试前准备材料"></a>面试前准备材料</h2><p>准备一张架构图、一条完整请求链路、三项真实指标、两个失败案例和一个可以展示的代码片段。不要临场回忆所有细节。</p><p>项目表达的核心是证明你具备工程判断，而不是证明你安装过很多工具。</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> AI 面试 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> AI 面试 </tag>
+            
+            <tag> 项目复盘 </tag>
+            
+            <tag> AI 工程 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>Tool Calling Agent 实战：从工具调用到安全执行循环</title>
+      <link href="/2026/08/18/2026-ToolCalling-Agent%E5%AE%89%E5%85%A8%E5%BE%AA%E7%8E%AF/"/>
+      <url>/2026/08/18/2026-ToolCalling-Agent%E5%AE%89%E5%85%A8%E5%BE%AA%E7%8E%AF/</url>
+      
+        <content type="html"><![CDATA[<p>Tool Calling 不是模型直接执行函数。模型只生成“希望调用哪个工具、参数是什么”，真正执行工具的是你的程序。这条边界决定了 Agent 能否被控制和审计。</p><h2 id="最小工具集合"><a href="#最小工具集合" class="headerlink" title="最小工具集合"></a>最小工具集合</h2><p>第一版只提供两个只读工具：搜索笔记和读取单篇笔记。</p><pre><code class="highlight python"><span class="keyword">def</span> <span class="title function_">search_notes</span>(<span class="params">query: <span class="built_in">str</span></span>) -&gt; <span class="built_in">list</span>[<span class="built_in">dict</span>]:    <span class="string">&quot;&quot;&quot;Search note metadata by query.&quot;&quot;&quot;</span>    ...<span class="keyword">def</span> <span class="title function_">get_note</span>(<span class="params">note_id: <span class="built_in">str</span></span>) -&gt; <span class="built_in">dict</span>:    <span class="string">&quot;&quot;&quot;Read one note by its public identifier.&quot;&quot;&quot;</span>    ...</code></pre><p>不要一开始提供删除文件、发送邮件或执行任意命令。工具越少，越容易写清楚参数、权限和测试。</p><h2 id="一个完整执行循环"><a href="#一个完整执行循环" class="headerlink" title="一个完整执行循环"></a>一个完整执行循环</h2><pre><code class="highlight text">用户消息  -&gt; 模型选择工具  -&gt; 程序校验工具名与参数  -&gt; 执行工具  -&gt; 将结果作为 tool 消息加入历史  -&gt; 模型决定继续调用或给出答案</code></pre><p>Ollama 当前官方工具调用文档覆盖单工具、并行工具和多轮 Agent loop。无论使用哪个 SDK，程序都应维护明确的工具注册表。</p><pre><code class="highlight python">TOOLS = &#123;    <span class="string">&quot;search_notes&quot;</span>: search_notes,    <span class="string">&quot;get_note&quot;</span>: get_note,&#125;<span class="keyword">for</span> step <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">3</span>):    response = chat(model=MODEL, messages=messages, tools=<span class="built_in">list</span>(TOOLS.values()))    messages.append(response.message)    <span class="keyword">if</span> <span class="keyword">not</span> response.message.tool_calls:        <span class="keyword">return</span> response.message.content    <span class="keyword">for</span> call <span class="keyword">in</span> response.message.tool_calls:        function = TOOLS.get(call.function.name)        <span class="keyword">if</span> function <span class="keyword">is</span> <span class="literal">None</span>:            <span class="keyword">raise</span> UnknownTool(call.function.name)        result = function(**call.function.arguments)        messages.append(&#123;            <span class="string">&quot;role&quot;</span>: <span class="string">&quot;tool&quot;</span>,            <span class="string">&quot;tool_name&quot;</span>: call.function.name,            <span class="string">&quot;content&quot;</span>: json.dumps(result, ensure_ascii=<span class="literal">False</span>),        &#125;)<span class="keyword">raise</span> StepLimitExceeded(<span class="string">&quot;Agent 超过最大执行步数&quot;</span>)</code></pre><h2 id="参数必须由程序验证"><a href="#参数必须由程序验证" class="headerlink" title="参数必须由程序验证"></a>参数必须由程序验证</h2><p>工具描述不是安全边界。使用 Pydantic 或 JSON Schema 验证类型、长度、枚举和格式；再做业务授权，例如当前用户是否有权读取这个 <code>note_id</code>。</p><p>模型生成的路径、URL、SQL 和命令都应视为不可信输入。</p><h2 id="设置资源上限"><a href="#设置资源上限" class="headerlink" title="设置资源上限"></a>设置资源上限</h2><p>至少限制：</p><ul><li>最大循环步数；</li><li>单工具超时；</li><li>单次返回数据大小；</li><li>并行工具数量；</li><li>整个请求的 token 和时间预算。</li></ul><p>工具失败时返回结构化错误，让模型知道是“未找到、无权限、超时”还是“参数错误”。不要把内部堆栈直接交给模型或用户。</p><h2 id="保存可审计记录"><a href="#保存可审计记录" class="headerlink" title="保存可审计记录"></a>保存可审计记录</h2><p>一次执行应该能还原：用户请求、模型版本、工具名、参数摘要、授权结果、开始结束时间、工具返回摘要和最终状态。敏感字段需要脱敏。</p><p>有了完整记录，才能回答“为什么调用了这个工具”和“失败发生在哪一步”。</p><h2 id="测试场景"><a href="#测试场景" class="headerlink" title="测试场景"></a>测试场景</h2><ol><li>正常搜索后读取笔记；</li><li>模型请求不存在的工具；</li><li>参数类型错误；</li><li>工具超时；</li><li>连续重复同一个调用；</li><li>用户诱导读取无权限数据；</li><li>达到最大步骤后仍未结束。</li></ol><p>这些测试比展示一次成功对话更能说明 Agent 的工程质量。</p><h2 id="官方资料"><a href="#官方资料" class="headerlink" title="官方资料"></a>官方资料</h2><ul><li><a href="https://docs.ollama.com/capabilities/tool-calling">Ollama：Tool calling</a></li><li><a href="https://platform.openai.com/docs/guides/function-calling">OpenAI API：Function calling</a></li></ul><p>Agent 的核心不是“自主”，而是模型选择能力与程序控制边界之间的协议。</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> AI 应用实战 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> Agent </tag>
+            
+            <tag> Tool Calling </tag>
+            
+            <tag> Python </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>不用 LangChain，自己实现一个可评测的最小 RAG</title>
+      <link href="/2026/08/17/2026-%E4%B8%8D%E7%94%A8LangChain%E5%AE%9E%E7%8E%B0RAG/"/>
+      <url>/2026/08/17/2026-%E4%B8%8D%E7%94%A8LangChain%E5%AE%9E%E7%8E%B0RAG/</url>
+      
+        <content type="html"><![CDATA[<p>学习 RAG 时，最重要的不是先接聊天模型，而是先证明检索能找到正确资料。框架可以减少代码，但也容易把切分、索引和召回错误藏在链式调用后面。</p><h2 id="最小系统边界"><a href="#最小系统边界" class="headerlink" title="最小系统边界"></a>最小系统边界</h2><p>第一版只处理一组 Markdown 文档，并实现：</p><pre><code class="highlight text">文档 -&gt; 切分 -&gt; Embedding -&gt; 向量索引问题 -&gt; Embedding -&gt; Top-k 检索 -&gt; 返回片段和来源</code></pre><p>先不生成答案。检索结果稳定后，再把片段交给模型。</p><h2 id="文档切分要保存来源"><a href="#文档切分要保存来源" class="headerlink" title="文档切分要保存来源"></a>文档切分要保存来源</h2><p>每个 chunk 至少保存：</p><ul><li><code>chunk_id</code>；</li><li>文件路径；</li><li>标题或章节；</li><li>原始文本；</li><li>起止位置或页码；</li><li>文档版本。</li></ul><p>固定字符数切分可以作为基线，但标题、段落和代码块边界通常比任意位置更有意义。重叠能减少信息被边界切断的问题，也会增加重复召回和索引体积。</p><h2 id="检索接口应该足够简单"><a href="#检索接口应该足够简单" class="headerlink" title="检索接口应该足够简单"></a>检索接口应该足够简单</h2><pre><code class="highlight python"><span class="keyword">from</span> dataclasses <span class="keyword">import</span> dataclass<span class="meta">@dataclass</span><span class="keyword">class</span> <span class="title class_">SearchHit</span>:    chunk_id: <span class="built_in">str</span>    text: <span class="built_in">str</span>    source: <span class="built_in">str</span>    score: <span class="built_in">float</span><span class="keyword">def</span> <span class="title function_">search</span>(<span class="params">query: <span class="built_in">str</span>, top_k: <span class="built_in">int</span> = <span class="number">5</span></span>) -&gt; <span class="built_in">list</span>[SearchHit]:    query_vector = embedder.encode(query)    <span class="keyword">return</span> vector_store.search(query_vector, top_k=top_k)</code></pre><p>把 Embedding 和向量库放在接口后面，便于替换方案时保持评测流程不变。</p><h2 id="用问题集评测检索"><a href="#用问题集评测检索" class="headerlink" title="用问题集评测检索"></a>用问题集评测检索</h2><p>为每个问题标记至少一个相关 chunk，形成小型 golden set：</p><pre><code class="highlight json"><span class="punctuation">&#123;</span><span class="attr">&quot;query&quot;</span><span class="punctuation">:</span> <span class="string">&quot;如何设置模型超时？&quot;</span><span class="punctuation">,</span> <span class="attr">&quot;relevant&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="string">&quot;api-timeout-01&quot;</span><span class="punctuation">]</span><span class="punctuation">&#125;</span></code></pre><p>RAG 把多个片段交给模型时，Recall@k 是很实用的第一项指标：前 k 个结果中是否包含至少一个相关片段。Qdrant 当前检索评测文档还建议根据场景选择 MRR 或 NDCG@k；k 应与真实传给模型的片段数量一致。</p><h2 id="再加入答案生成"><a href="#再加入答案生成" class="headerlink" title="再加入答案生成"></a>再加入答案生成</h2><p>Prompt 明确要求：只能根据提供片段回答；证据不足就说明不知道；每个关键结论附来源 ID。返回结果包含：</p><pre><code class="highlight json"><span class="punctuation">&#123;</span>  <span class="attr">&quot;answer&quot;</span><span class="punctuation">:</span> <span class="string">&quot;...&quot;</span><span class="punctuation">,</span>  <span class="attr">&quot;citations&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="string">&quot;api-timeout-01&quot;</span><span class="punctuation">]</span><span class="punctuation">,</span>  <span class="attr">&quot;retrieved_chunks&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="string">&quot;...&quot;</span><span class="punctuation">]</span><span class="punctuation">&#125;</span></code></pre><p>引用存在不代表引用支持结论，还要检查 citation correctness。</p><h2 id="什么时候加入混合检索和重排"><a href="#什么时候加入混合检索和重排" class="headerlink" title="什么时候加入混合检索和重排"></a>什么时候加入混合检索和重排</h2><p>Dense 检索擅长语义相似，Sparse&#x2F;BM25 对产品编号、函数名和精确关键词更敏感。Qdrant 当前 Query API 支持 dense 与 sparse 的混合检索，并使用 RRF 或 DBSF 融合；在候选集合上再使用 reranker，可以提高精度，但会增加延迟与计算成本。</p><p>不要因为“混合检索更先进”就直接启用。先分别测 dense-only、sparse-only 和 hybrid，确认它在自己的问题集上确实改善指标。</p><h2 id="常见失败顺序"><a href="#常见失败顺序" class="headerlink" title="常见失败顺序"></a>常见失败顺序</h2><ol><li>文档根本没有答案；</li><li>切分破坏了关键信息；</li><li>Embedding 不适合语言或领域；</li><li>Top-k 太小或过滤条件错误；</li><li>检索正确，但生成忽略证据；</li><li>引用存在，但并不支持答案。</li></ol><p>按照链路定位问题，比不断修改 Prompt 更有效。</p><h2 id="官方资料"><a href="#官方资料" class="headerlink" title="官方资料"></a>官方资料</h2><ul><li><a href="https://qdrant.tech/documentation/improve-search/retrieval-relevance/">Qdrant：Measuring Retrieval Relevance</a></li><li><a href="https://qdrant.tech/documentation/search/hybrid-queries/">Qdrant：Hybrid Queries</a></li><li><a href="https://qdrant.tech/documentation/tutorials-basics/reranking-hybrid-search/">Qdrant：Hybrid Search with Reranking</a></li></ul>]]></content>
+      
+      
+      <categories>
+          
+          <category> AI 应用实战 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> RAG </tag>
+            
+            <tag> 向量检索 </tag>
+            
+            <tag> Python </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>FastAPI 构建 AI 服务：响应模型、超时、测试一次讲清</title>
+      <link href="/2026/08/16/2026-FastAPI-AI%E6%9C%8D%E5%8A%A1/"/>
+      <url>/2026/08/16/2026-FastAPI-AI%E6%9C%8D%E5%8A%A1/</url>
+      
+        <content type="html"><![CDATA[<p>AI Demo 常把模型调用直接写进路由：收到文本、调用模型、返回字符串。它能演示，却很难测试、替换模型或定位失败。一个最小但清晰的服务应该分开 HTTP、业务逻辑和模型适配器。</p><h2 id="目标接口"><a href="#目标接口" class="headerlink" title="目标接口"></a>目标接口</h2><p>实现两个端点：</p><ul><li><code>GET /health</code>：只检查服务进程是否可用；</li><li><code>POST /summaries</code>：接收文本并返回固定结构。</li></ul><p>不要让健康检查每次都生成文本，否则监控本身会消耗昂贵推理资源。</p><h2 id="定义请求和响应"><a href="#定义请求和响应" class="headerlink" title="定义请求和响应"></a>定义请求和响应</h2><pre><code class="highlight python"><span class="keyword">from</span> pydantic <span class="keyword">import</span> BaseModel, Field<span class="keyword">class</span> <span class="title class_">SummaryRequest</span>(<span class="title class_ inherited__">BaseModel</span>):    text: <span class="built_in">str</span> = Field(min_length=<span class="number">1</span>, max_length=<span class="number">20_000</span>)<span class="keyword">class</span> <span class="title class_">SummaryResponse</span>(<span class="title class_ inherited__">BaseModel</span>):    summary: <span class="built_in">str</span>    model: <span class="built_in">str</span>    input_chars: <span class="built_in">int</span></code></pre><p>FastAPI 的 <code>response_model</code> 不只是文档，它会校验和过滤返回数据，避免内部字段意外暴露。</p><h2 id="路由保持薄"><a href="#路由保持薄" class="headerlink" title="路由保持薄"></a>路由保持薄</h2><pre><code class="highlight python"><span class="keyword">from</span> fastapi <span class="keyword">import</span> FastAPI, HTTPExceptionapp = FastAPI()<span class="meta">@app.get(<span class="params"><span class="string">&quot;/health&quot;</span></span>)</span><span class="keyword">def</span> <span class="title function_">health</span>():    <span class="keyword">return</span> &#123;<span class="string">&quot;status&quot;</span>: <span class="string">&quot;ok&quot;</span>&#125;<span class="meta">@app.post(<span class="params"><span class="string">&quot;/summaries&quot;</span>, response_model=SummaryResponse</span>)</span><span class="keyword">def</span> <span class="title function_">summarize</span>(<span class="params">request: SummaryRequest</span>):    <span class="keyword">try</span>:        text = summary_service.run(request.text)    <span class="keyword">except</span> ModelTimeout <span class="keyword">as</span> exc:        <span class="keyword">raise</span> HTTPException(status_code=<span class="number">504</span>, detail=<span class="string">&quot;模型响应超时&quot;</span>) <span class="keyword">from</span> exc    <span class="keyword">except</span> ModelUnavailable <span class="keyword">as</span> exc:        <span class="keyword">raise</span> HTTPException(status_code=<span class="number">503</span>, detail=<span class="string">&quot;模型服务不可用&quot;</span>) <span class="keyword">from</span> exc    <span class="keyword">return</span> SummaryResponse(        summary=text,        model=summary_service.model_name,        input_chars=<span class="built_in">len</span>(request.text),    )</code></pre><p>路由负责协议：校验输入、映射 HTTP 状态和构造响应。Prompt、重试和模型选择放在 service 或 adapter 层。</p><h2 id="超时比重试更重要"><a href="#超时比重试更重要" class="headerlink" title="超时比重试更重要"></a>超时比重试更重要</h2><p>模型调用可能长时间占用连接。客户端和服务端都应设置超时。重试只适用于暂时性错误，并且应限制次数、增加退避；输入错误和 Schema 错误不应盲目重试。</p><p>还要考虑客户端断开后是否继续推理。长任务可以转为队列任务，但不要为了“架构完整”一开始就引入队列。</p><h2 id="使用-TestClient-测试协议"><a href="#使用-TestClient-测试协议" class="headerlink" title="使用 TestClient 测试协议"></a>使用 TestClient 测试协议</h2><p>FastAPI 官方测试文档使用 <code>TestClient</code> 编写普通 pytest 测试。</p><pre><code class="highlight python"><span class="keyword">from</span> fastapi.testclient <span class="keyword">import</span> TestClientclient = TestClient(app)<span class="keyword">def</span> <span class="title function_">test_empty_text_is_rejected</span>():    response = client.post(<span class="string">&quot;/summaries&quot;</span>, json=&#123;<span class="string">&quot;text&quot;</span>: <span class="string">&quot;&quot;</span>&#125;)    <span class="keyword">assert</span> response.status_code == <span class="number">422</span><span class="keyword">def</span> <span class="title function_">test_model_timeout</span>(<span class="params">monkeypatch</span>):    monkeypatch.<span class="built_in">setattr</span>(summary_service, <span class="string">&quot;run&quot;</span>, raise_timeout)    response = client.post(<span class="string">&quot;/summaries&quot;</span>, json=&#123;<span class="string">&quot;text&quot;</span>: <span class="string">&quot;hello&quot;</span>&#125;)    <span class="keyword">assert</span> response.status_code == <span class="number">504</span></code></pre><p>模型适配器用 mock 测试大部分错误路径，真实模型只保留少量集成测试。否则测试速度和稳定性都受模型影响。</p><h2 id="最低可观测性"><a href="#最低可观测性" class="headerlink" title="最低可观测性"></a>最低可观测性</h2><p>日志至少包含请求 ID、模型名、输入 token 数、输出 token 数、耗时、状态和错误类型。不要默认记录完整 Prompt、个人数据或密钥。</p><h2 id="上线前检查"><a href="#上线前检查" class="headerlink" title="上线前检查"></a>上线前检查</h2><ul><li>请求大小有限制；</li><li>超时和并发有上限；</li><li>错误不会泄露内部堆栈；</li><li>响应通过模型校验；</li><li>关键失败路径有测试；</li><li>日志不包含敏感原文。</li></ul><h2 id="官方资料"><a href="#官方资料" class="headerlink" title="官方资料"></a>官方资料</h2><ul><li><a href="https://fastapi.tiangolo.com/tutorial/response-model/">FastAPI：Response Model</a></li><li><a href="https://fastapi.tiangolo.com/tutorial/testing/">FastAPI：Testing</a></li><li><a href="https://fastapi.tiangolo.com/tutorial/handling-errors/">FastAPI：Handling Errors</a></li></ul>]]></content>
+      
+      
+      <categories>
+          
+          <category> AI 应用实战 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> Python </tag>
+            
+            <tag> FastAPI </tag>
+            
+            <tag> AI 应用 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>Ollama + Python 实战：让本地模型稳定返回结构化 JSON</title>
+      <link href="/2026/08/15/2026-Ollama-Python%E7%BB%93%E6%9E%84%E5%8C%96%E8%BE%93%E5%87%BA/"/>
+      <url>/2026/08/15/2026-Ollama-Python%E7%BB%93%E6%9E%84%E5%8C%96%E8%BE%93%E5%87%BA/</url>
+      
+        <content type="html"><![CDATA[<p>让模型输出一段 JSON 很容易，让程序长期收到符合约定的数据并不容易。正确做法不是在 Prompt 里反复强调“只输出 JSON”，而是用 Schema 约束输出，再用类型系统验证。</p><h2 id="项目目标"><a href="#项目目标" class="headerlink" title="项目目标"></a>项目目标</h2><p>输入一段会议记录，输出：标题、行动项、负责人和截止日期。验收标准：</p><ul><li>返回内容能被 Pydantic 解析；</li><li>缺少负责人或日期时允许为空，而不是编造；</li><li>模型服务不可用时给出明确错误；</li><li>保存原始输入、模型名和校验结果。</li></ul><h2 id="定义数据结构"><a href="#定义数据结构" class="headerlink" title="定义数据结构"></a>定义数据结构</h2><pre><code class="highlight python"><span class="keyword">from</span> pydantic <span class="keyword">import</span> BaseModel, Field<span class="keyword">class</span> <span class="title class_">ActionItem</span>(<span class="title class_ inherited__">BaseModel</span>):    task: <span class="built_in">str</span> = Field(min_length=<span class="number">1</span>)    owner: <span class="built_in">str</span> | <span class="literal">None</span> = <span class="literal">None</span>    due_date: <span class="built_in">str</span> | <span class="literal">None</span> = <span class="literal">None</span><span class="keyword">class</span> <span class="title class_">MeetingNotes</span>(<span class="title class_ inherited__">BaseModel</span>):    title: <span class="built_in">str</span>    actions: <span class="built_in">list</span>[ActionItem]</code></pre><p>字段是否允许为空必须根据业务定义。如果模型不知道负责人，把它设置为 <code>None</code> 比猜一个名字更可靠。</p><h2 id="调用-Ollama"><a href="#调用-Ollama" class="headerlink" title="调用 Ollama"></a>调用 Ollama</h2><p>Ollama 当前官方文档支持把 JSON Schema 传给 <code>format</code>，并建议使用 Pydantic 的 <code>model_json_schema()</code> 复用结构。</p><pre><code class="highlight python"><span class="keyword">from</span> ollama <span class="keyword">import</span> chat<span class="keyword">def</span> <span class="title function_">extract_notes</span>(<span class="params">text: <span class="built_in">str</span></span>) -&gt; MeetingNotes:    response = chat(        model=<span class="string">&quot;qwen3&quot;</span>,        messages=[&#123;            <span class="string">&quot;role&quot;</span>: <span class="string">&quot;user&quot;</span>,            <span class="string">&quot;content&quot;</span>: <span class="string">f&quot;提取会议行动项。未知字段保持为空。\n\n<span class="subst">&#123;text&#125;</span>&quot;</span>,        &#125;],        <span class="built_in">format</span>=MeetingNotes.model_json_schema(),        options=&#123;<span class="string">&quot;temperature&quot;</span>: <span class="number">0</span>&#125;,    )    <span class="keyword">return</span> MeetingNotes.model_validate_json(response.message.content)</code></pre><p>Schema 约束降低格式漂移，但不保证业务事实正确。类型通过只表示字段形状正确，不表示负责人、日期和任务来自原文。</p><h2 id="错误处理"><a href="#错误处理" class="headerlink" title="错误处理"></a>错误处理</h2><p>至少区分三类错误：</p><ol><li>连接错误：Ollama 未启动或端口不可达；</li><li>校验错误：模型返回不符合 Schema；</li><li>业务错误：结构正确，但结果与原文不一致。</li></ol><p>校验失败可以重试一次，并把错误信息作为修正上下文。不要无限重试；达到上限后保存原始输出，方便复盘。</p><h2 id="测试用例"><a href="#测试用例" class="headerlink" title="测试用例"></a>测试用例</h2><p>准备五类输入：正常会议、没有行动项、负责人未知、日期格式混乱、恶意要求忽略 Schema。断言不仅检查 HTTP 成功，还要检查字段是否来自原文。</p><pre><code class="highlight python"><span class="keyword">def</span> <span class="title function_">test_unknown_owner_stays_empty</span>():    result = extract_notes(<span class="string">&quot;下周完成检索评测，负责人待定。&quot;</span>)    <span class="keyword">assert</span> result.actions[<span class="number">0</span>].owner <span class="keyword">is</span> <span class="literal">None</span></code></pre><p>涉及模型的测试可能不稳定。工程中可以把 Ollama 客户端放在单独模块，单元测试使用固定响应，另外保留少量真实模型集成测试。</p><h2 id="何时使用结构化输出"><a href="#何时使用结构化输出" class="headerlink" title="何时使用结构化输出"></a>何时使用结构化输出</h2><p>适合信息抽取、分类、表单填充、API 参数和工作流状态；不适合把所有自然语言都塞进巨大 Schema。Schema 越复杂，越需要针对目标模型验证支持情况和错误率。</p><h2 id="官方资料"><a href="#官方资料" class="headerlink" title="官方资料"></a>官方资料</h2><ul><li><a href="https://docs.ollama.com/capabilities/structured-outputs">Ollama：Structured Outputs</a></li><li><a href="https://docs.pydantic.dev/latest/concepts/models/">Pydantic：Models</a></li></ul><p>下一步：把这个函数包装成一个带响应校验和测试的 FastAPI 服务。</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> AI 应用实战 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> Python </tag>
+            
+            <tag> Ollama </tag>
+            
+            <tag> 结构化输出 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>开源大模型怎么选：参数、量化、上下文和硬件指南</title>
+      <link href="/2026/08/14/2026-%E5%BC%80%E6%BA%90%E5%A4%A7%E6%A8%A1%E5%9E%8B%E9%80%89%E6%8B%A9%E6%8C%87%E5%8D%97/"/>
+      <url>/2026/08/14/2026-%E5%BC%80%E6%BA%90%E5%A4%A7%E6%A8%A1%E5%9E%8B%E9%80%89%E6%8B%A9%E6%8C%87%E5%8D%97/</url>
+      
+        <content type="html"><![CDATA[<p>“哪个模型最好”通常不是一个完整问题。模型是否适合，取决于任务、语言、延迟、硬件、许可和你愿意承担的评测成本。</p><h2 id="先写任务，不要先看排行榜"><a href="#先写任务，不要先看排行榜" class="headerlink" title="先写任务，不要先看排行榜"></a>先写任务，不要先看排行榜</h2><p>先明确输入与输出：</p><ul><li>中文知识问答还是代码补全？</li><li>输出自由文本还是固定 JSON？</li><li>单轮处理还是多轮对话？</li><li>是否需要工具调用、视觉或长文档？</li><li>本地单人使用还是多人并发服务？</li></ul><p>任务不明确时，模型越大只意味着下载、部署和测试成本更高。</p><h2 id="参数规模告诉你什么"><a href="#参数规模告诉你什么" class="headerlink" title="参数规模告诉你什么"></a>参数规模告诉你什么</h2><p>参数更多通常意味着更高的权重存储和推理成本，但不能直接等同于任务效果。训练数据、架构、后训练方法和语言覆盖都会改变实际表现。</p><p>粗略估算权重存储时，可以使用：</p><pre><code class="highlight text">权重内存 ≈ 参数量 × 每个参数字节数</code></pre><p>FP16&#x2F;BF16 约 2 字节，INT8 约 1 字节，4-bit 权重约 0.5 字节；实际运行还要加上量化元数据、运行时缓冲区、KV Cache 和框架开销。</p><h2 id="量化不是免费的压缩"><a href="#量化不是免费的压缩" class="headerlink" title="量化不是免费的压缩"></a>量化不是免费的压缩</h2><p>Hugging Face 当前文档区分训练后量化（PTQ）和量化感知训练（QAT），并集成 bitsandbytes、torchao、AWQ、GPTQ 等多种后端。不同方法支持的硬件、序列化和训练能力不相同。</p><p>选择量化模型时至少验证：</p><ol><li>目标硬件是否真正支持；</li><li>推理速度是否比高精度更快；</li><li>关键任务质量是否下降；</li><li>模型格式能否被部署框架加载；</li><li>上下文变长后显存是否仍可接受。</li></ol><p>低比特通常降低权重内存，但不保证端到端延迟一定下降。</p><h2 id="上下文长度要看有效性和成本"><a href="#上下文长度要看有效性和成本" class="headerlink" title="上下文长度要看有效性和成本"></a>上下文长度要看有效性和成本</h2><p>标称上下文表示模型或服务允许的最大 token 数，不代表在整个长度范围内都能稳定找到细节。长上下文还会增加 prefill 时间和 KV Cache 占用。</p><p>如果任务是知识库问答，先比较检索后提供少量相关片段，与直接塞入整份文档的质量、延迟和成本。</p><h2 id="模型许可必须检查"><a href="#模型许可必须检查" class="headerlink" title="模型许可必须检查"></a>模型许可必须检查</h2><p>“开放权重”不一定等于可以无限制商用。下载前检查模型卡和许可证：是否限制用途、用户规模、再分发、衍生模型或训练数据使用。</p><p>许可证不清楚时，不要只根据仓库标题推断。</p><h2 id="建立自己的最小评测集"><a href="#建立自己的最小评测集" class="headerlink" title="建立自己的最小评测集"></a>建立自己的最小评测集</h2><p>准备 20 至 50 个真实输入，覆盖：</p><ul><li>正常请求；</li><li>边界长度；</li><li>中英混合；</li><li>结构化输出；</li><li>不知道答案时是否拒答；</li><li>业务中的高风险错误。</li></ul><p>记录答案质量、格式通过率、首 token 延迟、生成速度、峰值内存和失败率。只有在同一环境、同一输入和同一参数下比较，结果才有意义。</p><h2 id="一个实用决策顺序"><a href="#一个实用决策顺序" class="headerlink" title="一个实用决策顺序"></a>一个实用决策顺序</h2><pre><code class="highlight text">任务与许可  -&gt; 能否在硬件上运行  -&gt; 最小模型是否达标  -&gt; 是否需要量化  -&gt; 长上下文是否真实需要  -&gt; 用自己的评测集比较</code></pre><p>先选择能达到质量底线的最小模型，再考虑更大模型。这样更容易获得稳定延迟、较高并发和可控成本。</p><h2 id="官方资料"><a href="#官方资料" class="headerlink" title="官方资料"></a>官方资料</h2><ul><li><a href="https://huggingface.co/docs/transformers/main/quantization/concept_guide">Hugging Face：Quantization concepts</a></li><li><a href="https://huggingface.co/docs/transformers/main_classes/quantization">Hugging Face：Quantization overview</a></li><li><a href="https://huggingface.co/docs/transformers/main/perf_infer_gpu_one">Hugging Face：GPU inference</a></li></ul>]]></content>
+      
+      
+      <categories>
+          
+          <category> AI 学习路线 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> 推理部署 </tag>
+            
+            <tag> 量化 </tag>
+            
+            <tag> 开源模型 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>Transformer 入门：一次文本生成经历了什么</title>
+      <link href="/2026/08/13/2026-Transformer%E5%85%A5%E9%97%A8-%E4%B8%80%E6%AC%A1%E7%94%9F%E6%88%90%E6%B5%81%E7%A8%8B/"/>
+      <url>/2026/08/13/2026-Transformer%E5%85%A5%E9%97%A8-%E4%B8%80%E6%AC%A1%E7%94%9F%E6%88%90%E6%B5%81%E7%A8%8B/</url>
+      
+        <content type="html"><![CDATA[<p>理解 Transformer 不需要一开始推完所有公式。先沿着一次请求走完数据流，再回头学习矩阵计算，会更容易知道每个模块解决什么问题。</p><h2 id="1-输入被整理成模型能接受的序列"><a href="#1-输入被整理成模型能接受的序列" class="headerlink" title="1. 输入被整理成模型能接受的序列"></a>1. 输入被整理成模型能接受的序列</h2><p>聊天应用通常会先用 chat template 把 system、user、assistant 消息转换为模型训练时熟悉的格式，然后由 tokenizer 生成 token ID。</p><p>不同模型的特殊标记和消息模板可能不同。直接拼字符串虽然有时能运行，却可能破坏角色边界或停止条件。使用模型仓库提供的 tokenizer 和 chat template 更可靠。</p><h2 id="2-Token-Embedding-加上位置信息"><a href="#2-Token-Embedding-加上位置信息" class="headerlink" title="2. Token Embedding 加上位置信息"></a>2. Token Embedding 加上位置信息</h2><p>每个 token ID 会被映射成向量。模型还必须知道顺序，否则“猫追狗”和“狗追猫”只包含相同 token。原始 Transformer 使用位置编码，现代模型也常使用旋转位置编码等方案。</p><p>位置信息不只是一个配置数字。扩大上下文长度可能涉及位置编码、训练分布、KV Cache 显存和注意力计算成本，不能只修改一个上限就假设效果保持不变。</p><h2 id="3-Masked-Self-Attention-只查看已经出现的内容"><a href="#3-Masked-Self-Attention-只查看已经出现的内容" class="headerlink" title="3. Masked Self-Attention 只查看已经出现的内容"></a>3. Masked Self-Attention 只查看已经出现的内容</h2><p>Decoder-only 模型在生成当前位置时不能偷看未来 token，因此使用 causal mask。每一层会根据 Query、Key、Value 计算信息应该如何混合。</p><p>可以把多头注意力理解为：多个并行的信息通道使用不同投影寻找关系，最后合并。它并不保证每个头都对应一个人类可命名的语法规则。</p><h2 id="4-前馈网络处理每个位置"><a href="#4-前馈网络处理每个位置" class="headerlink" title="4. 前馈网络处理每个位置"></a>4. 前馈网络处理每个位置</h2><p>Attention 主要在 token 之间传递信息，前馈网络则对每个位置的表示进行非线性变换。残差连接和归一化帮助深层网络稳定训练和传播信息。</p><p>一个 Transformer Block 大致重复：</p><pre><code class="highlight text">输入  -&gt; 归一化  -&gt; Self-Attention  -&gt; 残差连接  -&gt; 归一化  -&gt; 前馈网络  -&gt; 残差连接</code></pre><p>不同模型会调整归一化位置、激活函数、注意力结构和专家模块，但整体数据流仍可以从这个骨架理解。</p><h2 id="5-输出层预测下一个-Token"><a href="#5-输出层预测下一个-Token" class="headerlink" title="5. 输出层预测下一个 Token"></a>5. 输出层预测下一个 Token</h2><p>最后一层隐藏状态经过投影得到词表 logits，再由解码策略选出下一个 token。新 token 被接回序列，模型继续生成，直到遇到停止标记、达到长度限制或被应用主动终止。</p><h2 id="6-KV-Cache-为什么能加速生成"><a href="#6-KV-Cache-为什么能加速生成" class="headerlink" title="6. KV Cache 为什么能加速生成"></a>6. KV Cache 为什么能加速生成</h2><p>如果每生成一个 token 都重新计算全部历史 Key 和 Value，会产生大量重复工作。KV Cache 保存前面 token 在各层的 Key&#x2F;Value，后续步骤只计算新 token 对应部分。</p><p>代价是显存会随层数、序列长度、并发请求和缓存数据类型增长。长上下文服务经常不是模型权重放不下，而是并发时 KV Cache 成为瓶颈。</p><h2 id="Prefill-和-Decode-要分开看"><a href="#Prefill-和-Decode-要分开看" class="headerlink" title="Prefill 和 Decode 要分开看"></a>Prefill 和 Decode 要分开看</h2><ul><li>Prefill：一次处理完整输入，计算量通常较集中；</li><li>Decode：逐 token 生成，延迟更受内存带宽、缓存访问和调度影响。</li></ul><p>因此压测至少应分开记录首 token 延迟和后续生成速度。只报告“总共用了几秒”，很难判断系统到底慢在哪里。</p><h2 id="建议做的三个实验"><a href="#建议做的三个实验" class="headerlink" title="建议做的三个实验"></a>建议做的三个实验</h2><ol><li>固定输出长度，逐渐增加输入长度，记录首 token 延迟；</li><li>固定输入，增加输出长度，记录每秒输出 token；</li><li>固定请求内容，增加并发，记录吞吐量和 P95 延迟。</li></ol><p>每次只改变一个变量，并保存模型、量化、硬件、上下文和采样参数。</p><h2 id="面试时怎么解释"><a href="#面试时怎么解释" class="headerlink" title="面试时怎么解释"></a>面试时怎么解释</h2><p>用一句话概括：Decoder-only Transformer 把上下文编码成隐藏表示，通过多层因果自注意力和前馈网络预测下一个 token；推理时利用 KV Cache 避免重复计算历史状态。</p><p>如果继续追问，再分别展开 tokenizer、位置编码、Attention、解码和缓存，不要从公式背诵开始。</p><h2 id="原始资料"><a href="#原始资料" class="headerlink" title="原始资料"></a>原始资料</h2><ul><li><a href="https://arxiv.org/abs/1706.03762">Attention Is All You Need</a></li><li><a href="https://huggingface.co/docs/transformers/main/en/generation_strategies">Hugging Face：Generation strategies</a></li><li><a href="https://huggingface.co/docs/transformers/">Hugging Face Transformers 文档</a></li></ul>]]></content>
+      
+      
+      <categories>
+          
+          <category> AI 学习路线 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> LLM </tag>
+            
+            <tag> Transformer </tag>
+            
+            <tag> Attention </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>AI 入门第一课：Token、Embedding 和文本生成到底是什么</title>
+      <link href="/2026/08/12/2026-AI%E5%85%A5%E9%97%A8-Token%E5%88%B0%E6%96%87%E6%9C%AC%E7%94%9F%E6%88%90/"/>
+      <url>/2026/08/12/2026-AI%E5%85%A5%E9%97%A8-Token%E5%88%B0%E6%96%87%E6%9C%AC%E7%94%9F%E6%88%90/</url>
+      
+        <content type="html"><![CDATA[<p>刚接触大模型时，最容易把它理解成一个“会查资料的聊天程序”。更准确的起点是：语言模型接收一串 token，根据已有上下文计算下一个 token 的概率，再用某种解码策略选出结果。这个过程不断重复，最终形成文本。</p><h2 id="第一步：文本先变成-Token"><a href="#第一步：文本先变成-Token" class="headerlink" title="第一步：文本先变成 Token"></a>第一步：文本先变成 Token</h2><p>模型不直接读取汉字或单词。Tokenizer 会把文本拆成词、子词、字符或字节级单元，再映射成整数 ID。</p><pre><code class="highlight text">“学习大模型”  -&gt; [“学习”, “大”, “模型”]  -&gt; [3812, 317, 9281]</code></pre><p>这只是示意。不同模型使用不同词表，同一句话得到的 token 数量可能不同。Hugging Face 当前文档列出的常见子词算法包括 BPE、Unigram 和 WordPiece；SentencePiece 还能直接处理没有空格分词习惯的中文、日文等文本。</p><p>Token 数量会影响三件事：上下文占用、请求成本和推理时间。因此，看到“支持 128K 上下文”时，应理解为 token 上限，而不是汉字数或单词数。</p><h2 id="第二步：Token-ID-变成向量"><a href="#第二步：Token-ID-变成向量" class="headerlink" title="第二步：Token ID 变成向量"></a>第二步：Token ID 变成向量</h2><p>整数 ID 本身没有语义。Embedding 层会为每个 token 查找一个向量。训练过程中，模型逐渐把使用方式相近的 token 放到更有规律的向量空间中。</p><p>向量不是词典释义。“苹果”在水果、公司和品牌语境中的含义，需要结合前后文经过多层 Transformer 才能得到更适合当前位置的表示。</p><h2 id="第三步：Attention-组合上下文"><a href="#第三步：Attention-组合上下文" class="headerlink" title="第三步：Attention 组合上下文"></a>第三步：Attention 组合上下文</h2><p>Self-Attention 让当前位置根据其他位置的信息更新自己的表示。可以先记住一个简化问题：</p><blockquote><p>生成下一个 token 时，当前上下文中的哪些部分最值得参考？</p></blockquote><p>Attention 不是一个可直接等同于“模型思考过程”的解释器。它是信息混合机制的一部分；模型的行为还受到多层变换、训练数据、目标函数和解码策略影响。</p><h2 id="第四步：得到下一个-Token-的概率"><a href="#第四步：得到下一个-Token-的概率" class="headerlink" title="第四步：得到下一个 Token 的概率"></a>第四步：得到下一个 Token 的概率</h2><p>模型最后输出词表中每个 token 的分数，经过 softmax 转成概率分布。</p><pre><code class="highlight text">“今天适合去” -&gt;  公园  0.31  学校  0.18  跑步  0.09  ……</code></pre><p>概率最高并不代表事实正确，只表示在模型学到的模式和当前上下文下，这个 token 更可能出现。</p><h2 id="第五步：解码策略决定如何选择"><a href="#第五步：解码策略决定如何选择" class="headerlink" title="第五步：解码策略决定如何选择"></a>第五步：解码策略决定如何选择</h2><p>Hugging Face 的生成文档区分了几种基础方法：</p><ul><li>Greedy search：每一步选择概率最高的 token，稳定但长文本可能重复；</li><li>Sampling：按概率抽样，更有多样性，也更不稳定；</li><li>Beam search：同时保留多个候选序列，更适合翻译、语音识别等有明确输入约束的任务。</li></ul><p><code>temperature</code>、<code>top_p</code> 等参数改变的是选择方式，不会给模型增加它没学过的知识。需要确定结构时，应优先使用 JSON Schema、类型校验和业务规则，而不是只把 temperature 调低。</p><h2 id="一个最小验证实验"><a href="#一个最小验证实验" class="headerlink" title="一个最小验证实验"></a>一个最小验证实验</h2><p>选择同一个模型和提示词，分别使用确定性生成与采样，连续运行五次，保存每次输出。</p><p>记录：</p><ol><li>输入 token 数；</li><li>最大输出 token 数；</li><li>解码参数；</li><li>输出是否重复；</li><li>事实是否一致。</li></ol><p>完成这个实验后，你应该能解释：为什么同一个问题会得到不同回答，以及为什么“更随机”不等于“更聪明”。</p><h2 id="常见误区"><a href="#常见误区" class="headerlink" title="常见误区"></a>常见误区</h2><ul><li>Token 不是固定的汉字或单词；</li><li>Embedding 相似不等于事实关系成立；</li><li>上下文更长不保证答案更好；</li><li>模型生成的是概率序列，不是数据库查询结果；</li><li>调整 temperature 不能替代检索、验证和结构约束。</li></ul><h2 id="官方资料"><a href="#官方资料" class="headerlink" title="官方资料"></a>官方资料</h2><ul><li><a href="https://huggingface.co/docs/transformers/main/en/tokenizer_summary">Hugging Face：Tokenization algorithms</a></li><li><a href="https://huggingface.co/docs/transformers/main/en/generation_strategies">Hugging Face：Generation strategies</a></li><li><a href="https://arxiv.org/abs/1706.03762">Attention Is All You Need</a></li></ul><p>下一篇建议阅读：<a href="/2026/08/13/2026-Transformer%E5%85%A5%E9%97%A8-%E4%B8%80%E6%AC%A1%E7%94%9F%E6%88%90%E6%B5%81%E7%A8%8B/">Transformer 入门：一次文本生成经历了什么</a></p>]]></content>
+      
+      
+      <categories>
+          
+          <category> AI 学习路线 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> AI 入门 </tag>
+            
+            <tag> LLM </tag>
+            
+            <tag> Tokenizer </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>Python 新手学 AI：7 个两天内能做完的开源项目</title>
+      <link href="/2026/08/11/2026-Python%E6%96%B0%E6%89%8B%E5%8F%AF%E4%B8%8A%E6%89%8B%E7%9A%84%E5%BC%80%E6%BA%90AI%E9%A1%B9%E7%9B%AE/"/>
+      <url>/2026/08/11/2026-Python%E6%96%B0%E6%89%8B%E5%8F%AF%E4%B8%8A%E6%89%8B%E7%9A%84%E5%BC%80%E6%BA%90AI%E9%A1%B9%E7%9B%AE/</url>
+      
+        <content type="html"><![CDATA[<p>新手学 AI 最容易做错的一件事，是一上来就克隆一个“全栈 Agent 平台”。装好二十个依赖、填完三个 API Key，页面能聊天，却不知道模型、检索、工具和服务各自做了什么。</p><p>更好的开始方式是：一次只引入一个新变量，并留下一个能验证的结果。下面七个项目不是“必装工具”，而是一条由浅到深的 Python 练习阶梯。</p><p><img src="/images/ai-learning/python-ai-project-ladder.svg" alt="Python 开源 AI 项目学习阶梯"></p><p>这张图有一个刻意的设计：它不是“工具排行榜”。前四步在回答“模型能力如何被人和程序使用”，后面三步才分别处理资料、工具和原理。每完成一个项目，先把它的输入、输出和失败情况说清楚，再进入下一步。</p><h2 id="先准备什么"><a href="#先准备什么" class="headerlink" title="先准备什么"></a>先准备什么</h2><p>会写函数、读 JSON、创建虚拟环境就够开始。建议使用 Python 3.10+；把每个练习放进独立目录，保存 <code>requirements.txt</code> 或 <code>pyproject.toml</code>、运行命令和一组测试输入。</p><p>不需要一开始有 GPU。前四个练习可以使用小模型、已有 API 或本地 CPU；需要下载模型时，先看模型大小和许可，不要把“能拉下来”误认为“自己的电脑跑得动”。</p><h2 id="选项目的标准"><a href="#选项目的标准" class="headerlink" title="选项目的标准"></a>选项目的标准</h2><table><thead><tr><th align="left">项目</th><th align="left">你会学到什么</th><th align="left">最小成果</th><th align="left">不适合拿来做什么</th></tr></thead><tbody><tr><td align="left">Transformers</td><td align="left">调用预训练模型</td><td align="left">一个文本&#x2F;图片&#x2F;音频推理脚本</td><td align="left">第一次就训练大模型</td></tr><tr><td align="left">Ollama Python</td><td align="left">本地模型请求与流式输出</td><td align="left">本地问答命令行工具</td><td align="left">绕开模型体积和硬件限制</td></tr><tr><td align="left">Gradio</td><td align="left">把 Python 函数做成界面</td><td align="left">一个可上传文件的 demo</td><td align="left">复杂业务后台</td></tr><tr><td align="left">FastAPI</td><td align="left">类型化 API、错误处理、文档</td><td align="left">一个带 <code>/health</code> 的 AI 接口</td><td align="left">把业务逻辑全塞进路由函数</td></tr><tr><td align="left">Qdrant Client</td><td align="left">本地向量检索</td><td align="left">一个能返回来源的迷你检索器</td><td align="left">直接宣称“企业知识库”</td></tr><tr><td align="left">smolagents</td><td align="left">受限工具调用</td><td align="left">只读两工具 Agent</td><td align="left">未经确认的写操作</td></tr><tr><td align="left">Tiny-Universe</td><td align="left">从原理手写 LLM 组件</td><td align="left">跑通一个 Tiny 模块</td><td align="left">把它当作生产框架</td></tr></tbody></table><h2 id="先建立一张心智地图：AI-应用不是一个聊天框"><a href="#先建立一张心智地图：AI-应用不是一个聊天框" class="headerlink" title="先建立一张心智地图：AI 应用不是一个聊天框"></a>先建立一张心智地图：AI 应用不是一个聊天框</h2><p>一段能调用模型的 Python 代码，只解决了最内层的问题。真正面向使用者的 AI 功能，还要处理输入是否合法、模型挂了怎么办、资料从哪里来、模型能调用哪些工具，以及出了问题如何追踪。</p><p><img src="/images/ai-learning/from-script-to-ai-app.svg" alt="从 Python 脚本到可靠 AI 应用"></p><p>所以这篇文章的顺序不是随意排列：先用 <code>Transformers</code> 或 Ollama 验证“模型能做什么”，再用 Gradio&#x2F;FastAPI 把它包成可用能力；确认检索本身可靠后才接 RAG；最后才尝试 Agent。<strong>Agent 不是起点，而是把已经验证过的能力组织起来。</strong></p><h2 id="1-Transformers：先让一个预训练模型完成单一任务"><a href="#1-Transformers：先让一个预训练模型完成单一任务" class="headerlink" title="1. Transformers：先让一个预训练模型完成单一任务"></a>1. Transformers：先让一个预训练模型完成单一任务</h2><p><a href="https://github.com/huggingface/transformers">Hugging Face Transformers</a> 的 <code>pipeline</code> 是很好的第一站：同一套 Python 接口可以尝试文本生成、分类、语音识别和图像分类。</p><p>第一天只选一个任务。例如做“评论情感分析”：读入十条自己写的文本，输出标签与置信度，并把结果保存为 JSON。然后故意加入反讽、空字符串和中英混合文本，观察失败情况。</p><pre><code class="highlight python"><span class="keyword">from</span> transformers <span class="keyword">import</span> pipelineclassifier = pipeline(<span class="string">&quot;sentiment-analysis&quot;</span>)<span class="built_in">print</span>(classifier(<span class="string">&quot;This update is surprisingly useful.&quot;</span>))</code></pre><p>上面这段代码的价值不在于短，而在于它把边界暴露得很清楚：<strong>输入是字符串，输出是标签和分数，模型文件会首次下载到本地。</strong> 先打印十条结果，再决定要不要做界面。</p><p>这个练习的目标不是做一个漂亮聊天框，而是理解模型调用的输入、输出、模型下载和失败边界。模型输出是预测，不是事实；不要据此自动删除评论或给用户打标签。</p><blockquote><p><strong>验收问题：</strong>我能否举出两条模型判断不可靠的样本，并说明为什么不能把这个输出当作事实？</p></blockquote><h2 id="2-Ollama-Python：用本地模型做一个命令行小工具"><a href="#2-Ollama-Python：用本地模型做一个命令行小工具" class="headerlink" title="2. Ollama Python：用本地模型做一个命令行小工具"></a>2. Ollama Python：用本地模型做一个命令行小工具</h2><p><a href="https://github.com/ollama/ollama-python">ollama-python</a> 是官方 Python 客户端，适合把已运行的 Ollama 模型接进脚本。它支持普通和流式聊天，也有异步客户端。</p><p>一个足够好的练习是“本地文本改写器”：命令行读取一段 Markdown，要求模型给出标题、三条摘要和待核实问题；把请求、模型名和输出写到本地文件。不要让模型直接修改原文件。</p><p>先在一个小模型上跑通。若内存不足，缩短输入或换更小模型，而不是反复重试。这里学到的是本地服务、流式响应与可重放输入，不是比较哪个模型最强。</p><blockquote><p><strong>验收问题：</strong>关闭本地模型服务时，你的脚本能否给出“服务不可用”的提示，而不是一串难懂的异常？</p></blockquote><h2 id="3-Gradio：把函数变成可试用的-demo"><a href="#3-Gradio：把函数变成可试用的-demo" class="headerlink" title="3. Gradio：把函数变成可试用的 demo"></a>3. Gradio：把函数变成可试用的 demo</h2><p><a href="https://github.com/gradio-app/gradio">Gradio</a> 可以把任意 Python 函数包装成 Web 界面，适合检验功能是否真的可被人使用。</p><p>延续上一步，把文本改写器改成一个页面：左侧输入文本，右侧显示结构化结果；当输入为空、超过长度限制或模型不可用时，给出明确提示。只要一个 <code>Interface</code> 或很小的 <code>Blocks</code> 页面就够了。</p><p>验收方式很简单：让一位朋友不用解释就完成一次输入、看到失败提示、复制结果。能被使用比动画和渐变更重要。</p><p>这里要练的不是前端框架，而是产品的最小闭环：用户看到输入框，系统给出结果，失败时能知道下一步该做什么。</p><h2 id="4-FastAPI：把-demo-收敛成可测试的服务"><a href="#4-FastAPI：把-demo-收敛成可测试的服务" class="headerlink" title="4. FastAPI：把 demo 收敛成可测试的服务"></a>4. FastAPI：把 demo 收敛成可测试的服务</h2><p><a href="https://github.com/fastapi/fastapi">FastAPI</a> 适合作为 Python AI 功能的服务层：类型声明会生成交互文档，Pydantic 可校验请求和返回值。</p><p>不要直接做“聊天 API”。先写两个端点：<code>GET /health</code> 返回服务状态，<code>POST /summaries</code> 接收文本并返回一个固定 Schema。为超长文本、非法 JSON 和模型超时写测试。模型调用放在单独的 service 模块，路由只负责请求&#x2F;响应和 HTTP 错误。</p><p>完成后再让 Gradio 调用这个 API。这样你能清楚地区分界面、服务、模型和存储，而不是所有代码都挤在一个 <code>app.py</code>。</p><pre><code class="highlight python"><span class="meta">@app.get(<span class="params"><span class="string">&quot;/health&quot;</span></span>)</span><span class="keyword">def</span> <span class="title function_">health</span>():    <span class="keyword">return</span> &#123;<span class="string">&quot;status&quot;</span>: <span class="string">&quot;ok&quot;</span>&#125;<span class="meta">@app.post(<span class="params"><span class="string">&quot;/summaries&quot;</span></span>)</span><span class="keyword">def</span> <span class="title function_">summarize</span>(<span class="params">request: SummaryRequest</span>) -&gt; SummaryResponse:    <span class="keyword">return</span> summary_service.run(request)</code></pre><p>这两个接口分别回答两个不同的问题：服务是否活着？输入是否符合约定、输出是否符合约定？把模型调用藏在 <code>summary_service</code> 中，日后替换模型时就不会牵动 HTTP 层。</p><h2 id="5-Qdrant-Client：做一个带来源的迷你检索器"><a href="#5-Qdrant-Client：做一个带来源的迷你检索器" class="headerlink" title="5. Qdrant Client：做一个带来源的迷你检索器"></a>5. Qdrant Client：做一个带来源的迷你检索器</h2><p>很多 RAG 教程的第一步就让你装 Docker、向量库、框架和工作流。对新手来说，<a href="https://github.com/qdrant/qdrant-client">Qdrant Python Client</a> 的本地模式更合适：它可以在内存或本地路径运行，之后再切换到服务模式。</p><p>练习用 5 篇自己写的短 Markdown 文档完成：</p><ol><li>给每篇文档分配 ID、标题和路径；</li><li>生成向量并写入本地集合；</li><li>输入问题后返回最相关的三段文本和来源；</li><li>如果最高分不足阈值，返回“未找到足够资料”。</li></ol><p>先把检索结果打印出来，不要急着接模型生成答案。你能解释“为什么这段被找回”之后，再谈 RAG。</p><p>可以把一次查询想成下面这个小闭环：</p><p><code>问题 → 向量化 → Top-k 文档片段 → 分数阈值判断 → 文本 + 文件来源</code></p><p>最后一步很关键。如果没有达到阈值，就明确说“资料不足”；不要让模型凭空补一段看似流畅的答案。</p><h2 id="6-smolagents：只做一个受限的工具调用-Agent"><a href="#6-smolagents：只做一个受限的工具调用-Agent" class="headerlink" title="6. smolagents：只做一个受限的工具调用 Agent"></a>6. smolagents：只做一个受限的工具调用 Agent</h2><p><a href="https://github.com/huggingface/smolagents">smolagents</a> 提供了较小的 Agent 实现，既有生成 Python 调用的 <code>CodeAgent</code>，也有输出结构化工具调用的 <code>ToolCallingAgent</code>。它适合在已经完成 API 与检索练习后，学习“模型如何选择工具”。</p><p>第一版只给两个只读工具：<code>search_notes(query)</code> 和 <code>get_note(id)</code>。设置最多三步；工具返回空结果时必须结束；所有调用记录到日志。不要接文件删除、邮件发送、浏览器控制或任何带副作用的工具。</p><p>特别要注意：模型生成的 Python 代码不应默认在宿主机执行。工具的参数、权限和执行环境要由程序控制；Agent 是一个需要测试的流程，不是一句 Prompt。</p><p>把 Agent 的一次运行当成可审计的记录，而不是魔法：<code>用户问题 → 工具选择 → 工具参数 → 工具返回 → 最终回答</code>。当这个记录能完整保存下来时，你才有能力修复“它为什么答错”。</p><h2 id="7-Tiny-Universe：想知道原理时，再做白盒练习"><a href="#7-Tiny-Universe：想知道原理时，再做白盒练习" class="headerlink" title="7. Tiny-Universe：想知道原理时，再做白盒练习"></a>7. Tiny-Universe：想知道原理时，再做白盒练习</h2><p><a href="https://github.com/datawhalechina/tiny-universe">Datawhale Tiny-Universe</a> 覆盖手写 Transformer、Tiny LLM、RAG、Agent 和 Eval，目标是让学习者看见底层实现，而不是只调用封装框架。</p><p>它适合已经完成前面两三个小项目、并且愿意读 PyTorch 代码的人。推荐只选一个模块：例如 Tiny Transformer 或 Tiny RAG。给自己一个限制：读懂并改动一个函数，再写一条测试，而不是把整个仓库一次跑完。</p><h2 id="一个四周节奏"><a href="#一个四周节奏" class="headerlink" title="一个四周节奏"></a>一个四周节奏</h2><table><thead><tr><th align="left">周</th><th align="left">项目</th><th align="left">交付物</th></tr></thead><tbody><tr><td align="left">第 1 周</td><td align="left">Transformers + Ollama</td><td align="left">两个可重复运行的命令行脚本和十条样本</td></tr><tr><td align="left">第 2 周</td><td align="left">Gradio + FastAPI</td><td align="left">一个 demo、一个 API、基础测试与错误提示</td></tr><tr><td align="left">第 3 周</td><td align="left">Qdrant Client</td><td align="left">五篇文档的本地检索、来源列表和拒答阈值</td></tr><tr><td align="left">第 4 周</td><td align="left">smolagents 或 Tiny-Universe</td><td align="left">工具 trace，或一份带注释的原理实验</td></tr></tbody></table><p>完成四周后再选方向：想做产品，就加强评测、权限和部署；想理解模型，就继续 tokenizer、attention 和训练循环；想微调开源模型，再看 <a href="https://github.com/datawhalechina/self-llm">Self-LLM</a> 与 <a href="https://github.com/hiyouga/LLaMA-Factory">LLaMA-Factory</a>。</p><p>真正的作品集不需要七个仓库。一个有 README、样本、错误处理、测试和已知限制的小项目，比一串“已学过 LangChain、RAG、Agent”的截图更有说服力。</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> AI 应用实战 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> AI 入门 </tag>
+            
+            <tag> Agent </tag>
+            
+            <tag> RAG </tag>
+            
+            <tag> Python </tag>
+            
+            <tag> 开源项目 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>大模型学习资料推荐：从入门、RAG 到推理部署</title>
+      <link href="/2026/08/10/2026-%E5%A4%A7%E6%A8%A1%E5%9E%8B%E4%BC%98%E8%B4%A8%E5%AD%A6%E4%B9%A0%E8%B5%84%E6%96%99%E5%BA%93/"/>
+      <url>/2026/08/10/2026-%E5%A4%A7%E6%A8%A1%E5%9E%8B%E4%BC%98%E8%B4%A8%E5%AD%A6%E4%B9%A0%E8%B5%84%E6%96%99%E5%BA%93/</url>
+      
+        <content type="html"><![CDATA[<blockquote><p>这里只收录能追到原始课程、代码、作业、实验记录或长期技术复盘的资料。每个条目都说明适合谁、学完该留下什么；不要同时开十个仓库。</p></blockquote><h2 id="如何使用这份清单"><a href="#如何使用这份清单" class="headerlink" title="如何使用这份清单"></a>如何使用这份清单</h2><p>先选一条线：</p><ul><li>想做 AI 应用：从「应用与 Agent」开始，再补「评测与部署」。</li><li>想理解模型：从「基础与模型原理」依次做项目。</li><li>想做训练&#x2F;后训练：完成小 GPT 后再进入「微调与推理能力」。</li><li>想做本地或线上推理：直接看「推理与部署」，但先准备一个要压测的模型和请求集。</li></ul><p>每周最多主学一个项目，其他资料只作为查阅工具。</p><h2 id="基础与模型原理"><a href="#基础与模型原理" class="headerlink" title="基础与模型原理"></a>基础与模型原理</h2><table><thead><tr><th align="left">资料</th><th align="left">适合谁</th><th align="left">为什么值得学</th><th align="left">最小产出</th></tr></thead><tbody><tr><td align="left"><a href="https://d2l.ai/">动手学深度学习</a></td><td align="left">深度学习&#x2F;PyTorch 基础薄弱</td><td align="left">用可运行代码解释张量、反向传播、注意力等前置知识</td><td align="left">跑通 attention 示例并解释输入输出 shape</td></tr><tr><td align="left"><a href="https://huggingface.co/learn">Hugging Face LLM Course</a></td><td align="left">已会 Python，想建立 LLM 全景</td><td align="left">官方持续维护，覆盖 Transformer、数据集与 LLM 生态</td><td align="left">用 Transformers 完成一个小型文本任务</td></tr><tr><td align="left"><a href="https://github.com/karpathy/minbpe">minbpe</a></td><td align="left">想真正理解 token</td><td align="left">极小且注释清楚的 BPE 实现，含训练、编码与解码</td><td align="left">自己训练一个 tokenizer，并比较压缩率</td></tr><tr><td align="left"><a href="https://github.com/rasbt/LLMs-from-scratch">LLMs-from-scratch</a></td><td align="left">想用 PyTorch 手写 GPT</td><td align="left">从 tokenizer 到预训练、微调的渐进式代码</td><td align="left">训练小模型并保存配置、曲线、样本</td></tr><tr><td align="left"><a href="https://cs336.stanford.edu/spring2025/index.html">Stanford CS336</a></td><td align="left">希望理解训练系统</td><td align="left">将数据、架构、训练、评测放进同一门课</td><td align="left">做一份小数据训练实验记录</td></tr><tr><td align="left"><a href="https://github.com/karpathy/llm.c">llm.c</a></td><td align="left">有 CUDA&#x2F;C 基础</td><td align="left">直接观察 GPT 训练的底层实现与性能问题</td><td align="left">成功编译并读懂一次训练日志</td></tr></tbody></table><p><code>llm.c</code> 是进阶材料，不是入门起点；没有 NVIDIA CUDA 环境时，先完成 Python 路线。</p><h2 id="微调、后训练与推理能力"><a href="#微调、后训练与推理能力" class="headerlink" title="微调、后训练与推理能力"></a>微调、后训练与推理能力</h2><table><thead><tr><th align="left">资料</th><th align="left">适合谁</th><th align="left">为什么值得学</th><th align="left">最小产出</th></tr></thead><tbody><tr><td align="left"><a href="https://github.com/datawhalechina/self-llm">Datawhale Self-LLM</a></td><td align="left">希望用中文资料上手开源模型</td><td align="left">覆盖本地部署、LoRA&#x2F;全参微调和多模态实践</td><td align="left">用小数据集完成一次 LoRA，并记录数据格式</td></tr><tr><td align="left"><a href="https://github.com/hiyouga/LLaMA-Factory">LLaMA-Factory</a></td><td align="left">已会跑模型，想做规范微调</td><td align="left">活跃的开源微调平台，包含数据格式、训练与导出配置</td><td align="left">复现一个 LoRA 配方并对比微调前后样本</td></tr><tr><td align="left"><a href="https://github.com/huggingface/open-r1">Open-R1</a></td><td align="left">想理解开源 reasoning 训练</td><td align="left">公开 SFT、GRPO、评测和数据生成的复现实验</td><td align="left">先读一份 recipe，画出数据与评测流</td></tr><tr><td align="left"><a href="https://github.com/allenai/open-instruct">Open Instruct</a></td><td align="left">有多卡训练条件&#x2F;研究兴趣</td><td align="left">AI2 的开放后训练代码，涉及 SFT、偏好优化与可验证奖励</td><td align="left">复现它的单卡 smoke test，不直接开大训练</td></tr><tr><td align="left"><a href="https://github.com/allenai/OLMo-core">OLMo-core</a></td><td align="left">对训练基础设施有兴趣</td><td align="left">公开训练组件、脚本与模型卡，适合读真实训练栈</td><td align="left">追踪一次官方配置中数据、模型和硬件的关系</td></tr></tbody></table><p>微调的关键不是把命令跑通。必须留一套固定评测样本，包含成功样例、失败样例和不该回答的样例；否则无法判断模型是否真的变好。</p><h2 id="应用、RAG-与-Agent"><a href="#应用、RAG-与-Agent" class="headerlink" title="应用、RAG 与 Agent"></a>应用、RAG 与 Agent</h2><table><thead><tr><th align="left">资料</th><th align="left">适合谁</th><th align="left">为什么值得学</th><th align="left">最小产出</th></tr></thead><tbody><tr><td align="left"><a href="https://fullstackdeeplearning.com/llm-bootcamp/">Full Stack Deep Learning LLM Bootcamp</a></td><td align="left">想做端到端产品</td><td align="left">将模型、数据、产品和部署放在同一问题中讨论</td><td align="left">写出一个具体需求的成功与失败定义</td></tr><tr><td align="left"><a href="https://huggingface.co/learn/agents-course/unit0/introduction">Hugging Face Agents Course</a></td><td align="left">初学 Agent</td><td align="left">从工具、框架到 Agentic RAG 与评测任务都有练习</td><td align="left">做一个只读、最多两工具的 Agent</td></tr><tr><td align="left"><a href="https://github.com/huggingface/smolagents">smolagents</a></td><td align="left">想看 Agent 循环的最小实现</td><td align="left">抽象较少，工具、代码 Agent 和 sandbox 边界明确</td><td align="left">阅读核心循环，并为一个工具加参数校验</td></tr><tr><td align="left"><a href="https://modelcontextprotocol.io/specification/2025-06-18/server/index">Model Context Protocol</a></td><td align="left">需要接入外部上下文或工具</td><td align="left">官方规范明确区分 prompts、resources 与 tools</td><td align="left">为一个工具写出权限、输入和副作用说明</td></tr><tr><td align="left"><a href="https://eugeneyan.com/writing/">Eugene Yan 的技术文章</a></td><td align="left">已有 demo，想了解生产问题</td><td align="left">长期讨论 RAG、评测、缓存、防御式 UX 与反馈闭环</td><td align="left">为自己的项目补一份评测表</td></tr><tr><td align="left"><a href="https://lilianweng.github.io/archives/">Lilian Weng 的技术博客</a></td><td align="left">想系统理解 Agent&#x2F;评测研究</td><td align="left">适合在有项目经验后回看机制、任务与评测</td><td align="left">选一篇文章，写一页问题—方法—局限笔记</td></tr></tbody></table><p>Agent 的练习顺序应是：先工作流，再只读工具，再带确认的写操作，最后才考虑多 Agent。MCP 是工具接入协议，不会替你解决业务权限和审计。</p><h2 id="评测与推理部署"><a href="#评测与推理部署" class="headerlink" title="评测与推理部署"></a>评测与推理部署</h2><table><thead><tr><th align="left">资料</th><th align="left">适合谁</th><th align="left">为什么值得学</th><th align="left">最小产出</th></tr></thead><tbody><tr><td align="left"><a href="https://github.com/EleutherAI/lm-evaluation-harness">lm-evaluation-harness</a></td><td align="left">需要比较模型或微调效果</td><td align="left">统一的开源评测框架，支持本地模型、API 与 vLLM</td><td align="left">对一个小模型跑一个固定任务并保存配置与结果</td></tr><tr><td align="left"><a href="https://github.com/ggml-org/llama.cpp">llama.cpp</a></td><td align="left">Mac&#x2F;CPU 或边缘设备部署</td><td align="left">覆盖广泛硬件的本地推理项目，适合理解量化与模型文件</td><td align="left">在本机跑一个量化模型并记录响应速度</td></tr><tr><td align="left"><a href="https://github.com/vllm-project/vLLM">vLLM</a></td><td align="left">有 NVIDIA GPU，准备服务化</td><td align="left">聚焦 PagedAttention、continuous batching、prefix caching 和吞吐</td><td align="left">用自己的请求集做一次并发压测</td></tr><tr><td align="left"><a href="https://docs.vllm.ai/en/latest/cli/bench/serve/">vLLM benchmark 文档</a></td><td align="left">已能启动 vLLM</td><td align="left">给出在线服务压测工具与指标输出</td><td align="left">对比不同并发下首 token 延迟与吞吐</td></tr><tr><td align="left"><a href="https://genai.owasp.org/llm-top-10/">OWASP LLM Top 10</a></td><td align="left">所有准备发布 AI 功能的人</td><td align="left">提醒 prompt injection、敏感信息泄露等应用风险</td><td align="left">为项目加入越权与恶意输入测试</td></tr></tbody></table><h2 id="跟踪最新技术的正确方式"><a href="#跟踪最新技术的正确方式" class="headerlink" title="跟踪最新技术的正确方式"></a>跟踪最新技术的正确方式</h2><p>以下资料适合“跟踪”，不适合作为第一门课：</p><ul><li><a href="https://huggingface.co/learn">Hugging Face Learn</a>：会持续出现新课程，例如 Context 与 Agents。</li><li><a href="https://sebastianraschka.com/blog/">Sebastian Raschka 的博客</a>：适合跟进架构、后训练与开源模型的技术解释。</li><li><a href="https://github.com/vllm-project/vllm/releases">vLLM Releases</a>：适合观察推理系统的真实演进，如量化、硬件支持、KV cache 与服务架构。</li><li><a href="https://github.com/allenai/awesome-open-source-lms">awesome-open-source-lms</a>：用于寻找训练代码、数据和评测也开放的项目，而不只看开放权重。</li></ul><p>每遇到一个“新方向”，先回答三个问题：它替换了哪个已有组件？我的项目瓶颈是什么？我用什么指标验证它的收益？答不出来，就先收藏，不开新坑。</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> AI 学习路线 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> LLM </tag>
+            
+            <tag> Agent </tag>
+            
+            <tag> 推理部署 </tag>
+            
+            <tag> 开源项目 </tag>
+            
+            <tag> 学习路线 </tag>
+            
+            <tag> 模型训练 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>零基础学大模型：一条能真正执行的 8 周开源项目路线</title>
+      <link href="/2026/08/10/2026-%E4%BB%8E0%E5%88%B01%E5%AD%A6%E4%B9%A0%E5%A4%A7%E6%A8%A1%E5%9E%8B-%E5%BC%80%E6%BA%90%E8%B7%AF%E7%BA%BF%E5%9B%BE/"/>
+      <url>/2026/08/10/2026-%E4%BB%8E0%E5%88%B01%E5%AD%A6%E4%B9%A0%E5%A4%A7%E6%A8%A1%E5%9E%8B-%E5%BC%80%E6%BA%90%E8%B7%AF%E7%BA%BF%E5%9B%BE/</url>
+      
+        <content type="html"><![CDATA[<p>大模型学习最常见的误区，是把四种完全不同的事塞进同一个待办：调 API、微调模型、从头训练、部署推理服务。它们共享一些词汇，却需要不同的数学、工程和算力。</p><p>如果目标不分开，学习很容易变成一种熟悉感：看过 Transformer 图、跑过聊天框、装过 Agent 框架，但没有任何一个系统真正从输入跑到可验证的输出。</p><p>这篇路线只推荐能交付东西的学习材料。每一段都有一个开源项目、一个完成标准和一个明确的止损点。</p><h2 id="先选你要学会的那件事"><a href="#先选你要学会的那件事" class="headerlink" title="先选你要学会的那件事"></a>先选你要学会的那件事</h2><table><thead><tr><th align="left">目标</th><th align="left">真正需要理解的部分</th><th align="left">暂时不要做</th></tr></thead><tbody><tr><td align="left">做 AI 应用</td><td align="left">模型调用、结构化输出、检索、评测、权限</td><td align="left">自己预训练一个模型</td></tr><tr><td align="left">理解模型内部</td><td align="left">tokenizer、attention、反向传播、训练循环</td><td align="left">一开始追最新 70B 模型</td></tr><tr><td align="left">做模型训练&#x2F;后训练</td><td align="left">数据、SFT、偏好优化、评测、分布式训练</td><td align="left">把一次 loss 下降当成效果证明</td></tr><tr><td align="left">做推理平台</td><td align="left">显存、KV cache、批处理、量化、压测</td><td align="left">先写多 Agent 编排</td></tr></tbody></table><p>大多数开发者应该走第一列，再选第二列补基础。训练一遍小 GPT 的价值是理解训练链路，而不是得到一个能与商业模型竞争的助手。</p><h2 id="项目一：用-Python-写出一个小-GPT，理解“模型到底在算什么”"><a href="#项目一：用-Python-写出一个小-GPT，理解“模型到底在算什么”" class="headerlink" title="项目一：用 Python 写出一个小 GPT，理解“模型到底在算什么”"></a>项目一：用 Python 写出一个小 GPT，理解“模型到底在算什么”</h2><p>推荐从 <a href="https://github.com/rasbt/LLMs-from-scratch">Sebastian Raschka 的 LLMs-from-scratch</a> 开始。它按 tokenizer、embedding、attention、GPT 架构、预训练与微调的顺序提供可运行代码，适合有 Python 和 PyTorch 基础的人。</p><p>本阶段不要追求完整复刻。只做三件事：</p><ol><li>让 tokenizer 把文本变成 token，再把 token 还原；</li><li>实现并打印一个 causal attention 的张量形状；</li><li>在很小的数据上训练到 loss 确实下降，并保存一次 checkpoint。</li></ol><p>完成标准不是“模型会写诗”，而是你能解释：为什么预测下一个 token；为什么注意力不能看未来；为什么训练和生成使用同一组权重却有不同的计算方式。</p><p>如果你连 PyTorch 张量都不熟，先看 <a href="https://huggingface.co/learn">Hugging Face LLM Course</a> 的基础单元。它的价值不在于记住某个 API，而在于建立 token、Transformer、训练与推理之间的共同语言。</p><h2 id="项目二：从训练数据到评测，完成一次小模型训练闭环"><a href="#项目二：从训练数据到评测，完成一次小模型训练闭环" class="headerlink" title="项目二：从训练数据到评测，完成一次小模型训练闭环"></a>项目二：从训练数据到评测，完成一次小模型训练闭环</h2><p>当“小 GPT”不再神秘后，再进入 <a href="https://cs336.stanford.edu/spring2025/index.html">Stanford CS336：Language Modeling from Scratch</a>。这门课把数据收集与清洗、Transformer 构建、训练和部署前评测放在同一条链路中；它比“手写 Transformer”更接近真实训练系统。</p><p>个人学习不需要复现它的全部作业。挑一个小数据集，维护以下四份东西就够了：</p><pre><code class="highlight text">data/      原始数据来源、许可和清洗脚本configs/   模型大小、学习率、随机种子runs/      loss、吞吐、显存和 checkpoint 元信息eval/      固定提示词、预期性质、失败样例</code></pre><p>最重要的产出是一页实验记录：改了什么、为什么改、loss&#x2F;速度怎样变化、生成样本哪里变好或变坏。没有这页记录，训练只是一次昂贵的抽奖。</p><p>想看更靠近底层的实现，可以把 <a href="https://github.com/karpathy/llm.c">Karpathy 的 llm.c</a> 当作进阶阅读。它用原始 C&#x2F;CUDA 展示 GPT-2 训练，适合理解 kernel、内存和训练性能；但它需要 CUDA 环境，不是第一个项目。</p><h2 id="项目三：把模型接进一个有边界的应用"><a href="#项目三：把模型接进一个有边界的应用" class="headerlink" title="项目三：把模型接进一个有边界的应用"></a>项目三：把模型接进一个有边界的应用</h2><p>到这里再做应用。选一个只有一个核心动词的需求，例如：</p><ul><li>从会议纪要提取待确认事项；</li><li>根据已授权文档回答制度问题并给出处；</li><li>从票据图片生成字段草稿，用户确认后入账。</li></ul><p>应用的第一版应只有一条链路：<code>输入 → 模型草稿 → Schema 校验 → 人工/规则确认 → 保存或展示</code>。模型不直接写数据库、不替用户发送邮件、不拥有数据库权限。</p><p>接下来才考虑 RAG。把它理解为证据检索，而不是“给模型加记忆”：资料必须有来源、版本和访问控制；答案必须能指出引用；资料不足时必须允许拒答。</p><p><a href="https://fullstackdeeplearning.com/llm-bootcamp/">Full Stack Deep Learning 的 LLM Bootcamp</a> 值得在这个阶段跟。它把模型能力、数据、产品与部署放在一起讨论；<a href="https://eugeneyan.com/writing/">Eugene Yan 的文章库</a> 则适合反复查阅评测、RAG、缓存和用户反馈等生产问题。</p><p>完成标准：准备至少 20 条脱敏样本，其中包含正常、模糊、资料不足和越权四类。每次修改模型、提示词或检索后，都重跑这 20 条。</p><h2 id="项目四：再学-Agent-与推理部署"><a href="#项目四：再学-Agent-与推理部署" class="headerlink" title="项目四：再学 Agent 与推理部署"></a>项目四：再学 Agent 与推理部署</h2><p>Agent 不是路线起点，而是“模型需要根据中间结果选择下一步”时的工具。先用两个只读工具，例如查询订单和检索帮助文档；每次工具调用由服务端重新做权限校验；写操作必须转到用户确认。</p><p><a href="https://huggingface.co/learn/agents-course/unit0/introduction">Hugging Face Agents Course</a> 提供了工具、框架、Agentic RAG 和评测项目的完整路径。若想读一个实现很小的框架，可看 <a href="https://github.com/huggingface/smolagents">smolagents</a>：它的核心代码量刻意很小，支持工具与 sandbox，是研究 Agent 循环的好材料。不要因为“多 Agent”听起来前沿就先搭多个角色；无法评测一个 Agent 时，多加几个只会扩大不确定性。</p><p>有 NVIDIA GPU、并且已经完成应用评测后，再试 <a href="https://github.com/vllm-project/vLLM">vLLM</a>。它把服务端真正关心的问题暴露出来：KV cache、continuous batching、prefix caching、量化、吞吐和延迟。启动服务不等于完成部署；至少用自己的请求分布做一次压测，记录首 token 时间、生成速度、并发下错误率与显存。</p><h2 id="当前值得跟踪的技术，不必立刻全学"><a href="#当前值得跟踪的技术，不必立刻全学" class="headerlink" title="当前值得跟踪的技术，不必立刻全学"></a>当前值得跟踪的技术，不必立刻全学</h2><p>下面这些方向正在改变工程决策，但它们不是新手的待办清单：</p><table><thead><tr><th align="left">方向</th><th align="left">它改变了什么</th><th align="left">应在何时学习</th></tr></thead><tbody><tr><td align="left">后训练与推理时扩展</td><td align="left">模型效果越来越依赖数据、验证器和测试时计算，而非只看预训练参数量</td><td align="left">已能训练并评测小模型后</td></tr><tr><td align="left">MoE 与长上下文</td><td align="left">模型架构和内存&#x2F;带宽约束变复杂</td><td align="left">读模型论文或做服务优化时</td></tr><tr><td align="left">Agent + MCP</td><td align="left">外部工具与上下文的接入方式更标准化</td><td align="left">已有明确工具、权限和审计需求时</td></tr><tr><td align="left">高效推理</td><td align="left">量化、KV cache、批处理直接影响单位成本与延迟</td><td align="left">准备自部署或有稳定流量时</td></tr><tr><td align="left">多模态</td><td align="left">输入从文本扩展到图片、音频、视频</td><td align="left">业务输入确实需要这些模态时</td></tr></tbody></table><p>“最新”不等于“现在该学”。判断一项技术是否值得投入的标准是：它是否解决了你正在运行的系统的瓶颈，且你能设计指标验证收益。</p><h2 id="一个八周的最小节奏"><a href="#一个八周的最小节奏" class="headerlink" title="一个八周的最小节奏"></a>一个八周的最小节奏</h2><table><thead><tr><th align="left">周</th><th align="left">只做一件事</th><th align="left">留下的证据</th></tr></thead><tbody><tr><td align="left">1</td><td align="left">完成 tokenizer 与 attention 小实验</td><td align="left">notebook + 张量解释</td></tr><tr><td align="left">2</td><td align="left">训练一个小 GPT</td><td align="left">config、曲线、checkpoint</td></tr><tr><td align="left">3</td><td align="left">清洗数据并写固定评测</td><td align="left">数据卡 + 20 条评测样本</td></tr><tr><td align="left">4</td><td align="left">做一次 SFT 或分类微调</td><td align="left">前后对比与失败样例</td></tr><tr><td align="left">5</td><td align="left">做一个结构化输出的小应用</td><td align="left">API、Schema、人工确认流</td></tr><tr><td align="left">6</td><td align="left">加检索与引用</td><td align="left">文档元数据、命中记录、拒答题</td></tr><tr><td align="left">7</td><td align="left">加两个受限工具或 Agent</td><td align="left">trace、权限拒绝与超时测试</td></tr><tr><td align="left">8</td><td align="left">部署或压测</td><td align="left">延迟、成本、错误率和 README</td></tr></tbody></table><p>八周后你不会“学完大模型”，但会拥有一条完整的证据链：理解过模型、训练过小实验、做过可用功能、测过错误，也知道自己下一步该去模型、数据还是系统层解决问题。</p><h2 id="资源清单"><a href="#资源清单" class="headerlink" title="资源清单"></a>资源清单</h2><ul><li><a href="https://huggingface.co/learn">Hugging Face Learn</a>：持续更新的 LLM、Context、Agents 等课程入口。</li><li><a href="https://github.com/rasbt/LLMs-from-scratch">LLMs-from-scratch</a>：最适合从 PyTorch 建立模型直觉的代码仓库。</li><li><a href="https://cs336.stanford.edu/spring2025/index.html">Stanford CS336</a>：训练全链路的课程与作业。</li><li><a href="https://github.com/karpathy/llm.c">llm.c</a>：面向 C&#x2F;CUDA 的训练实现进阶材料。</li><li><a href="https://fullstackdeeplearning.com/llm-bootcamp/">Full Stack Deep Learning LLM Bootcamp</a>：面向应用与产品工程的课程。</li><li><a href="https://huggingface.co/learn/agents-course/unit0/introduction">Hugging Face Agents Course</a>：从 Agent 基础到评测项目的实践课程。</li><li><a href="https://github.com/vllm-project/vLLM">vLLM</a>：开源推理与服务系统的主线项目。</li></ul>]]></content>
+      
+      
+      <categories>
+          
+          <category> AI 学习路线 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> LLM </tag>
+            
+            <tag> Agent </tag>
+            
+            <tag> 推理部署 </tag>
+            
+            <tag> 开源项目 </tag>
+            
+            <tag> 学习路线 </tag>
+            
+            <tag> 模型训练 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+  
+  
+</search>
